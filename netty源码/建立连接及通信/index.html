@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/hexo/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/hexo/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/hexo/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="netty源码," />
+
+
+
+
+
+  <link rel="alternate" href="/hexo/atom.xml" title="富婆&小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/hexo/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="建立连接之前看到过服务端启动时在ServerBootStrap中执行init方法，方法里会调用到NioEventLoop的的run方法，run发发中就是一个死循环一直监听网络事件，这个run不是线程的run，作者起名是真的恶心： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2.建立连接及通信">
+<meta property="og:url" content="https://hongjie123.gitee.io/hexo/netty%E6%BA%90%E7%A0%81/%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%8F%8A%E9%80%9A%E4%BF%A1/index.html">
+<meta property="og:site_name" content="富婆&amp;小红">
+<meta property="og:description" content="建立连接之前看到过服务端启动时在ServerBootStrap中执行init方法，方法里会调用到NioEventLoop的的run方法，run发发中就是一个死循环一直监听网络事件，这个run不是线程的run，作者起名是真的恶心： 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647">
+<meta property="og:locale">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gr4psm6d4lj318h0u0b29.jpg">
+<meta property="article:published_time" content="2021-01-03T22:27:35.000Z">
+<meta property="article:modified_time" content="2021-06-02T23:20:17.984Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="netty源码">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gr4psm6d4lj318h0u0b29.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://hongjie123.gitee.io/hexo/netty源码/建立连接及通信/"/>
+
+
+
+
+
+  <title>2.建立连接及通信 | 富婆&小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/hexo/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">富婆&小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/hexo/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/hexo/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/hexo/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/hexo/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://hongjie123.gitee.io/hexo/hexo/netty%E6%BA%90%E7%A0%81/%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%8F%8A%E9%80%9A%E4%BF%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/hexo/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="富婆&小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">2.建立连接及通信</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T06:27:35+08:00">
+                2021-01-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
+                    <span itemprop="name">框架</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="建立连接"><a href="#建立连接" class="headerlink" title="建立连接"></a>建立连接</h3><p>之前看到过服务端启动时在ServerBootStrap中执行init方法，方法里会调用到NioEventLoop的的run方法，run发发中就是一个死循环一直监听网络事件，这个run不是线程的run，作者起名是真的恶心：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">switch</span> (selectStrategy.calculateStrategy(selectNowSupplier, hasTasks())) &#123;</span><br><span class="line">                    <span class="keyword">case</span> SelectStrategy.CONTINUE:</span><br><span class="line">                        <span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">case</span> SelectStrategy.BUSY_WAIT:</span><br><span class="line">                        <span class="comment">// fall-through to SELECT since the busy-wait is not supported with NIO</span></span><br><span class="line"></span><br><span class="line">                    <span class="keyword">case</span> SelectStrategy.SELECT:</span><br><span class="line">                        <span class="comment">// 在这里执行selector.select(超时时间)和selector.selectNow()</span></span><br><span class="line">                        <span class="comment">// 里面也是一个死循环，有时间可以细研究一下，逻辑有点复杂</span></span><br><span class="line">                        select(wakenUp.getAndSet(<span class="keyword">false</span>));</span><br><span class="line"></span><br><span class="line">                        <span class="comment">// &#x27;wakenUp.compareAndSet(false, true)&#x27; is always evaluated</span></span><br><span class="line">                        <span class="comment">// before calling &#x27;selector.wakeup()&#x27; to reduce the wake-up</span></span><br><span class="line">                        <span class="comment">// overhead. (Selector.wakeup() is an expensive operation.)</span></span><br><span class="line">                        <span class="comment">//</span></span><br><span class="line">                        <span class="comment">// However, there is a race condition in this approach.</span></span><br><span class="line">                        <span class="comment">// The race condition is triggered when &#x27;wakenUp&#x27; is set to</span></span><br><span class="line">                        <span class="comment">// true too early.</span></span><br><span class="line">                        <span class="comment">//</span></span><br><span class="line">                        <span class="comment">// &#x27;wakenUp&#x27; is set to true too early if:</span></span><br><span class="line">                        <span class="comment">// 1) Selector is waken up between &#x27;wakenUp.set(false)&#x27; and</span></span><br><span class="line">                        <span class="comment">//    &#x27;selector.select(...)&#x27;. (BAD)</span></span><br><span class="line">                        <span class="comment">// 2) Selector is waken up between &#x27;selector.select(...)&#x27; and</span></span><br><span class="line">                        <span class="comment">//    &#x27;if (wakenUp.get()) &#123; ... &#125;&#x27;. (OK)</span></span><br><span class="line">                        <span class="comment">//</span></span><br><span class="line">                        <span class="comment">// In the first case, &#x27;wakenUp&#x27; is set to true and the</span></span><br><span class="line">                        <span class="comment">// following &#x27;selector.select(...)&#x27; will wake up immediately.</span></span><br><span class="line">                        <span class="comment">// Until &#x27;wakenUp&#x27; is set to false again in the next round,</span></span><br><span class="line">                        <span class="comment">// &#x27;wakenUp.compareAndSet(false, true)&#x27; will fail, and therefore</span></span><br><span class="line">                        <span class="comment">// any attempt to wake up the Selector will fail, too, causing</span></span><br><span class="line">                        <span class="comment">// the following &#x27;selector.select(...)&#x27; call to block</span></span><br><span class="line">                        <span class="comment">// unnecessarily.</span></span><br><span class="line">                        <span class="comment">//</span></span><br><span class="line">                        <span class="comment">// To fix this problem, we wake up the selector again if wakenUp</span></span><br><span class="line">                        <span class="comment">// is true immediately after selector.select(...).</span></span><br><span class="line">                        <span class="comment">// It is inefficient in that it wakes up the selector for both</span></span><br><span class="line">                        <span class="comment">// the first case (BAD - wake-up required) and the second case</span></span><br><span class="line">                        <span class="comment">// (OK - no wake-up required).</span></span><br><span class="line">                        <span class="keyword">if</span> (wakenUp.get()) &#123;</span><br><span class="line">                            selector.wakeup();</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="comment">// fall through</span></span><br><span class="line">                    <span class="keyword">default</span>:</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                <span class="comment">// If we receive an IOException here its because the Selector is messed up. Let&#x27;s rebuild</span></span><br><span class="line">                <span class="comment">// the selector and retry. https://github.com/netty/netty/issues/8566</span></span><br><span class="line">                rebuildSelector0();</span><br><span class="line">                handleLoopException(e);</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 当没有任务或者没到超时时间的时候都会hang在上面的代码中</span></span><br><span class="line">            cancelledKeys = <span class="number">0</span>;</span><br><span class="line">            needsToSelectAgain = <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">final</span> <span class="keyword">int</span> ioRatio = <span class="keyword">this</span>.ioRatio;</span><br><span class="line">            <span class="keyword">if</span> (ioRatio == <span class="number">100</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    processSelectedKeys();</span><br><span class="line">                &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                    <span class="comment">// Ensure we always run tasks.</span></span><br><span class="line">                    runAllTasks();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">final</span> <span class="keyword">long</span> ioStartTime = System.nanoTime();</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="comment">// 大概会走进这里进行事件选择，因为没找到设置上面的ioRatio的代码</span></span><br><span class="line">                    processSelectedKeys();</span><br><span class="line">                &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                    <span class="comment">// Ensure we always run tasks.</span></span><br><span class="line">                    <span class="keyword">final</span> <span class="keyword">long</span> ioTime = System.nanoTime() - ioStartTime;</span><br><span class="line">                    runAllTasks(ioTime * (<span class="number">100</span> - ioRatio) / ioRatio);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">            handleLoopException(t);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Always handle shutdown even if the loop processing threw an exception.</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (isShuttingDown()) &#123;</span><br><span class="line">                closeAll();</span><br><span class="line">                <span class="keyword">if</span> (confirmShutdown()) &#123;</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">            handleLoopException(t);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processSelectedKeys</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 这里会判断selector选择的结果，如果没有的话会直接selector.selectedKeys()阻塞住，然后的代码就很像我们平时写的了</span></span><br><span class="line">    <span class="keyword">if</span> (selectedKeys != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 拿到了客户端事件会走这里</span></span><br><span class="line">        processSelectedKeysOptimized();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        processSelectedKeysPlain(selector.selectedKeys());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processSelectedKeysOptimized</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; selectedKeys.size; ++i) &#123;</span><br><span class="line">        <span class="keyword">final</span> SelectionKey k = selectedKeys.keys[i];</span><br><span class="line">        <span class="comment">// null out entry in the array to allow to have it GC&#x27;ed once the Channel close</span></span><br><span class="line">        <span class="comment">// See https://github.com/netty/netty/issues/2363</span></span><br><span class="line">        selectedKeys.keys[i] = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 在之前执行register方法的时候会传进来一个对象，这个就是获取那个对象，取出来的是AbstractNioChannel</span></span><br><span class="line">        <span class="keyword">final</span> Object a = k.attachment();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (a <span class="keyword">instanceof</span> AbstractNioChannel) &#123;</span><br><span class="line">            <span class="comment">// 这里就是核心事件路由的入口</span></span><br><span class="line">            processSelectedKey(k, (AbstractNioChannel) a);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line">            NioTask&lt;SelectableChannel&gt; task = (NioTask&lt;SelectableChannel&gt;) a;</span><br><span class="line">            processSelectedKey(k, task);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (needsToSelectAgain) &#123;</span><br><span class="line">            <span class="comment">// null out entries in the array to allow to have it GC&#x27;ed once the Channel close</span></span><br><span class="line">            <span class="comment">// See https://github.com/netty/netty/issues/2363</span></span><br><span class="line">            selectedKeys.reset(i + <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">            selectAgain();</span><br><span class="line">            i = -<span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 分发事件处理的代码：</span></span><br><span class="line"><span class="comment">// 首先在最上面声明了一个unsafe类，这个网络的核心类要细看的</span></span><br><span class="line"><span class="keyword">final</span> AbstractNioChannel.NioUnsafe unsafe = ch.unsafe();</span><br><span class="line"><span class="comment">// 然后就根据事件类型做响应处理</span></span><br><span class="line"><span class="keyword">int</span> readyOps = k.readyOps();</span><br><span class="line"><span class="comment">// We first need to call finishConnect() before try to trigger a read(...) or write(...) as otherwise</span></span><br><span class="line"><span class="comment">// the NIO JDK channel implementation may throw a NotYetConnectedException.</span></span><br><span class="line"><span class="keyword">if</span> ((readyOps &amp; SelectionKey.OP_CONNECT) != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// remove OP_CONNECT as otherwise Selector.select(..) will always return without blocking</span></span><br><span class="line">    <span class="comment">// See https://github.com/netty/netty/issues/924</span></span><br><span class="line">    <span class="keyword">int</span> ops = k.interestOps();</span><br><span class="line">    <span class="comment">// 客户端关注这个</span></span><br><span class="line">    ops &amp;= ~SelectionKey.OP_CONNECT;</span><br><span class="line">    k.interestOps(ops);</span><br><span class="line"></span><br><span class="line">    unsafe.finishConnect();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 处理OP_WRITE事件，数据进缓冲区和释放内从都在这里</span></span><br><span class="line"><span class="keyword">if</span> ((readyOps &amp; SelectionKey.OP_WRITE) != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// Call forceFlush which will also take care of clear the OP_WRITE once there is nothing left to write</span></span><br><span class="line">    ch.unsafe().forceFlush();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead</span></span><br><span class="line"><span class="comment">// to a spin loop</span></span><br><span class="line"><span class="comment">// OP_READ和OP_ACCEPT放在了一起处理，不过是两个实现类，处理OP_ACCEPT用AbstractNioMessageChannel，处理OP_READ用NioByteUnsafe</span></span><br><span class="line"><span class="keyword">if</span> ((readyOps &amp; (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != <span class="number">0</span> || readyOps == <span class="number">0</span>) &#123;</span><br><span class="line">    unsafe.read();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面所有的逻辑都是在NioEventLoop中实现的，然后继续走到建立连接的read事件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">NioMessageUnsafe</span> <span class="keyword">extends</span> <span class="title">AbstractNioUnsafe</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Object&gt; readBuf = <span class="keyword">new</span> ArrayList&lt;Object&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">read</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function"><span class="keyword">assert</span> <span class="title">eventLoop</span><span class="params">()</span>.<span class="title">inEventLoop</span><span class="params">()</span></span>;</span><br><span class="line">        <span class="keyword">final</span> ChannelConfig config = config();</span><br><span class="line">        <span class="keyword">final</span> ChannelPipeline pipeline = pipeline();</span><br><span class="line">        <span class="comment">// 这里的RecvByteBufAllocator是动态分配缓冲的算法，建立连接体现不出来，在处理读事件的时候就比较复杂了</span></span><br><span class="line">        <span class="keyword">final</span> RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();</span><br><span class="line">        allocHandle.reset(config);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">boolean</span> closed = <span class="keyword">false</span>;</span><br><span class="line">        Throwable exception = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">do</span> &#123;</span><br><span class="line">                    <span class="comment">// 这里传进去一个list，然后在NioServerSocketChannel中直接调用</span></span><br><span class="line">                    <span class="comment">// SocketUtils.accept(javaChannel())创建一个SocketChannel加到list中</span></span><br><span class="line">                    <span class="keyword">int</span> localRead = doReadMessages(readBuf);</span><br><span class="line">                    <span class="keyword">if</span> (localRead == <span class="number">0</span>) &#123;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">if</span> (localRead &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                        closed = <span class="keyword">true</span>;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    allocHandle.incMessagesRead(localRead);</span><br><span class="line">                &#125; <span class="keyword">while</span> (allocHandle.continueReading());</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">                exception = t;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> size = readBuf.size();</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size; i ++) &#123;</span><br><span class="line">                readPending = <span class="keyword">false</span>;</span><br><span class="line">                <span class="comment">// 这步很关键，把创建好的channel注册到childEventLoop上</span></span><br><span class="line">                <span class="comment">// 调用的链路是DefaultChannelPipeline【fireChannelRead】-&gt;AbstractChannelHandlerContext【invokeChannelRead】-&gt;ServerBootstrapAcceptor【channelRead】</span></span><br><span class="line">                pipeline.fireChannelRead(readBuf.get(i));</span><br><span class="line">            &#125;</span><br><span class="line">            readBuf.clear();</span><br><span class="line">            allocHandle.readComplete();</span><br><span class="line">            pipeline.fireChannelReadComplete();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (exception != <span class="keyword">null</span>) &#123;</span><br><span class="line">                closed = closeOnReadError(exception);</span><br><span class="line"></span><br><span class="line">                pipeline.fireExceptionCaught(exception);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (closed) &#123;</span><br><span class="line">                inputShutdown = <span class="keyword">true</span>;</span><br><span class="line">                <span class="keyword">if</span> (isOpen()) &#123;</span><br><span class="line">                    close(voidPromise());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="comment">// Check if there is a readPending which was not processed yet.</span></span><br><span class="line">            <span class="comment">// This could be for two reasons:</span></span><br><span class="line">            <span class="comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelRead(...) method</span></span><br><span class="line">            <span class="comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelReadComplete(...) method</span></span><br><span class="line">            <span class="comment">//</span></span><br><span class="line">            <span class="comment">// See https://github.com/netty/netty/issues/2254</span></span><br><span class="line">            <span class="keyword">if</span> (!readPending &amp;&amp; !config.isAutoRead()) &#123;</span><br><span class="line">                removeReadOp();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ServerBootstrapAcceptor是ServerBootstrap的静态内部类，也是实现了ChannelInboundHandlerAdapter，和我们自己实现的逻辑一样，但是什么时候把他加到了pipeline里的呢？绑定childEventLoop的代码如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">channelRead</span><span class="params">(ChannelHandlerContext ctx, Object msg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Channel child = (Channel) msg;</span><br><span class="line"></span><br><span class="line">    child.pipeline().addLast(childHandler);</span><br><span class="line">    <span class="comment">// 可以看到如果我们声明了childOption等属性，会在这里赋值给这个channel</span></span><br><span class="line">    setChannelOptions(child, childOptions, logger);</span><br><span class="line">    setAttributes(child, childAttrs);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 直接注册到childEventLoop的selector上</span></span><br><span class="line">        childGroup.register(child).addListener(<span class="keyword">new</span> ChannelFutureListener() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">operationComplete</span><span class="params">(ChannelFuture future)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (!future.isSuccess()) &#123;</span><br><span class="line">                    forceClose(child, future.cause());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        forceClose(child, t);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="读取数据"><a href="#读取数据" class="headerlink" title="读取数据"></a>读取数据</h3><p>unsafe.read();在收到OP_READ事件时走的是AbstractNioByteChannel的NioByteUnsafe内部类中的read方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">read</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> ChannelConfig config = config();</span><br><span class="line">    <span class="keyword">if</span> (shouldBreakReadReady(config)) &#123;</span><br><span class="line">        clearReadPending();</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 猜测是拿到处理链路，后面看pipeline原理的时候再说</span></span><br><span class="line">    <span class="keyword">final</span> ChannelPipeline pipeline = pipeline();</span><br><span class="line">    <span class="keyword">final</span> ByteBufAllocator allocator = config.getAllocator();</span><br><span class="line">    <span class="comment">// 动态分配ByteBuf，因为netty是一个开源框架，使用的人会用到各种协议，这样的话是确定不了一个完整的请求的大小的</span></span><br><span class="line">    <span class="comment">// 比如我们的im会在head中声明这次请求的大小，但是别人可能不会，所以这里需要根据之前的每次请求的大小来预估</span></span><br><span class="line">    <span class="comment">// 给一个差不多的ByteBuf，里面的算法有点复杂，等会细看</span></span><br><span class="line">    <span class="keyword">final</span> RecvByteBufAllocator.Handle allocHandle = recvBufAllocHandle();</span><br><span class="line">    allocHandle.reset(config);</span><br><span class="line"></span><br><span class="line">    ByteBuf byteBuf = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">boolean</span> close = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            byteBuf = allocHandle.allocate(allocator);</span><br><span class="line">            <span class="comment">// 在doReadBytes里把数据写到byteBuf里</span></span><br><span class="line">            <span class="comment">// lastBytesRead是记录这次读了多少，一共读了多少，猜测是为了动态分配ByteBuf用的</span></span><br><span class="line">            allocHandle.lastBytesRead(doReadBytes(byteBuf));</span><br><span class="line">            <span class="keyword">if</span> (allocHandle.lastBytesRead() &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">// nothing was read. release the buffer.</span></span><br><span class="line">                byteBuf.release();</span><br><span class="line">                byteBuf = <span class="keyword">null</span>;</span><br><span class="line">                close = allocHandle.lastBytesRead() &lt; <span class="number">0</span>;</span><br><span class="line">                <span class="keyword">if</span> (close) &#123;</span><br><span class="line">                    <span class="comment">// There is nothing left to read as we received an EOF.</span></span><br><span class="line">                    readPending = <span class="keyword">false</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            allocHandle.incMessagesRead(<span class="number">1</span>);</span><br><span class="line">            readPending = <span class="keyword">false</span>;</span><br><span class="line">            <span class="comment">// 和上面一样的走的是pipeline的处理链路</span></span><br><span class="line">            <span class="comment">// 只不过parent的处理链路就是交给child，child才会调我们自己的ChannelInboundHandlerAdapter</span></span><br><span class="line">            pipeline.fireChannelRead(byteBuf);</span><br><span class="line">            byteBuf = <span class="keyword">null</span>;</span><br><span class="line">        &#125; <span class="keyword">while</span> (allocHandle.continueReading());</span><br><span class="line"></span><br><span class="line">        allocHandle.readComplete();</span><br><span class="line">        pipeline.fireChannelReadComplete();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (close) &#123;</span><br><span class="line">            closeOnRead(pipeline);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        handleReadException(pipeline, byteBuf, t, close, allocHandle);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// Check if there is a readPending which was not processed yet.</span></span><br><span class="line">        <span class="comment">// This could be for two reasons:</span></span><br><span class="line">        <span class="comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelRead(...) method</span></span><br><span class="line">        <span class="comment">// * The user called Channel.read() or ChannelHandlerContext.read() in channelReadComplete(...) method</span></span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        <span class="comment">// See https://github.com/netty/netty/issues/2254</span></span><br><span class="line">        <span class="keyword">if</span> (!readPending &amp;&amp; !config.isAutoRead()) &#123;</span><br><span class="line">            removeReadOp();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="发送消息"><a href="#发送消息" class="headerlink" title="发送消息"></a>发送消息</h3><p>发送消息直接通过调用ChannelHandlerContext.writeAndFlush()或者ChannelHandlerContext.write()，他们俩的区别是一个写到了缓冲，度缓冲和写缓冲一会再看，另一个是直接调用channel.write方法，核心入口在AbstractChannelHandlerContext的read方法里：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (flush) &#123;</span><br><span class="line">    <span class="comment">// 刷新走这个</span></span><br><span class="line">    <span class="comment">// 这里就是调用了invokeWrite0(msg, promise)和invokeFlush0()</span></span><br><span class="line">    next.invokeWriteAndFlush(m, promise);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 不刷新走这个</span></span><br><span class="line">    next.invokeWrite(m, promise);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 再看invokeWrite0</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">invokeWrite0</span><span class="params">(Object msg, ChannelPromise promise)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 这个handler只有三个实现，headContext、tailContext和DefaultChannelPipeline</span></span><br><span class="line">        <span class="comment">// 拿到的应该就是一个DefaultChannelPipeline，这里的write方法执行的是unsafe.write</span></span><br><span class="line">        <span class="comment">// 在AbstractChannel的AbstractUnsafe内部类中</span></span><br><span class="line">        ((ChannelOutboundHandler) handler()).write(<span class="keyword">this</span>, msg, promise);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        notifyOutboundHandlerException(t, promise);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AbstractChannel：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(Object msg, ChannelPromise promise)</span> </span>&#123;</span><br><span class="line">    assertEventLoop();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 拿到写缓冲池</span></span><br><span class="line">    ChannelOutboundBuffer outboundBuffer = <span class="keyword">this</span>.outboundBuffer;</span><br><span class="line">    <span class="keyword">if</span> (outboundBuffer == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// If the outboundBuffer is null we know the channel was closed and so</span></span><br><span class="line">        <span class="comment">// need to fail the future right away. If it is not null the handling of the rest</span></span><br><span class="line">        <span class="comment">// will be done in flush0()</span></span><br><span class="line">        <span class="comment">// See https://github.com/netty/netty/issues/2362</span></span><br><span class="line">        safeSetFailure(promise, newClosedChannelException(initialCloseCause));</span><br><span class="line">        <span class="comment">// release message now to prevent resource-leak</span></span><br><span class="line">        ReferenceCountUtil.release(msg);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> size;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 只写到写缓冲池里，如果不调用flush方法，什么时候发送给客户端呢？</span></span><br><span class="line">        msg = filterOutboundMessage(msg);</span><br><span class="line">        size = pipeline.estimatorHandle().size(msg);</span><br><span class="line">        <span class="keyword">if</span> (size &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            size = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable t) &#123;</span><br><span class="line">        safeSetFailure(promise, t);</span><br><span class="line">        ReferenceCountUtil.release(msg);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    outboundBuffer.addMessage(msg, size, promise);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 下面就是一个flush方法，前面的invokeFlush0一定会走到这里</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">flush</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    assertEventLoop();</span><br><span class="line"></span><br><span class="line">    ChannelOutboundBuffer outboundBuffer = <span class="keyword">this</span>.outboundBuffer;</span><br><span class="line">    <span class="keyword">if</span> (outboundBuffer == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 这里面就是减掉写缓冲的刷新了的字节数，加了一个刷新的次数统计</span></span><br><span class="line">    outboundBuffer.addFlush();</span><br><span class="line">    <span class="comment">// 这里面是一些校验，缓冲里有没有数据之类的</span></span><br><span class="line">    flush0();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 最后的最后在NioSocketChannel里调用了channel.write</span></span><br><span class="line">ch.write(buffer)</span><br></pre></td></tr></table></figure>
+<p>完整的流程图：<br><img src="https://tva1.sinaimg.cn/large/008i3skNly1gr4psm6d4lj318h0u0b29.jpg"></p>
+
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/hexo/netty%E6%BA%90%E7%A0%81/%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%8F%8A%E9%80%9A%E4%BF%A1/">2.建立连接及通信</a></p>
+  <p><span>发布时间:</span>2021年01月04日 - 06:01</p>
+  <p><span>最后更新:</span>2021年06月03日 - 07:06</p>
+  <p><span>原始链接:</span><a href="/hexo/netty%E6%BA%90%E7%A0%81/%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%8F%8A%E9%80%9A%E4%BF%A1/" title="2.建立连接及通信">https://hongjie123.gitee.io/hexo/netty%E6%BA%90%E7%A0%81/%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%8F%8A%E9%80%9A%E4%BF%A1/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/netty%E6%BA%90%E7%A0%81/%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%8F%8A%E9%80%9A%E4%BF%A1/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/hexo/tags/netty%E6%BA%90%E7%A0%81/" rel="tag"><i class="fa fa-tag"></i> netty源码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/hexo/maven/Maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/" rel="next" title="maven统一版本号修改">
+                <i class="fa fa-chevron-left"></i> maven统一版本号修改
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/hexo/netty%E6%BA%90%E7%A0%81/%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B/" rel="prev" title="1.启动流程">
+                1.启动流程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/hexo/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/hexo/archives/">
+                <span class="site-state-item-count">162</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/hexo/categories/index.html">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/hexo/tags/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/hexo/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5"><span class="nav-number">1.</span> <span class="nav-text">建立连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%BB%E5%8F%96%E6%95%B0%E6%8D%AE"><span class="nav-number">2.</span> <span class="nav-text">读取数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%91%E9%80%81%E6%B6%88%E6%81%AF"><span class="nav-number">3.</span> <span class="nav-text">发送消息</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/hexo/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/hexo/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/hexo/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
