@@ -98,13 +98,13 @@
 
 <meta name="description" content="HDFS和HBase的关系：HDFS能做的事非常少，也就是创建文件，删除文件，大文件读取，追加数据，如果想要修改或者根据某些条件查询就不行，hbase就是做这个的。 hbase是一个nosql，他不负责存储数据，需要基于HDFS来实现，但是他不能执行复杂的条件查询，对海量数据的简单的增删改查。 架构特点   hbase基于多台regionServer来管理数据分片，regionServer是高可用">
 <meta property="og:type" content="article">
-<meta property="og:title" content="1.基础">
+<meta property="og:title" content="1.habse基础">
 <meta property="og:url" content="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/index.html">
 <meta property="og:site_name" content="富婆&amp;小红">
 <meta property="og:description" content="HDFS和HBase的关系：HDFS能做的事非常少，也就是创建文件，删除文件，大文件读取，追加数据，如果想要修改或者根据某些条件查询就不行，hbase就是做这个的。 hbase是一个nosql，他不负责存储数据，需要基于HDFS来实现，但是他不能执行复杂的条件查询，对海量数据的简单的增删改查。 架构特点   hbase基于多台regionServer来管理数据分片，regionServer是高可用">
 <meta property="og:locale">
 <meta property="article:published_time" content="2021-06-05T22:27:35.000Z">
-<meta property="article:modified_time" content="2021-06-06T16:06:27.872Z">
+<meta property="article:modified_time" content="2021-06-16T05:28:55.040Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="大数据">
 <meta name="twitter:card" content="summary">
@@ -142,7 +142,7 @@
 
 
 
-  <title>1.基础 | 富婆&小红</title>
+  <title>1.habse基础 | 富婆&小红</title>
   
 
 
@@ -326,7 +326,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">1.基础</h1>
+          <h1 class="post-title" itemprop="name headline">1.habse基础</h1>
         
 
         <div class="post-meta">
@@ -428,6 +428,8 @@
 <p>order_1_110        t1                    order:detail         xxx</p>
 <p>order_1_111        t2                    order:base          xxx</p>
 <p>order_1_111        t3                    order:extent        xxx</p>
+<h3 id="简单的语法"><a href="#简单的语法" class="headerlink" title="简单的语法"></a>简单的语法</h3><p>进入bin下执行**./hbase shell**连接hbase。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 创建一张<span class="built_in">test</span>表，指定一个列族cf，创建表时必须要有列族，可以是多个列族create <span class="string">&#x27;test&#x27;</span>,<span class="string">&#x27;cf1&#x27;</span>,<span class="string">&#x27;cf2&#x27;</span></span></span><br><span class="line">create &#x27;test&#x27;,&#x27;cf&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用list获取所有表，也可以指定表，比如list <span class="string">&#x27;test&#x27;</span></span></span><br><span class="line">list</span><br><span class="line"><span class="meta">#</span><span class="bash"> 或者使用exist 表名</span></span><br><span class="line">exists &#x27;test&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 禁用表，所有dml操作都需要先禁用表</span></span><br><span class="line">disable &#x27;test&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 查看表的明细</span></span><br><span class="line">describe &#x27;test&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除表，这一步是基于<span class="built_in">disable</span>之后的</span></span><br><span class="line">drop &#x27;test&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 插入一行数据，put 表名,rowkey,列族：列名,值……</span></span><br><span class="line">put &#x27;test&#x27;,&#x27;row1&#x27;,&#x27;cf1:a&#x27;,&#x27;cf2:1&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 获取表数据，例子是倒叙，条件可以不带</span></span><br><span class="line">scan &#x27;test&#x27;,&#123;REVERSED=&gt;true,STARTROW=&gt;&#x27;row100~&#x27;,ENDROW=&gt;&#x27;row100&#x27;,LIMIT=&gt;5&#125;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 再来个正序</span></span><br><span class="line">scan &#x27;test&#x27;,&#123;STARTROW=&gt;&#x27;row100&#x27;,ENDROW=&gt;&#x27;row100~&#x27;,LIMIT=&gt;5&#125;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 还可以根据row key获取一条数据</span></span><br><span class="line">get &#x27;test&#x27; &#x27;row1&#x27;</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -454,10 +456,10 @@
   <!-- JS库 sweetalert 可修改路径 -->
   <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-  <p><span>本文标题:</span><a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/">1.基础</a></p>
+  <p><span>本文标题:</span><a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/">1.habse基础</a></p>
   <p><span>发布时间:</span>2021年06月06日 - 06:06</p>
-  <p><span>最后更新:</span>2021年06月07日 - 00:06</p>
-  <p><span>原始链接:</span><a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/" title="1.基础">https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/</a>
+  <p><span>最后更新:</span>2021年06月16日 - 13:06</p>
+  <p><span>原始链接:</span><a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/" title="1.habse基础">https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/"  aria-label="复制成功！"></i></span>
   </p>
   <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
@@ -502,8 +504,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/hexo/nginx/0.openresty%E5%AE%89%E8%A3%85/" rel="next" title="安装">
-                <i class="fa fa-chevron-left"></i> 安装
+              <a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/02%E5%AE%89%E8%A3%85/" rel="next" title="2.habse安装">
+                <i class="fa fa-chevron-left"></i> 2.habse安装
               </a>
             
           </div>
@@ -512,8 +514,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/02%E5%AE%89%E8%A3%85/" rel="prev" title="">
-                 <i class="fa fa-chevron-right"></i>
+              <a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/" rel="prev" title="4.put流程">
+                4.put流程 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -591,7 +593,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/hexo/archives/">
-                <span class="site-state-item-count">161</span>
+                <span class="site-state-item-count">163</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -655,7 +657,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#HDFS%E5%92%8CHBase%E7%9A%84%E5%85%B3%E7%B3%BB%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">HDFS和HBase的关系：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E7%89%B9%E7%82%B9"><span class="nav-number">2.</span> <span class="nav-text">架构特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">3.</span> <span class="nav-text">使用场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B%E5%92%8C%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">数据模型和物理模型</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#HDFS%E5%92%8CHBase%E7%9A%84%E5%85%B3%E7%B3%BB%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">HDFS和HBase的关系：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E7%89%B9%E7%82%B9"><span class="nav-number">2.</span> <span class="nav-text">架构特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">3.</span> <span class="nav-text">使用场景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B%E5%92%8C%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">数据模型和物理模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%9A%84%E8%AF%AD%E6%B3%95"><span class="nav-number">5.</span> <span class="nav-text">简单的语法</span></a></li></ol></div>
             
 
           </div>

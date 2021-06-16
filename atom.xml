@@ -6,7 +6,7 @@
   <link href="https://hongjie123.gitee.io/hexo/atom.xml" rel="self"/>
   
   <link href="https://hongjie123.gitee.io/hexo/"/>
-  <updated>2021-06-06T14:26:40.020Z</updated>
+  <updated>2021-06-14T14:50:11.256Z</updated>
   <id>https://hongjie123.gitee.io/hexo/</id>
   
   <author>
@@ -17,32 +17,78 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title></title>
-    <link href="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/02%E5%AE%89%E8%A3%85/"/>
-    <id>https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/02%E5%AE%89%E8%A3%85/</id>
-    <published>2021-06-06T14:26:32.038Z</published>
-    <updated>2021-06-06T14:26:40.020Z</updated>
+    <title>3.物理模型</title>
+    <link href="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/"/>
+    <id>https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/</id>
+    <published>2021-06-13T22:27:35.000Z</published>
+    <updated>2021-06-14T14:50:11.256Z</updated>
+    
+    <content type="html"><![CDATA[<p>hbase使用多维的稀疏排序map存储数据，比如像下面这样：</p><p><strong>rowkey_01+列族1:列1+put+t3：v1</strong>，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，value就是操作的值，这样看的话就是一个多维排序的map，稀疏的话说的是每一列不一定有值，这样看起来就很稀疏。</p><p>他是一种列簇式存储，把同一列族下的所有列的值存到一个大文件里，所以查询同一列族下的数据会很快，到是一次查找多个列族，就会涉及到读取多个文件，所以在建表的时候需要考虑好，尽量让每次插叙都是同一列族下的列数据，相对于列存储和行存储，列簇存储更灵活，如果一个表只有一个列簇，就变成了行存储，如果每一个列簇只有一个列，就变成了列存储。</p><h3 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h3><p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gri6bw1tc9j30u00zkn24.jpg"></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;hbase使用多维的稀疏排序map存储数据，比如像下面这样：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;rowkey_01+列族1:列1+put+t3：v1&lt;/strong&gt;，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，val</summary>
+      
     
     
     
+    <category term="HBase" scheme="https://hongjie123.gitee.io/hexo/categories/HBase/"/>
     
+    
+    <category term="大数据" scheme="https://hongjie123.gitee.io/hexo/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
     
   </entry>
   
   <entry>
-    <title>1.基础</title>
+    <title>4.put流程</title>
+    <link href="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/"/>
+    <id>https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/</id>
+    <published>2021-06-13T22:27:35.000Z</published>
+    <updated>2021-06-14T14:40:26.522Z</updated>
+    
+    
+    
+    
+    <category term="HBase" scheme="https://hongjie123.gitee.io/hexo/categories/HBase/"/>
+    
+    
+    <category term="大数据" scheme="https://hongjie123.gitee.io/hexo/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>1.habse基础</title>
     <link href="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/"/>
     <id>https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/01%E5%9F%BA%E7%A1%80/</id>
     <published>2021-06-05T22:27:35.000Z</published>
-    <updated>2021-06-06T16:06:27.872Z</updated>
+    <updated>2021-06-16T05:28:55.040Z</updated>
     
-    <content type="html"><![CDATA[<h3 id="HDFS和HBase的关系："><a href="#HDFS和HBase的关系：" class="headerlink" title="HDFS和HBase的关系："></a>HDFS和HBase的关系：</h3><p>HDFS能做的事非常少，也就是创建文件，删除文件，大文件读取，追加数据，如果想要修改或者根据某些条件查询就不行，hbase就是做这个的。</p><p>hbase是一个nosql，他不负责存储数据，需要基于HDFS来实现，但是他不能执行复杂的条件查询，对海量数据的简单的增删改查。</p><h3 id="架构特点"><a href="#架构特点" class="headerlink" title="架构特点"></a>架构特点</h3><ul><li><p>  hbase基于多台regionServer来管理数据分片，regionServer是高可用的，region是存储在HDFS中，本省就有两个副本。</p></li><li><p>  主从强一致。</p></li><li><p>  只读MapReduce和spark这种分布式计算引擎。</p></li><li><p>  支持java API。</p></li><li><p>  支持协处理器，块缓存和布隆过滤器。</p></li><li><p>  可以使用web端管理和运维。</p></li></ul><h3 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h3><p>海量数据的简单增删改查，不支持索引，也不知道事务，不支持SQL语法。想要上面的功能也没必要用hbase，实现索引可以用es，实现海量数据事务可以用TiDB，实现海量数据的的实时分析可以用clickhouse或者druid。</p><h3 id="数据模型和物理模型"><a href="#数据模型和物理模型" class="headerlink" title="数据模型和物理模型"></a>数据模型和物理模型</h3><p>针对数据模型有几个概念：</p><p>rowkey：每行都有一个rowkey，和mysql的主键差不多，也会根据这个排序，所以要把相似的数据放到一起，这样的话好查，比如这里存了订单和订单明细，rowkey可以是这样的order_1_111，order-detail_1_110，就是用户1在的111订单，和用户1的110订单明细。</p><p>列族：就是列名，两部分组成，列族+分号+列限定符（column qualifier），列族就是一系列的类的family，有点像表的意思。</p><p>列：他的列是要存储多个版本的值的，每个值都带着一个时间戳（版本）。</p><p>单元格：取到某行某列的某个时间戳对应的值就是一个单元格。</p><p>rowkey                    order:base            order:detail            order:extent</p><p>order_1_110            xxx                        xxx</p><p>order_1_111            x1(t1); x2(t2)          xxx                        xxx</p><p>实际存储上他会把数据根据列来拆分成行进行存储，所以叫列式存储，像下面这样：</p><p>rowkey                timestamp        列                    值</p><p>order_1_110        t1                    order:detail         xxx</p><p>order_1_111        t2                    order:base          xxx</p><p>order_1_111        t3                    order:extent        xxx</p>]]></content>
+    <content type="html"><![CDATA[<h3 id="HDFS和HBase的关系："><a href="#HDFS和HBase的关系：" class="headerlink" title="HDFS和HBase的关系："></a>HDFS和HBase的关系：</h3><p>HDFS能做的事非常少，也就是创建文件，删除文件，大文件读取，追加数据，如果想要修改或者根据某些条件查询就不行，hbase就是做这个的。</p><p>hbase是一个nosql，他不负责存储数据，需要基于HDFS来实现，但是他不能执行复杂的条件查询，对海量数据的简单的增删改查。</p><h3 id="架构特点"><a href="#架构特点" class="headerlink" title="架构特点"></a>架构特点</h3><ul><li><p>  hbase基于多台regionServer来管理数据分片，regionServer是高可用的，region是存储在HDFS中，本省就有两个副本。</p></li><li><p>  主从强一致。</p></li><li><p>  只读MapReduce和spark这种分布式计算引擎。</p></li><li><p>  支持java API。</p></li><li><p>  支持协处理器，块缓存和布隆过滤器。</p></li><li><p>  可以使用web端管理和运维。</p></li></ul><h3 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h3><p>海量数据的简单增删改查，不支持索引，也不知道事务，不支持SQL语法。想要上面的功能也没必要用hbase，实现索引可以用es，实现海量数据事务可以用TiDB，实现海量数据的的实时分析可以用clickhouse或者druid。</p><h3 id="数据模型和物理模型"><a href="#数据模型和物理模型" class="headerlink" title="数据模型和物理模型"></a>数据模型和物理模型</h3><p>针对数据模型有几个概念：</p><p>rowkey：每行都有一个rowkey，和mysql的主键差不多，也会根据这个排序，所以要把相似的数据放到一起，这样的话好查，比如这里存了订单和订单明细，rowkey可以是这样的order_1_111，order-detail_1_110，就是用户1在的111订单，和用户1的110订单明细。</p><p>列族：就是列名，两部分组成，列族+分号+列限定符（column qualifier），列族就是一系列的类的family，有点像表的意思。</p><p>列：他的列是要存储多个版本的值的，每个值都带着一个时间戳（版本）。</p><p>单元格：取到某行某列的某个时间戳对应的值就是一个单元格。</p><p>rowkey                    order:base            order:detail            order:extent</p><p>order_1_110            xxx                        xxx</p><p>order_1_111            x1(t1); x2(t2)          xxx                        xxx</p><p>实际存储上他会把数据根据列来拆分成行进行存储，所以叫列式存储，像下面这样：</p><p>rowkey                timestamp        列                    值</p><p>order_1_110        t1                    order:detail         xxx</p><p>order_1_111        t2                    order:base          xxx</p><p>order_1_111        t3                    order:extent        xxx</p><h3 id="简单的语法"><a href="#简单的语法" class="headerlink" title="简单的语法"></a>简单的语法</h3><p>进入bin下执行**./hbase shell**连接hbase。</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 创建一张<span class="built_in">test</span>表，指定一个列族cf，创建表时必须要有列族，可以是多个列族create <span class="string">&#x27;test&#x27;</span>,<span class="string">&#x27;cf1&#x27;</span>,<span class="string">&#x27;cf2&#x27;</span></span></span><br><span class="line">create &#x27;test&#x27;,&#x27;cf&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 使用list获取所有表，也可以指定表，比如list <span class="string">&#x27;test&#x27;</span></span></span><br><span class="line">list</span><br><span class="line"><span class="meta">#</span><span class="bash"> 或者使用exist 表名</span></span><br><span class="line">exists &#x27;test&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 禁用表，所有dml操作都需要先禁用表</span></span><br><span class="line">disable &#x27;test&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 查看表的明细</span></span><br><span class="line">describe &#x27;test&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 删除表，这一步是基于<span class="built_in">disable</span>之后的</span></span><br><span class="line">drop &#x27;test&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 插入一行数据，put 表名,rowkey,列族：列名,值……</span></span><br><span class="line">put &#x27;test&#x27;,&#x27;row1&#x27;,&#x27;cf1:a&#x27;,&#x27;cf2:1&#x27;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 获取表数据，例子是倒叙，条件可以不带</span></span><br><span class="line">scan &#x27;test&#x27;,&#123;REVERSED=&gt;true,STARTROW=&gt;&#x27;row100~&#x27;,ENDROW=&gt;&#x27;row100&#x27;,LIMIT=&gt;5&#125;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 再来个正序</span></span><br><span class="line">scan &#x27;test&#x27;,&#123;STARTROW=&gt;&#x27;row100&#x27;,ENDROW=&gt;&#x27;row100~&#x27;,LIMIT=&gt;5&#125;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 还可以根据row key获取一条数据</span></span><br><span class="line">get &#x27;test&#x27; &#x27;row1&#x27;</span><br></pre></td></tr></table></figure>]]></content>
     
     
       
       
     <summary type="html">&lt;h3 id=&quot;HDFS和HBase的关系：&quot;&gt;&lt;a href=&quot;#HDFS和HBase的关系：&quot; class=&quot;headerlink&quot; title=&quot;HDFS和HBase的关系：&quot;&gt;&lt;/a&gt;HDFS和HBase的关系：&lt;/h3&gt;&lt;p&gt;HDFS能做的事非常少，也就是创建文件，删除</summary>
       
+    
+    
+    
+    <category term="HBase" scheme="https://hongjie123.gitee.io/hexo/categories/HBase/"/>
+    
+    
+    <category term="大数据" scheme="https://hongjie123.gitee.io/hexo/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>2.habse安装</title>
+    <link href="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/02%E5%AE%89%E8%A3%85/"/>
+    <id>https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/02%E5%AE%89%E8%A3%85/</id>
+    <published>2021-06-05T22:27:35.000Z</published>
+    <updated>2021-06-07T13:08:16.165Z</updated>
+    
     
     
     
@@ -381,27 +427,6 @@
   </entry>
   
   <entry>
-    <title>连接池</title>
-    <link href="https://hongjie123.gitee.io/hexo/nginx/3.%E8%BF%9E%E6%8E%A5%E6%B1%A0/"/>
-    <id>https://hongjie123.gitee.io/hexo/nginx/3.%E8%BF%9E%E6%8E%A5%E6%B1%A0/</id>
-    <published>2020-11-21T02:32:14.202Z</published>
-    <updated>2021-01-05T14:33:14.816Z</updated>
-    
-    <content type="html"><![CDATA[<div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">  <script id="hbeData" type="hbeData" data-hmacdigest="85f9194bd45b8843e21f341a82e6006a7bbdc882fa3a339d4be59523203e1eaa">982a2f2de999a7307d7563de6c539b236d780d47a4532ee2874bbe31c85d9ac343651a6cb0b1d9779fb4aef99959e677d5236089d320266f505d887bdcda679c8b6edf216bd315af890e67b07be49f24ca4d7677a57ff79d3291ce20ba7adc4a228f6dd95625eb2651adc177cdccc2f18bc13bc08df82b0a1b1a4b5a1928f095609f8a3406185b343b154c9093e30e026e5b95d6047577e21403216b65a9bcc4e0f33f9b5fa6c80d27281d183ab07f48248f4b02c41002f829851c0ed11826aad03deafe55b0ece91b43695165ed03836456cd9ba9b016df5c85c834ce19c8e63a5a6cc354a3a24579e273e9791a9f9cc39266a6ab83aeff29ff1d5c2a7c244b7dd9a57a39cb484b840980d9a9e4d5016b5eacdbaa49f0ac90a280825446b984a1aa8af1422788fd764111230c10099e9a66110860b7e481c497c7fc361939316053360ca01bcd78a21b09075cb84e69</script>  <div class="hbe hbe-content">    <div class="hbe hbe-input hbe-input-default">      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码</span>      </label>    </div>  </div></div><script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">]]></content>
-    
-    
-    <summary type="html">富婆才能看</summary>
-    
-    
-    
-    <category term="网络" scheme="https://hongjie123.gitee.io/hexo/categories/%E7%BD%91%E7%BB%9C/"/>
-    
-    
-    <category term="nginx" scheme="https://hongjie123.gitee.io/hexo/tags/nginx/"/>
-    
-  </entry>
-  
-  <entry>
     <title>调优</title>
     <link href="https://hongjie123.gitee.io/hexo/nginx/4.%E8%B0%83%E4%BC%98/"/>
     <id>https://hongjie123.gitee.io/hexo/nginx/4.%E8%B0%83%E4%BC%98/</id>
@@ -419,27 +444,6 @@
     
     
     <category term="nginx" scheme="https://hongjie123.gitee.io/hexo/tags/nginx/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>CPU100%</title>
-    <link href="https://hongjie123.gitee.io/hexo/linux/1.CPU100%/"/>
-    <id>https://hongjie123.gitee.io/hexo/linux/1.CPU100%/</id>
-    <published>2020-11-21T02:32:14.201Z</published>
-    <updated>2021-01-05T14:59:41.070Z</updated>
-    
-    <content type="html"><![CDATA[<div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">  <script id="hbeData" type="hbeData" data-hmacdigest="ac9c9b0eb5ed3a8dc9396d16b5097ae99d8c49ffe23751f7bc491854e70a40d6">982a2f2de999a7307d7563de6c539b23f9a2fafe3cc522c2176cf80047d61f9132f7de966e3b0f62dec4877df1649eead5ff2417d6a1cea578398467284e4e406de222c737aa7a1b58b76f063e327d1474603bec0fc3cd84518bbb81f1fbec83971ef19c15ee154b30581531f526e7fe5179efb5c177974afa95a86a91ac0ba609e9242de780aff0c25551742318e190973c18e41c0917a0a8c3e24bd19ab08f06e0d0ae2f482f3604cd7d3e7460cd18ed5cf928265f56c0bacea165b95f76544d41c8867e54ae7c3e91bb258332c5d315eb31ef762173e1271d4ba6e41ece8085028b14cdbcbc3781aaf7af331f494bec314a15ecadc5ab14a97844f4b795c7942293843d02d3a4fd11ac59d90f77d5a1b89cbb0133d8da3357e5647c23d4472f4cd0334a3139b24fa32fabd1ccd674b6f71712f0d509f1bec360f4f53dad7f8d9e6b1c19c1097fd8a857be49df91ff0e9cf1e4837cc3673b64844eb712e99ae2ac08db2a005d6f009944fd5555e68dc40894da5389ed689e6492fae55761bb89ec2b8417152c9d844ad877573ec0337d452e444c078d955bfc5d93ed8c3dc3be38db5365c30d6d2d27a2d30c9793eae3aa43680587d8b4a1d1de631707060855c6d34ae41034402ef0bcc181680904</script>  <div class="hbe hbe-content">    <div class="hbe hbe-input hbe-input-default">      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码</span>      </label>    </div>  </div></div><script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">]]></content>
-    
-    
-    <summary type="html">富婆才能看</summary>
-    
-    
-    
-    <category term="基础" scheme="https://hongjie123.gitee.io/hexo/categories/%E5%9F%BA%E7%A1%80/"/>
-    
-    
-    <category term="linux" scheme="https://hongjie123.gitee.io/hexo/tags/linux/"/>
     
   </entry>
   
