@@ -6,7 +6,7 @@
   <link href="https://hongjie123.gitee.io/hexo/atom.xml" rel="self"/>
   
   <link href="https://hongjie123.gitee.io/hexo/"/>
-  <updated>2021-06-14T14:50:11.256Z</updated>
+  <updated>2021-06-24T09:59:27.379Z</updated>
   <id>https://hongjie123.gitee.io/hexo/</id>
   
   <author>
@@ -17,19 +17,18 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>3.物理模型</title>
-    <link href="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/"/>
-    <id>https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/</id>
-    <published>2021-06-13T22:27:35.000Z</published>
-    <updated>2021-06-14T14:50:11.256Z</updated>
+    <title>5.底层原理</title>
+    <link href="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/05%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/"/>
+    <id>https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/05%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/</id>
+    <published>2021-06-23T22:27:35.000Z</published>
+    <updated>2021-06-24T09:59:27.379Z</updated>
     
-    <content type="html"><![CDATA[<p>hbase使用多维的稀疏排序map存储数据，比如像下面这样：</p><p><strong>rowkey_01+列族1:列1+put+t3：v1</strong>，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，value就是操作的值，这样看的话就是一个多维排序的map，稀疏的话说的是每一列不一定有值，这样看起来就很稀疏。</p><p>他是一种列簇式存储，把同一列族下的所有列的值存到一个大文件里，所以查询同一列族下的数据会很快，到是一次查找多个列族，就会涉及到读取多个文件，所以在建表的时候需要考虑好，尽量让每次插叙都是同一列族下的列数据，相对于列存储和行存储，列簇存储更灵活，如果一个表只有一个列簇，就变成了行存储，如果每一个列簇只有一个列，就变成了列存储。</p><h3 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h3><p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gri6bw1tc9j30u00zkn24.jpg"></p>]]></content>
+    <content type="html"><![CDATA[<h3 id="HLog"><a href="#HLog" class="headerlink" title="HLog"></a>HLog</h3>]]></content>
     
     
       
       
-    <summary type="html">&lt;p&gt;hbase使用多维的稀疏排序map存储数据，比如像下面这样：&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;rowkey_01+列族1:列1+put+t3：v1&lt;/strong&gt;，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，val</summary>
+    <summary type="html">&lt;h3 id=&quot;HLog&quot;&gt;&lt;a href=&quot;#HLog&quot; class=&quot;headerlink&quot; title=&quot;HLog&quot;&gt;&lt;/a&gt;HLog&lt;/h3&gt;</summary>
       
     
     
@@ -46,8 +45,40 @@
     <link href="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/"/>
     <id>https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/</id>
     <published>2021-06-13T22:27:35.000Z</published>
-    <updated>2021-06-20T14:53:35.205Z</updated>
+    <updated>2021-06-24T09:58:21.913Z</updated>
     
+    <content type="html"><![CDATA[<h4 id="hbase-meta"><a href="#hbase-meta" class="headerlink" title="hbase:meta"></a>hbase:meta</h4><p>put就是找到对应的regision，然后把数据写到HLog和对应的store里去，所以第一步就是要先拿到region信息，这个信息存到了一张meta表里，所属空间是hbase，当client端没找到region信息的时候就回去这个表里查出来region的信息，然后缓存在本地，下次直接读取本地的就可以了，但是hbase:meta也是一张表，client怎么知道这个表在那个region上呢？在zk中，zk里维护了一份meta表的信息，client先去zk上拿到meta在那，然后把数据读取出来，拿到了将要put的表的region信息，就可以进行put操作了。</p><p>hbase:meta只有一个列族，叫info，他的rowkey结构是表名+起始rowkey+region创建时间戳+这3个字段的md5，表里面有4个列，分别是info:regioninfo(包括md5值，region名称，起始rowkey，结束rowkey)、info:seqnumDuringOpen(region打开时的sequenceId)、info:server(存储Region在哪个RegionServer上)、info:serverstartcode(RegionServer的启动timestamp)。</p><h3 id="开始put"><a href="#开始put" class="headerlink" title="开始put"></a>开始put</h3><p>找到region信息之前还需要判断是否开启了autoFlush，如果autoFlush=false(默认是true)，这个时候是不会想region发送数据的，他会在客户端缓存数据，当数据达到2M时一起推送到region，一般没人开这个，因为开了这个数据很容易就丢失。</p><p>拿到region信息之后就要把哪一行数据加锁，然后把这次的操作封装成一个<strong>FSWALEntry</strong>对象写入WAL的队列中，这是一个基于disruptor的无锁有界队列，消费者拿到这条数据后会把WAL日志写到缓存中，修改完成之后会释放锁，并且把结果封装成<strong>SyncFuture</strong>对象发送到disruptor中，消费者拿到这条数据后就可以把WAL日志刷到hdfs里去了，对于HLog的持久化有5种机制，在调用JavaAPI的时候可以通过**put.setDurability(Durability.SYNC_WAL)**来设置：</p><ul><li>  SKIP_WAL：不写WAL日志，把数据写到memStore里就算成功，但是memStore里的数据可能还没写到HFile中，数据丢失的概率也非常大；</li><li>  ASYNC_WAL：这个也是把数据写到memStore里就算成功，然后异步去写WAL；</li><li>  SYNC_WAL：要把WAl日志写到hdfs里，但是也只是存在在hdfs的os cache中；</li><li>  FSYNC_WAL：强制刷到hdfs的磁盘里才算成功；</li><li>  USER_DEFAULT：默认级别，就是SYNC_WAL；</li></ul><p><img src="https://tva1.sinaimg.cn/large/008i3skNly1grticuek0sj31980s441k.jpg"></p><h3 id="memStore频繁full-gc问题"><a href="#memStore频繁full-gc问题" class="headerlink" title="memStore频繁full gc问题"></a>memStore频繁full gc问题</h3><p>大量的put操作会让memStore年青代频繁gc，短时间发生多次gc就会有大量的对象躲过gc并进入老年代，这样很快老年代也会满掉，频繁的发生full gc，HBase通过chunk数组的方式，每一个memStore会创建一个MemStoreLAB对象，对象里是一个2M的chunk数组，这里的2M可以和autoFlush的2M对应起来，当一个chunk数组写满后，就会申请一个新的chunk数组，这样就算老年代发生了full gc，但是使用了数组的数据结构，内存都是连续的，减少了内存碎片，第一gc的频率会比之前低很多，第二减少了gc之后的整理内存时间。</p><h3 id="memStore生成HFile的时机"><a href="#memStore生成HFile的时机" class="headerlink" title="memStore生成HFile的时机"></a>memStore生成HFile的时机</h3><ul><li>  当memStore中的数据达到128M的时候，使用<strong>hbase.hregion.memstore.flush.size</strong>控制这个数值；</li><li>  当region中的所有memStore总和超过了*<em>hbase.hregion.memstore.block.multiplier * hbase.hregion.memstore.flush.size*</em>时；</li><li>  当所有memStore的总和超过了*<em>hbase.regionserver.global.memstore.size.lower.limit * hbase.regionserver.global.memstore.size*</em>的时候，从大到小刷，刷到不满足为止；</li><li>  当HLog数量超过了<strong>hbase.regionserver.maxlogs</strong>时，选择最早的HLog来刷；</li><li>  默认一小时刷一次；</li><li>  通过flush命令；</li></ul>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h4 id=&quot;hbase-meta&quot;&gt;&lt;a href=&quot;#hbase-meta&quot; class=&quot;headerlink&quot; title=&quot;hbase:meta&quot;&gt;&lt;/a&gt;hbase:meta&lt;/h4&gt;&lt;p&gt;put就是找到对应的regision，然后把数据写到HLog和对应的stor</summary>
+      
+    
+    
+    
+    <category term="HBase" scheme="https://hongjie123.gitee.io/hexo/categories/HBase/"/>
+    
+    
+    <category term="大数据" scheme="https://hongjie123.gitee.io/hexo/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>3.物理模型</title>
+    <link href="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/"/>
+    <id>https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/</id>
+    <published>2021-06-13T22:27:35.000Z</published>
+    <updated>2021-06-14T14:50:11.256Z</updated>
+    
+    <content type="html"><![CDATA[<p>hbase使用多维的稀疏排序map存储数据，比如像下面这样：</p><p><strong>rowkey_01+列族1:列1+put+t3：v1</strong>，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，value就是操作的值，这样看的话就是一个多维排序的map，稀疏的话说的是每一列不一定有值，这样看起来就很稀疏。</p><p>他是一种列簇式存储，把同一列族下的所有列的值存到一个大文件里，所以查询同一列族下的数据会很快，到是一次查找多个列族，就会涉及到读取多个文件，所以在建表的时候需要考虑好，尽量让每次插叙都是同一列族下的列数据，相对于列存储和行存储，列簇存储更灵活，如果一个表只有一个列簇，就变成了行存储，如果每一个列簇只有一个列，就变成了列存储。</p><h3 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h3><p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gri6bw1tc9j30u00zkn24.jpg"></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;hbase使用多维的稀疏排序map存储数据，比如像下面这样：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;rowkey_01+列族1:列1+put+t3：v1&lt;/strong&gt;，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，val</summary>
+      
     
     
     
@@ -423,27 +454,6 @@
     
     
     <category term="redis" scheme="https://hongjie123.gitee.io/hexo/tags/redis/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>连接池</title>
-    <link href="https://hongjie123.gitee.io/hexo/nginx/3.%E8%BF%9E%E6%8E%A5%E6%B1%A0/"/>
-    <id>https://hongjie123.gitee.io/hexo/nginx/3.%E8%BF%9E%E6%8E%A5%E6%B1%A0/</id>
-    <published>2020-11-21T02:32:14.202Z</published>
-    <updated>2021-01-05T14:33:14.816Z</updated>
-    
-    <content type="html"><![CDATA[<div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">  <script id="hbeData" type="hbeData" data-hmacdigest="85f9194bd45b8843e21f341a82e6006a7bbdc882fa3a339d4be59523203e1eaa">982a2f2de999a7307d7563de6c539b236d780d47a4532ee2874bbe31c85d9ac343651a6cb0b1d9779fb4aef99959e677d5236089d320266f505d887bdcda679c8b6edf216bd315af890e67b07be49f24ca4d7677a57ff79d3291ce20ba7adc4a228f6dd95625eb2651adc177cdccc2f18bc13bc08df82b0a1b1a4b5a1928f095609f8a3406185b343b154c9093e30e026e5b95d6047577e21403216b65a9bcc4e0f33f9b5fa6c80d27281d183ab07f48248f4b02c41002f829851c0ed11826aad03deafe55b0ece91b43695165ed03836456cd9ba9b016df5c85c834ce19c8e63a5a6cc354a3a24579e273e9791a9f9cc39266a6ab83aeff29ff1d5c2a7c244b7dd9a57a39cb484b840980d9a9e4d5016b5eacdbaa49f0ac90a280825446b984a1aa8af1422788fd764111230c10099e9a66110860b7e481c497c7fc361939316053360ca01bcd78a21b09075cb84e69</script>  <div class="hbe hbe-content">    <div class="hbe hbe-input hbe-input-default">      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码</span>      </label>    </div>  </div></div><script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">]]></content>
-    
-    
-    <summary type="html">富婆才能看</summary>
-    
-    
-    
-    <category term="网络" scheme="https://hongjie123.gitee.io/hexo/categories/%E7%BD%91%E7%BB%9C/"/>
-    
-    
-    <category term="nginx" scheme="https://hongjie123.gitee.io/hexo/tags/nginx/"/>
     
   </entry>
   
