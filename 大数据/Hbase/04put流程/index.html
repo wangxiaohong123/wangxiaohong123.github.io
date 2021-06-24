@@ -96,20 +96,18 @@
 
 
 
-<meta name="description" content="hbase:metaput就是找到对应的regision，然后把数据写到HLog和对应的store里去，所以第一步就是要先拿到region信息，这个信息存到了一张meta表里，所属空间是hbase，当client端没找到region信息的时候就回去这个表里查出来region的信息，然后缓存在本地，下次直接读取本地的就可以了，但是hbase:meta也是一张表，client怎么知道这个表在那个reg">
+<meta name="description" content="富婆才能看">
 <meta property="og:type" content="article">
 <meta property="og:title" content="4.put流程">
 <meta property="og:url" content="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/index.html">
 <meta property="og:site_name" content="富婆&amp;小红">
-<meta property="og:description" content="hbase:metaput就是找到对应的regision，然后把数据写到HLog和对应的store里去，所以第一步就是要先拿到region信息，这个信息存到了一张meta表里，所属空间是hbase，当client端没找到region信息的时候就回去这个表里查出来region的信息，然后缓存在本地，下次直接读取本地的就可以了，但是hbase:meta也是一张表，client怎么知道这个表在那个reg">
+<meta property="og:description" content="富婆才能看">
 <meta property="og:locale">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1grticuek0sj31980s441k.jpg">
 <meta property="article:published_time" content="2021-06-13T22:27:35.000Z">
-<meta property="article:modified_time" content="2021-06-24T09:58:21.913Z">
+<meta property="article:modified_time" content="2021-06-24T10:13:05.497Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="大数据">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1grticuek0sj31980s441k.jpg">
 
 
 
@@ -400,28 +398,18 @@
       
 
       
-        <h4 id="hbase-meta"><a href="#hbase-meta" class="headerlink" title="hbase:meta"></a>hbase:meta</h4><p>put就是找到对应的regision，然后把数据写到HLog和对应的store里去，所以第一步就是要先拿到region信息，这个信息存到了一张meta表里，所属空间是hbase，当client端没找到region信息的时候就回去这个表里查出来region的信息，然后缓存在本地，下次直接读取本地的就可以了，但是hbase:meta也是一张表，client怎么知道这个表在那个region上呢？在zk中，zk里维护了一份meta表的信息，client先去zk上拿到meta在那，然后把数据读取出来，拿到了将要put的表的region信息，就可以进行put操作了。</p>
-<p>hbase:meta只有一个列族，叫info，他的rowkey结构是表名+起始rowkey+region创建时间戳+这3个字段的md5，表里面有4个列，分别是info:regioninfo(包括md5值，region名称，起始rowkey，结束rowkey)、info:seqnumDuringOpen(region打开时的sequenceId)、info:server(存储Region在哪个RegionServer上)、info:serverstartcode(RegionServer的启动timestamp)。</p>
-<h3 id="开始put"><a href="#开始put" class="headerlink" title="开始put"></a>开始put</h3><p>找到region信息之前还需要判断是否开启了autoFlush，如果autoFlush=false(默认是true)，这个时候是不会想region发送数据的，他会在客户端缓存数据，当数据达到2M时一起推送到region，一般没人开这个，因为开了这个数据很容易就丢失。</p>
-<p>拿到region信息之后就要把哪一行数据加锁，然后把这次的操作封装成一个<strong>FSWALEntry</strong>对象写入WAL的队列中，这是一个基于disruptor的无锁有界队列，消费者拿到这条数据后会把WAL日志写到缓存中，修改完成之后会释放锁，并且把结果封装成<strong>SyncFuture</strong>对象发送到disruptor中，消费者拿到这条数据后就可以把WAL日志刷到hdfs里去了，对于HLog的持久化有5种机制，在调用JavaAPI的时候可以通过**put.setDurability(Durability.SYNC_WAL)**来设置：</p>
-<ul>
-<li>  SKIP_WAL：不写WAL日志，把数据写到memStore里就算成功，但是memStore里的数据可能还没写到HFile中，数据丢失的概率也非常大；</li>
-<li>  ASYNC_WAL：这个也是把数据写到memStore里就算成功，然后异步去写WAL；</li>
-<li>  SYNC_WAL：要把WAl日志写到hdfs里，但是也只是存在在hdfs的os cache中；</li>
-<li>  FSYNC_WAL：强制刷到hdfs的磁盘里才算成功；</li>
-<li>  USER_DEFAULT：默认级别，就是SYNC_WAL；</li>
-</ul>
-<p><img src="https://tva1.sinaimg.cn/large/008i3skNly1grticuek0sj31980s441k.jpg"></p>
-<h3 id="memStore频繁full-gc问题"><a href="#memStore频繁full-gc问题" class="headerlink" title="memStore频繁full gc问题"></a>memStore频繁full gc问题</h3><p>大量的put操作会让memStore年青代频繁gc，短时间发生多次gc就会有大量的对象躲过gc并进入老年代，这样很快老年代也会满掉，频繁的发生full gc，HBase通过chunk数组的方式，每一个memStore会创建一个MemStoreLAB对象，对象里是一个2M的chunk数组，这里的2M可以和autoFlush的2M对应起来，当一个chunk数组写满后，就会申请一个新的chunk数组，这样就算老年代发生了full gc，但是使用了数组的数据结构，内存都是连续的，减少了内存碎片，第一gc的频率会比之前低很多，第二减少了gc之后的整理内存时间。</p>
-<h3 id="memStore生成HFile的时机"><a href="#memStore生成HFile的时机" class="headerlink" title="memStore生成HFile的时机"></a>memStore生成HFile的时机</h3><ul>
-<li>  当memStore中的数据达到128M的时候，使用<strong>hbase.hregion.memstore.flush.size</strong>控制这个数值；</li>
-<li>  当region中的所有memStore总和超过了*<em>hbase.hregion.memstore.block.multiplier * hbase.hregion.memstore.flush.size*</em>时；</li>
-<li>  当所有memStore的总和超过了*<em>hbase.regionserver.global.memstore.size.lower.limit * hbase.regionserver.global.memstore.size*</em>的时候，从大到小刷，刷到不满足为止；</li>
-<li>  当HLog数量超过了<strong>hbase.regionserver.maxlogs</strong>时，选择最早的HLog来刷；</li>
-<li>  默认一小时刷一次；</li>
-<li>  通过flush命令；</li>
-</ul>
-
+        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">
+  <script id="hbeData" type="hbeData" data-hmacdigest="dbf2e51787a763254182dfcf4eb0e42aeed2acc44c29c35de079b2224e4f2364">982a2f2de999a7307d7563de6c539b238d888f0a6e7cdc9dc90d2ed064c49252eb3b82996a6963dc2055d00d901aba10126929913da5ec55fed36ca739befceb4de06e8ea79c0ff20e2855c64cb1f5f46b4c5c3810f7f7464d4c6cd553c5f373f97d99ec582aaee390f25af3a094b2e0b43c5ecd743a13f417d9007024933bc4894fdeef18f9c394bd7abe6627007fb5bcdac9460ff1e5d9f5d351c438d880aaf4a38f742a7599bb0310ebeeb353191c2cf9b07d4ce486c57cc26769754e48f1ed9b753b1cdb173abcd00a11ca982626ab23cef4c572b7b6639f82f4cf318c066f25cb57eead6de9141cf731b53fa851af5551de610f115203a4a87b08a5450968a3ead4994dd4bcbaa38f21d9418503af88010f47c8b372931a54dfbd33feed6234796ba689ab112678f7c65063e8045a5d0fde166fa7fdb3fe990833ccedec1ef2e63b14df5fd1bd4c5cfadc9b3eddfecdd5bea4570a64b9398c932ab6cce5b849c3019ca86985f3eadaa112fb6825bde61f29f68fa405f84aa0a40ea5163127f19660ccf41843b379e1f3427a8b574651f1c077d3bdcadd93929ed072e7a6e3b5950c8aa9b304eeead3ef5805b1a9cf29ccd3f8e8c83969c297b752734836f4b444bc0355b2ec40f49ce82f1113890dc5f3d3c86815a4cacb5fab6a8659ecb3e91ced6df7e7632f177e0b177c7580945ff3071b28b63463be343943b37f8e722c692a29a11608880299756f1be14c8100c00a82ce4e3665b6e08ab1d9ccaa6c49f043fca169a56946f705db24b5024a629d5f02e4bc5b79824df30d5e22005ebbdbabf9f91044ebf758e053a0e5951e10fd2f99e1728bda37492d6dfc06e3a76cdc7b2111942af0cb50af7ef7fbf51625f4576c2616150723bc4bd809cf4282aac8167ee937e34b556d9aada5cf62c029a499555f5098137f031df5ae4ecfbe48ced77128cfdc587090daac4dd94997a3fbf24c93d020d5ae7c28a8314268fb10b7094bce78255fa7988160adc533cd8e035d710468864ef416805df22142141b81ed14742c83185a295691e6a2a58d0a192fefae4c129332eada7e860585a66a4e8f89b8074ec44eb863260024d1ac164bee25425094594abae82cc2fa857b6cc5ce3b6c166e3a3a549e71c776a54232445bc58d505638cfdc6c6d4aac0ce072ae6dfff2a127d95962d46ef9bdf8fd3df8d50d05aceaa74fa727e362dae023b455964928a682fe712809eb95d220b8717f11c78ba09d96705ebda194e58c06fff85df5ee6dc7ded5f26472d86575e4101201c4567f99a7a057863a5c081e9f115df679a87c86cc891444a7787ee6cb26e17c357043076ad9b4f6a6bd3a84d9361cc1804d930adf528b4e98563338f3b9b18a95e0def145535b877000e03ebe0bf7e242f625a4b86193e5c3f9f5a21bb25ad8b5930128b68d1d7bedf8e1095e9328821b16ede951dd8d8db0c38d7649ecb02c57fe108ac87fe781e64d5c7ed08bc1c6486a9815769031b6ca5448e6b6abee2f6a1874f410afbcfc3c36fe1993c7357be1432768ef84448424eac7aab59dca4213f8239aa55a6fce359de5b843f3789e140dd61f0d71b80a0f79ef1ccfe802f680f3ccad495f86cf366bf6492918b0ce276eb43d514f422498f1393174c59e890193b071e34bf462928d9a57345eac36daca2d0fe52573cab1e26e23c9c6198ba399da61f5125c2fa5808412c7e190c2de0599cc161cd4fa8c55ece5bdd916eccefeb3ff0cece252268760bd48336823fef8396cb37962f2eb200277616d13373f5c7286601619c2f49c13ed1318d2d78ca80a33eea48c2737e17adbc497a773019fac30455a53261d04fe69c79a3d44c14d6b48aa973dc51833382dade44e4fde9f9fbdb4bcba4d31e4e456e8c8e5f8bdbc788c9593b25174db7b2a4977740591964b6ae0876665e83e38085443822dd11d6c210d48ecb7312a41aed8573d49b7d84c21defb89005aa26656f5b54424b8da03562eb9456f0c30565a972e572e6229714eec99308415fe8b0594ff2224b6f6a0aa140f3a67a8388f60c81cb28f74ef27b781743287a63c5c3fb12d3d426e0c21e6a9a6c65a505fc718c686c835238108ab09b4705934e80fea071c994f939517c65577448e944034c0be6f86061ea573f97c508e2817d966b9cb2b2500b3daf3a59ce63824e3047355bd9320387011b296bef643371bb6dd88bac825a1e068098a7ef173d0720d8c2b0bca0c8b6192d879665021cb4dfd01da48a7d9505869c544ad38b7579712dae2d411ba868b7fbed49e3a78533c9b67de19d158f2d2c15e692643b4cde3be6dde0427bb7ccac1febff5f50ae8c11ef346464534790c113b71830b8f37eece71487ada030ea27d5cd4b4ea290f92fcdf78d5255e171aa4b1dd69c51e331d83ea0e2d239e99d3de8c13890e9987fc91d07769974ccb44b53e7a500c683afdf5ddb36f5b72f1d24c75ae517bfdb7289b8108f5f9b9a522f98a887c95de6a7e1d1a1cef81560b2a2cd5dbac6a3bbda8f6d8ac2178778dffeb74fb5f3b5239d198110e60ff60d52bca692324386c06c7d859189f3f51aa2f0e3396a3bc28ef0ab30fdfd1e11a24938e5c7360cd0ec9035a9a894dba7dd66e2471d32f374516cc26afa3831d46cf5e67a18b4ea3f2b772ec9104a5c1ad0ce6f09c6744a25c56b9a1ab0b9bb2ecd53494a35c0f9df9ae5adf0b495d80896aeccd37015f3f4613a9007642ba0ed1f803714a7ad41ca939bbcf84d71a8e6e70e9be36aab3db01d71b145e670b86d15f44cf9a3a3b701d6f9fdccbbbbe6b180f419457cfff273b9cfcdbe7e4cb011c8e15a6d2eb5a3dafa68979c30793f90c666189350949c0179417a51e7c28e917288babac557ccce868e2c57e1acfaa8f32ee0a267e10e8717c4c5cf547a8ca3483e570cb07e280ce21181aa1169ab472a8a284149a363de3ae68f714d2a4b024f9fc4b5b788a865e378c88b856455a19d779eccfdad4a53687aef7fd5cae281d7af5d298fffdffc59bd7148f5e001cc92298c53cb1104e0c41434356796cdf90956dd0f9fe7bc7b0ce64699ae51f57e14bf4950861e72cbed16dc686f38fcc9af1dc4ff73a70908a2d8116901c99b0ef21271603a6d0a13f4895490056bc570a18bd60885cd7ae652b58e443d68b0ef07034c457a4d95639f4859821fb3df7a1ac6e82683e6d00992b75c699e2232e612f5f222dcc4f18ee8aa5037f489b6245d23f904dff13e567a64328e06036569fc0c7f2ddd3bb9f016017aeb1c9e924d51b835bbc2b8ca4f5ab24f3360440004352825098942c4aa4ccb769a284981af3b2b86b6ebb77486b9b542065a879762496c953d2826b42cdd71823a8a9eedec3c7b181ae32434d14534feaba9afad5663f8143d24a4582108f5aea56cf4a8b32b9f88a869754a33a3505e59418c58965fccad2585770f1120711cd64b39dcfbd43bc5520828f7a643ecb5c5b9788b6daa40e9f4466b2fc4ed51764ed4d215d02f1090085b701798bb3b11b909890f3627dc8e8de8bc32e5c77575f7f405d73c8ec388660fc6982774c15634c9e64c6b0eca53fa208e0b6c60c2b774d5cf5f032ac10bfacebef1c9dff91c15ea41333879d2bf8828dd2eb625323994d6023c8bf86b89b9d17bf3698eff58a349ba6cd2c65a4dfb5e45b81f388be73bb8a82ff90e34eaba977bf2f0e822f634929e5b9486addc7d26935f0dbd70531debc2bd82c90ebf96256b38cc6b663e24caaab7680fd0e017fbd9e5d2600df24f8b37b65d5b42bd1ef541eecc517b5d86d11a1783939baf15586efd5298e2f583457413739155172b55085a52cb907ba87cd8b8e4706f881af52d55b3e85dfc6e260749a3fdbe321cf75b1d423bd56528c9faaa6097a7511296a85cafaecea1e33467edc81bd2e3242ef588f67ab953870ea3c493887a7a1687bb7985f817d5897b09d2e013e5b5798ef7f76bbe8c21447149cca3d2896cf1978c5334adeb2d603ffeeb541c43108a15d58dca76a0d3cce623036329e6994393cb070e9262568501c2273f659505fcb7e3ef2c0dc11794aed336001405a9f6b14b932b2ca81c29df9224da48a25b2fcfc4a067f636fcca8ce4d47b70c5b5cb05a8f7a247074e2f977be38ccc6ca841ade736822e6c401dd4bebdb4a87d32036a066d8e7028333b8fc2efa6583d254ede1377113561396742569bdcc93e81d83991b5bc2cf24b1969e1ee41084e6230a57a8a3322830701e567b57eaa59f9099d7ce460abb87d75f6d4712e07eeeb60f43daa8bf24799d8f043cdf1a6b980adfb9bf555378dbf8ad40f9e9b3be2acbc14f4aaa03cdfd8d70e10f40e61a7f638e0512f37cd91e4ed8a1962cb458e1af367849207b270b492c75a208b1344fcef66e5b9e626cc67057f11036476eae55927cd7285d33de6a3affe652e00b1116fe422c478da840005b952f04b05fa6eaf61be017f5c11ef804c5ed68c81b4406a90a3e06203d73f96e70b97ece3987f5612850755b144a4d0f617dfab8e02faff91039b97402a17c0285d16fbb84a7191c49b7fedc7bdd4c82018845e6e10c3560fbafb8469b219b468e9be087df02183cc781c233c9744897bd3f3d55a24a5397662441c4a400ed72222a4640a496fb7366763870001c73ba7e5a97f3f6854d232fa7f43b77be46c071be3269f7baacf3c7eaa7ebdbf366fa1c7c10ad8857501e5af58d6f3331994b5dea2d1d98ffe2691b64504506cacab9d4208ea2b6d7a11d1e841243454dd161fe49c654d670feb87385e5d6f1e50426fe056c50f342968050d396126b09d2e753662482bb1d986ecdbcc9f30a997a0a14e8afe88e400812a71a457411b8bf35be2fe65bc627bf958bf7e8d8bd6e122ff90f14119241e97e598b4fc417bb5fbcc4868f8d00d3b7d5bd36081461f6141c0edf7ce7c2beacadef957bc93c4592e7e0b39a9ae010eae680b74a9fe01ae4a701a134e6e1fb10af59cf725d9288015b48454ddadedaae35f158bc1bdb11a2e172d830b1d6551b270aacc0bfa6fd32072bed1ef31b7660f36e69c2b19422fd157ed4b9ec606abc266e49c5c164620758c7b37afcd6b5ac9e8d57819a868a498e9642f96fa62a2c0473d2fb44e12d98f4b1982c71d5197e17d4cb1576656762afeb2d84ef5d6c5dfa5caba738591b628354562ed0a3f15f02cfc2e20f70d21d423cb135f4ef11e8154250a8ec893a58e0ea3dbbaea1727948d022bea506ee66fdf6b54b84b3a4e7a62a194488ddc714b2795cdd6cac96323d5751dee1b614d2344203d3b7de21505f4c8a5cf3e7f2574d7cf5cc2476a650e26b87c9538f8c050e60dac068af94d1af785145556dc30ebdd94fadf26edcd4c0922b5e4b00719bc02f4c36534098ed25c9f99bb7be8a313e1c4f31121a70f4e76021af87e7e7eb1ad7977ab9b961869159551d8dcdb640b2f871367e990d313e8ee61268d6da32f91ea5d6b7ee0d1495fb987ffd667d9a3b8ad4acea98fc52be090a7e7a8d83d315d3d5c4db911e41465d5d9e0a970f008dc21e606fb1cda2ee96b3215f0e8fc7eb24f1821289e25e4ccb08d01b1591410bb93fb6517d83d7fdfc91b62c44b808f247cc7af3c8afe10100d7cff59c0ec1590cb72daa39e08ffc9e82e1e01b40f0726d9413b9c6a9a499a0fb0647de801eaad20f5293b1832b6f901689d56825a80d77492cc447b448d75fc231d385e1e5583324b50a7c16392efd292f7552808ec9961db5209619fcc8cdbb8a84ed45b04d238237c2c356afc853d53eb1479583fc55e549ce12710f468a525a628fa40a3cbda3f9baae1b101561b50b96438021eba21df444705e6c687fbb7d4c78e5b2174bb9e29e475a1f1fac311d890589740e31a4e48942d5994406bbb7d7391f214460cfafd22a2c3e91d301cc492bf68ade266eb21e0731c39c5ec9271f6682b8b87513126945098a29728de79afa76a0ea2789c879592b3e8a4ec2eafee4d4fb1b0902710b086c3f09375bd07aeeb947ab20faa87f910e4f97120b73e83d66e12c3c8f9a4f1089124ca976e24fc33d990533072def16b3197cc667164f41d8b991279e9b6374fe2ccd1f085d3585b158162dde360499bc605cb3c91cb4d5274fc957ccd2e02b48ed3f56604d34ebcc62deb6ddabe31740226de27d4f86c53f63285c49c3fa5b3b7f9fddd7ed9e4a4c0f53669b94ead0321c3bcff36164543f7370887e52be15de013c7d05c2281f432d688e07099a8d757021a662def172080b9be8</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码.</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">
       
     </div>
     
@@ -449,7 +437,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/">4.put流程</a></p>
   <p><span>发布时间:</span>2021年06月14日 - 06:06</p>
-  <p><span>最后更新:</span>2021年06月24日 - 17:06</p>
+  <p><span>最后更新:</span>2021年06月24日 - 18:06</p>
   <p><span>原始链接:</span><a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/" title="4.put流程">https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/04put%E6%B5%81%E7%A8%8B/"  aria-label="复制成功！"></i></span>
   </p>
@@ -559,17 +547,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
-            文章目录
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview">
-            站点概览
-          </li>
-        </ul>
-      
 
-      <section class="site-overview sidebar-panel">
+      <section class="site-overview sidebar-panel sidebar-panel-active">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/hexo/images/face.jpeg"
@@ -638,22 +617,6 @@
 
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#hbase-meta"><span class="nav-number">1.</span> <span class="nav-text">hbase:meta</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%A7%8Bput"><span class="nav-number"></span> <span class="nav-text">开始put</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#memStore%E9%A2%91%E7%B9%81full-gc%E9%97%AE%E9%A2%98"><span class="nav-number"></span> <span class="nav-text">memStore频繁full gc问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#memStore%E7%94%9F%E6%88%90HFile%E7%9A%84%E6%97%B6%E6%9C%BA"><span class="nav-number"></span> <span class="nav-text">memStore生成HFile的时机</span></a></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       

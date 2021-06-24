@@ -96,20 +96,18 @@
 
 
 
-<meta name="description" content="hbase使用多维的稀疏排序map存储数据，比如像下面这样： rowkey_01+列族1:列1+put+t3：v1，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，value就是操作的值，这样看的话就是一个多维排序的map，稀疏的话说的是每一列不一定有值，这样看起来就很稀疏。 他是一种列簇式存储，把同一列族下的所有列的值存到一个大文件里，所以">
+<meta name="description" content="富婆才能看">
 <meta property="og:type" content="article">
 <meta property="og:title" content="3.物理模型">
 <meta property="og:url" content="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/index.html">
 <meta property="og:site_name" content="富婆&amp;小红">
-<meta property="og:description" content="hbase使用多维的稀疏排序map存储数据，比如像下面这样： rowkey_01+列族1:列1+put+t3：v1，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，value就是操作的值，这样看的话就是一个多维排序的map，稀疏的话说的是每一列不一定有值，这样看起来就很稀疏。 他是一种列簇式存储，把同一列族下的所有列的值存到一个大文件里，所以">
+<meta property="og:description" content="富婆才能看">
 <meta property="og:locale">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gri6bw1tc9j30u00zkn24.jpg">
 <meta property="article:published_time" content="2021-06-13T22:27:35.000Z">
-<meta property="article:modified_time" content="2021-06-14T14:50:11.256Z">
+<meta property="article:modified_time" content="2021-06-24T10:13:01.342Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="大数据">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gri6bw1tc9j30u00zkn24.jpg">
 
 
 
@@ -400,11 +398,18 @@
       
 
       
-        <p>hbase使用多维的稀疏排序map存储数据，比如像下面这样：</p>
-<p><strong>rowkey_01+列族1:列1+put+t3：v1</strong>，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，value就是操作的值，这样看的话就是一个多维排序的map，稀疏的话说的是每一列不一定有值，这样看起来就很稀疏。</p>
-<p>他是一种列簇式存储，把同一列族下的所有列的值存到一个大文件里，所以查询同一列族下的数据会很快，到是一次查找多个列族，就会涉及到读取多个文件，所以在建表的时候需要考虑好，尽量让每次插叙都是同一列族下的列数据，相对于列存储和行存储，列簇存储更灵活，如果一个表只有一个列簇，就变成了行存储，如果每一个列簇只有一个列，就变成了列存储。</p>
-<h3 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h3><p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gri6bw1tc9j30u00zkn24.jpg"></p>
-
+        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">
+  <script id="hbeData" type="hbeData" data-hmacdigest="91692975c80c0b50b69ecfe6717310e86ceca450573c2c432937fe276eb9a927">982a2f2de999a7307d7563de6c539b23a969048a72602f2b7a79ca2f1cf6d93c81fa92678643354b33a849302367e92a5dd5a453ece2b81af561f757d835df61d04e6478aef8e16df61a213f57bc2d34e14bed29a1298950c168567985d4c89860d676bcd4ab4d41ca57d9364e0cdcabe999492af4de9466e04eba9bf011029728c18970bc23e5bdf3220875a53a952cb1c2e2e211c28f9f1008bb5e46293afdfa39523b0d2e77643662bff049b7abbd3fb8f636f5ca0fa68b5c5ef8b115f75326194fd73b3679d20ff28ee04737bf8931555052bb01e3f9f7e74cf97fe021291afe68f33b83a9a151431845324dd3d2c1e57d8ca1dafecec27adf15509f09cbebfa37f60145545fdc88703e5cb2ece1534221f3d68c22057c293b688e406f7ddf7e92389bf778191e64ec87f9cf841ac117687524299eb1596d38abca9bc88064d3f73d8cca29eaf3aaf5ae6e5fdff8d295bd9763254cdb4f19861110babdc44de904a33d2a2e7168233c88fca1d53cc2e9165915f580f0fbc3799942fc8c37a1fc9beb69052126ee1336f1f17bcc69069c5afd085af7a0eff1474a79eefb790a657b2171cc8cb315e1f7fc7f6019d994a645881265e2856e4f3d2f95dcb611e9b731b1ca8431a251301ea960ebf11dc45d85d1a297d481c3f9267ec97ba7a384852d1c2a5359897b60bc8d1dadff3dce53e352c47602800963a703f7091040bda9ded543eb1e478e62e835bdbfc3cb7b4f7d36cf99bcc669d929a00f220a7b91e435cce352bb780b698d2f926ac92bf76a2e2d2f358ddc20ddc4822fe26e510257bc85415e2f2943d92f179cab7fc0a2138075d00bdf5b01bf405e7dda682bf4082176756850b15b0463e32f5682c53e86cc06cf304c811a3b37ae90d80b2a8ba01d5ec405863a0271a82afc64f6ab8bb8654bc4db712f6362fb2a48fffad279b2e8cb90136c99bf1bdfbc0d6f6b42c801cc69012b73ae96c1af770cd722ee9f17417d75774468b222fb3c3b1ec2a040a9cf721beec86c7f7703e1c16601b0c8e4d54e446a732684080bfd514ddf99d930f68510cfa5ac27df602f9b256a051ba471293263656a6de6f2d8b7826387f09e874f3f0c275cef27add60fae71506deb26f7f717f198dde536abde2252da9beaf6277f4bffdeaac125154adb3ee8a2a9576fd669175096f76e27580e72cde2b7b16d4527bb75ca8416176de79d345529fa7a10ad48dd616b70a977a5c72a3b529532fd109f010230b50190786331fe8b6db4ffabed21ceb62a35ea36a23df1b7a4921ca2a6baacb4bcb3f6587d1369571a3affbc681943c0ce185d12698af3b91808ff34a86d3eb5da8d966b08089446323094d478c8f62e46c3553aaa4c934f2d8424439cf667702b9bf9359c2fca69358e08058d9aa2e5dbbc1161d1f0279d180369f3918b6e50b336f4b47dff718ae9cac35431a9adca0f23ea79f2f2696c49f44be8aeedb2922b0135b3c85d7d7554336f06f3aef62dbf1b36d6ccbab90a81eb204540acd40e000390ef0aad1565933c6684dc338444e1e09140065c837e39e849e03381e28b9b00fffeb4cc0222ac4e745b2b7bec9cf2c9b98c02e0</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码.</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">
       
     </div>
     
@@ -432,7 +437,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/">3.物理模型</a></p>
   <p><span>发布时间:</span>2021年06月14日 - 06:06</p>
-  <p><span>最后更新:</span>2021年06月14日 - 22:06</p>
+  <p><span>最后更新:</span>2021年06月24日 - 18:06</p>
   <p><span>原始链接:</span><a href="/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/" title="3.物理模型">https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/%E5%A4%A7%E6%95%B0%E6%8D%AE/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/"  aria-label="复制成功！"></i></span>
   </p>
@@ -542,17 +547,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
-            文章目录
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview">
-            站点概览
-          </li>
-        </ul>
-      
 
-      <section class="site-overview sidebar-panel">
+      <section class="site-overview sidebar-panel sidebar-panel-active">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/hexo/images/face.jpeg"
@@ -621,22 +617,6 @@
 
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="nav-number">1.</span> <span class="nav-text">架构图</span></a></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
