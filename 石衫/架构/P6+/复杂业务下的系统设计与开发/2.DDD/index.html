@@ -108,7 +108,7 @@
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gvlubs8v3nj60u00w940o02.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gvluxat7vaj60p00n03zn02.jpg">
 <meta property="article:published_time" content="2021-06-23T22:27:35.000Z">
-<meta property="article:modified_time" content="2021-10-20T09:12:29.429Z">
+<meta property="article:modified_time" content="2022-01-24T09:07:34.291Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="研发效能">
 <meta name="twitter:card" content="summary">
@@ -420,17 +420,18 @@
 <h5 id="上下文映射"><a href="#上下文映射" class="headerlink" title="上下文映射"></a>上下文映射</h5><p>就是子域进行集成，就是不同系统之间的接口调用，因为不同的系统可能会有通用语言的冲突，就需要在接口调用的时候把冲突的单词映射成另一个。</p>
 <p>上下文映射的种类，U-D就是调用链的上下游，下游调用，上游提供，箭头是由上游指向下游，表示数据的流向：</p>
 <ul>
-<li>  合作关系（Partnership）：两个上下文强耦合在一起，多个服务完成一整个业务，一般这种关系需求变更对应的服务也要改动。</li>
-<li>  共享内核（Shared Kernel）：两个系统共同维护一些模型，比如A系统的API里的一些类是B系统认可的，或者一个单独的公共的模块，他们共用并且共同维护这些实体。</li>
+<li>  合作关系（Partnership）：两个上下文强耦合在一起，多个服务完成一整个业务，一般都是一起需求评审，一起开发，一起上线。这种关系需求变更对应的服务也要改动。</li>
+<li>  共享内核（Shared Kernel）：两个系统共同维护一些模型，比如A系统的API里的一些类是B系统认可的，或者一个单独的公共的模块，他们共用并且共同维护这些实体，很少见。</li>
 <li>  客户方-供应方（Customer-Supplier Development）：就是系统B根据系统A的需求定制接口，返回值还是系统A（客户方说的算），一般都是和合作关系配合用，你需要接口，人家没有就一起商量一下。</li>
-<li>  跟随者（Conformist）：系统A调用系统B，但是A说得不算，B只暴露一些接口，你要是用就调一下，人家不配合你，一般就是中间件部门写的接口。</li>
-<li>  开放主机服务OHS（Open Host Service）和发布语言PL（Published Language）：相当于是开放的API了，一般指三方或者公司自己的平台，比如云片短信，定义一种协议，一般都是restful。基于消息机制也是发布语言的实现方式。</li>
+<li>  发布订阅（Publish-Subscribe）：比如那种发mq消息的。</li>
+<li>  尊奉着/没商量（Conformist）：系统A调用系统B，但是A说得不算，B只暴露一些接口，你要是用就调一下，你想要修改人家也不配合你，一般就是中间件部门写的接口，或者其他独立的系统。</li>
+<li>  开放主机服务OHS（Open Host Service）和发布语言PL（Published Language）：相当于是开放的API了，一般指三方或者公司自己的平台，比如云片短信，定义一种协议，一般都是http。基于消息机制也是发布语言的实现方式。</li>
 <li>  防腐层ACL（Anticorruption Layer）：为了防止系统B接口改动频繁，把调用系统B的代码抽离出来，以后系统B再次改动，这需要改防腐层的代码即可，一般和尊奉着/开放主机服务一起使用。</li>
 <li>  大泥球（Big Ball of Mud）：上下文没有关系，各行其道，混乱的组织在一起，一般说得就是本该拆成几个子域，结果混在了一个服务里。</li>
 <li>  独立路线/隔离模式（SeparateWay）：没关系。</li>
 </ul>
 <h5 id="实体和值对象"><a href="#实体和值对象" class="headerlink" title="实体和值对象"></a>实体和值对象</h5><ul>
-<li>  实体：先理解成传统MVC的domain下的实体，但其实远不止，实体是有状态和行为的。</li>
+<li>  实体：先理解成传统MVC的domain下的实体，但其实远不止，实体是有状态和行为的，也就是说实体的变量是可变的。</li>
 <li>  值对象：就是实体中包含的数据，比如订单中的值对象可以有订单详情，代表的是封装了一份数据，最经典的例子，前端返回的实体一般起名都以VO结尾，VO就是value object的缩写，翻译过来就是值对象，比如返回给前端的订单信息中有OrderInfo、OrderItem、Product、PurchaseCart。其实实体和值对象的区别可以理解成实体有id，值对象没有id。</li>
 <li>  聚合（Aggregate）：多个实体或者值对象的组合关系，一个订单实体中有多个订单明细实体，他们就是聚合关系。</li>
 <li>  根实体：每个聚合关系里都有一个跟实体，在订单里，大订单就是跟实体，也叫聚合根。</li>
@@ -444,6 +445,7 @@
 <h5 id="业务组件"><a href="#业务组件" class="headerlink" title="业务组件"></a>业务组件</h5><p>对领域事件的发布和处理。</p>
 <h5 id="用户界面"><a href="#用户界面" class="headerlink" title="用户界面"></a>用户界面</h5><p>对应controller接口。</p>
 <h5 id="基础设施"><a href="#基础设施" class="headerlink" title="基础设施"></a>基础设施</h5><p>MySQL、es、redis什么的，业务组件、领域服务、实体、资源库都可以用，根据业务决定。</p>
+<h5 id="命令-command和查询query"><a href="#命令-command和查询query" class="headerlink" title="命令 command和查询query"></a>命令 command和查询query</h5><p>用来驱动领域服务的业务逻辑核方法的执行，一般就是人通过web或者app这种UI界面发起的指令，是从CQRS架构里延伸出来的，牵扯到了下面的类DDD和泛DDD。</p>
 <h5 id="战略设计-战略建模-领域对象建模"><a href="#战略设计-战略建模-领域对象建模" class="headerlink" title="战略设计/战略建模/领域对象建模"></a>战略设计/战略建模/领域对象建模</h5><p>对子域划分、上下文映射、子域集成、实体、值对象和领域服务建模，完全没必要说得这么高大上，其实就是业务建模。一般一块业务就对应一个领域，一个领域又可以拆成多个子域，拆分域还是很容易的。</p>
 <p>业务领域 -&gt; 各个子域（module） -&gt; 自己子域的通用语言（你应该跟子域里的其他人一起合作） -&gt; 上下文映射（上下游关系）</p>
 <h5 id="战术设计-战术建模"><a href="#战术设计-战术建模" class="headerlink" title="战术设计/战术建模"></a>战术设计/战术建模</h5><p>就是系统的详细设计，搞得跟打仗一样。</p>
@@ -545,6 +547,8 @@
 </ul>
 </blockquote>
 <p>调用其他服务的参数和返回值如果是实体怎么处理，这个实体放在那？</p>
+<p>验证DDD落地是否成功？</p>
+<p>当代码能够贴合业务，还原业务流程，可以找产品来看看他能不能根据代码的英文单词的含义理解代码，和他设计的流程是否一致。</p>
 
       
     </div>
@@ -573,7 +577,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/hexo/%E7%9F%B3%E8%A1%AB/%E6%9E%B6%E6%9E%84/P6+/%E5%A4%8D%E6%9D%82%E4%B8%9A%E5%8A%A1%E4%B8%8B%E7%9A%84%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%BC%80%E5%8F%91/2.DDD/">2.DDD</a></p>
   <p><span>发布时间:</span>2021年06月24日 - 06:06</p>
-  <p><span>最后更新:</span>2021年10月20日 - 17:10</p>
+  <p><span>最后更新:</span>2022年01月24日 - 17:01</p>
   <p><span>原始链接:</span><a href="/hexo/%E7%9F%B3%E8%A1%AB/%E6%9E%B6%E6%9E%84/P6+/%E5%A4%8D%E6%9D%82%E4%B8%9A%E5%8A%A1%E4%B8%8B%E7%9A%84%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%BC%80%E5%8F%91/2.DDD/" title="2.DDD">https://hongjie123.gitee.io/hexo/%E7%9F%B3%E8%A1%AB/%E6%9E%B6%E6%9E%84/P6+/%E5%A4%8D%E6%9D%82%E4%B8%9A%E5%8A%A1%E4%B8%8B%E7%9A%84%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%BC%80%E5%8F%91/2.DDD/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/%E7%9F%B3%E8%A1%AB/%E6%9E%B6%E6%9E%84/P6+/%E5%A4%8D%E6%9D%82%E4%B8%9A%E5%8A%A1%E4%B8%8B%E7%9A%84%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%BC%80%E5%8F%91/2.DDD/"  aria-label="复制成功！"></i></span>
   </p>
@@ -619,8 +623,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/hexo/%E7%9F%B3%E8%A1%AB/%E6%9E%B6%E6%9E%84/P6+/%E5%A4%8D%E6%9D%82%E4%B8%9A%E5%8A%A1%E4%B8%8B%E7%9A%84%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%BC%80%E5%8F%91/1.%E6%95%8F%E6%8D%B7%E5%BC%80%E5%8F%91/" rel="next" title="1.敏捷开发">
-                <i class="fa fa-chevron-left"></i> 1.敏捷开发
+              <a href="/hexo/%E7%9F%B3%E8%A1%AB/%E6%9E%B6%E6%9E%84/P6+/%E5%A4%8D%E6%9D%82%E4%B8%9A%E5%8A%A1%E4%B8%8B%E7%9A%84%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%BC%80%E5%8F%91/4.cola/" rel="next" title="4.DDD框架之cola">
+                <i class="fa fa-chevron-left"></i> 4.DDD框架之cola
               </a>
             
           </div>
@@ -629,8 +633,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/hexo/%E7%A7%92%E6%9D%80/LVS/" rel="prev" title="LVS">
-                LVS <i class="fa fa-chevron-right"></i>
+              <a href="/hexo/%E7%9F%B3%E8%A1%AB/%E6%9E%B6%E6%9E%84/P6+/%E5%A4%8D%E6%9D%82%E4%B8%9A%E5%8A%A1%E4%B8%8B%E7%9A%84%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%BC%80%E5%8F%91/1.%E6%95%8F%E6%8D%B7%E5%BC%80%E5%8F%91/" rel="prev" title="1.敏捷开发">
+                1.敏捷开发 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -708,7 +712,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/hexo/archives/">
-                <span class="site-state-item-count">187</span>
+                <span class="site-state-item-count">203</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -719,7 +723,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/hexo/categories/index.html">
-                <span class="site-state-item-count">14</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -730,7 +734,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/hexo/tags/index.html">
-                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-count">28</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -772,7 +776,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8DDD%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">为什么要用DDD？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="nav-number">2.</span> <span class="nav-text">基础概念</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%99%90%E7%95%8C%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-number">2.0.1.</span> <span class="nav-text">限界上下文</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%80%9A%E7%94%A8%E8%AF%AD%E8%A8%80"><span class="nav-number">2.0.2.</span> <span class="nav-text">通用语言</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AD%90%E5%9F%9F%EF%BC%88domain%EF%BC%89"><span class="nav-number">2.0.3.</span> <span class="nav-text">子域（domain）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#module"><span class="nav-number">2.0.4.</span> <span class="nav-text">module</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E6%98%A0%E5%B0%84"><span class="nav-number">2.0.5.</span> <span class="nav-text">上下文映射</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93%E5%92%8C%E5%80%BC%E5%AF%B9%E8%B1%A1"><span class="nav-number">2.0.6.</span> <span class="nav-text">实体和值对象</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E5%BA%93"><span class="nav-number">2.0.7.</span> <span class="nav-text">资源库</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.0.8.</span> <span class="nav-text">应用服务</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%A2%86%E5%9F%9F%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.0.9.</span> <span class="nav-text">领域服务</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%A2%86%E5%9F%9F%E4%BA%8B%E4%BB%B6"><span class="nav-number">2.0.10.</span> <span class="nav-text">领域事件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%9A%E5%8A%A1%E7%BB%84%E4%BB%B6"><span class="nav-number">2.0.11.</span> <span class="nav-text">业务组件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E7%95%8C%E9%9D%A2"><span class="nav-number">2.0.12.</span> <span class="nav-text">用户界面</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="nav-number">2.0.13.</span> <span class="nav-text">基础设施</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%88%98%E7%95%A5%E8%AE%BE%E8%AE%A1-%E6%88%98%E7%95%A5%E5%BB%BA%E6%A8%A1-%E9%A2%86%E5%9F%9F%E5%AF%B9%E8%B1%A1%E5%BB%BA%E6%A8%A1"><span class="nav-number">2.0.14.</span> <span class="nav-text">战略设计&#x2F;战略建模&#x2F;领域对象建模</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%88%98%E6%9C%AF%E8%AE%BE%E8%AE%A1-%E6%88%98%E6%9C%AF%E5%BB%BA%E6%A8%A1"><span class="nav-number">2.0.15.</span> <span class="nav-text">战术设计&#x2F;战术建模</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%AB%E8%A1%80%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">贫血模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B"><span class="nav-number">4.</span> <span class="nav-text">开发流程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%88%98%E7%95%A5%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.0.1.</span> <span class="nav-text">战略设计</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%88%98%E6%9C%AF%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.0.2.</span> <span class="nav-text">战术设计</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8DDD%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">为什么要用DDD？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="nav-number">2.</span> <span class="nav-text">基础概念</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%99%90%E7%95%8C%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-number">2.0.1.</span> <span class="nav-text">限界上下文</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%80%9A%E7%94%A8%E8%AF%AD%E8%A8%80"><span class="nav-number">2.0.2.</span> <span class="nav-text">通用语言</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AD%90%E5%9F%9F%EF%BC%88domain%EF%BC%89"><span class="nav-number">2.0.3.</span> <span class="nav-text">子域（domain）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#module"><span class="nav-number">2.0.4.</span> <span class="nav-text">module</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E6%98%A0%E5%B0%84"><span class="nav-number">2.0.5.</span> <span class="nav-text">上下文映射</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E4%BD%93%E5%92%8C%E5%80%BC%E5%AF%B9%E8%B1%A1"><span class="nav-number">2.0.6.</span> <span class="nav-text">实体和值对象</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E5%BA%93"><span class="nav-number">2.0.7.</span> <span class="nav-text">资源库</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.0.8.</span> <span class="nav-text">应用服务</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%A2%86%E5%9F%9F%E6%9C%8D%E5%8A%A1"><span class="nav-number">2.0.9.</span> <span class="nav-text">领域服务</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%A2%86%E5%9F%9F%E4%BA%8B%E4%BB%B6"><span class="nav-number">2.0.10.</span> <span class="nav-text">领域事件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%9A%E5%8A%A1%E7%BB%84%E4%BB%B6"><span class="nav-number">2.0.11.</span> <span class="nav-text">业务组件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E7%95%8C%E9%9D%A2"><span class="nav-number">2.0.12.</span> <span class="nav-text">用户界面</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="nav-number">2.0.13.</span> <span class="nav-text">基础设施</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%91%BD%E4%BB%A4-command%E5%92%8C%E6%9F%A5%E8%AF%A2query"><span class="nav-number">2.0.14.</span> <span class="nav-text">命令 command和查询query</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%88%98%E7%95%A5%E8%AE%BE%E8%AE%A1-%E6%88%98%E7%95%A5%E5%BB%BA%E6%A8%A1-%E9%A2%86%E5%9F%9F%E5%AF%B9%E8%B1%A1%E5%BB%BA%E6%A8%A1"><span class="nav-number">2.0.15.</span> <span class="nav-text">战略设计&#x2F;战略建模&#x2F;领域对象建模</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%88%98%E6%9C%AF%E8%AE%BE%E8%AE%A1-%E6%88%98%E6%9C%AF%E5%BB%BA%E6%A8%A1"><span class="nav-number">2.0.16.</span> <span class="nav-text">战术设计&#x2F;战术建模</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%AB%E8%A1%80%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.</span> <span class="nav-text">贫血模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B"><span class="nav-number">4.</span> <span class="nav-text">开发流程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%88%98%E7%95%A5%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.0.1.</span> <span class="nav-text">战略设计</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%88%98%E6%9C%AF%E8%AE%BE%E8%AE%A1"><span class="nav-number">4.0.2.</span> <span class="nav-text">战术设计</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
@@ -796,7 +800,7 @@
 <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
