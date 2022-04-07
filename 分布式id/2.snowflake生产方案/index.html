@@ -105,7 +105,7 @@
 <meta property="og:locale">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24ely1h0txkh25kjj21pc0n4di8.jpg">
 <meta property="article:published_time" content="2021-01-18T22:27:35.000Z">
-<meta property="article:modified_time" content="2022-04-01T00:49:10.338Z">
+<meta property="article:modified_time" content="2022-04-01T23:42:31.479Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="分布式id">
 <meta name="twitter:card" content="summary">
@@ -408,7 +408,7 @@
 <li>  记录每次生成id的时间戳，每次生成id的时候比较这个时间戳和系统的时间，如果系统的事件小就说明时钟回拨了，这个时候可以等，如果判断要等的时间很短，就夯住，时间很长就可以直接返回失败，但是返回失败这个是非常不好的。</li>
 <li>  针对第二种方案的优化，如果时钟回拨后和之前差几秒，这个时候可以返回异常+持续时间，让发号器的客户端重试并且在持续时间内不请求这台服务器，如果差很多，已经几十秒了，发号器客户端直接把这台机器从服务列表里删除，然后发号器就直接报警在主动下线，等到时间到了再次上线。</li>
 <li>  在优化减少发号器的重试，可以保存1s内每1毫秒生成的id的最大值，因为时钟回拨很少超过1s，当发现时钟回拨时，如果时间在1s内，就从拿到这个毫秒之前生成id的最大值开始递增。</li>
-<li>  如果在重启时发生时钟回拨时没法检测的，就算检测到了也没办法解决，所以每次启动的时候都需要拿到一个新的机器id，再把之前创建的zk顺序节点删掉，没有持久化操作。</li>
+<li>  如果在重启时发生时钟回拨时没法检测的，就算检测到了也没办法解决，所以每次启动的时候都需要拿到一个新的机器id，再把之前创建的zk顺序节点删掉，没有持久化操作，如果zk上的节点超过了1024个直接切换目录。</li>
 </ol>
 <p><img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h0txkh25kjj21pc0n4di8.jpg"></p>
 
@@ -439,7 +439,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/hexo/%E5%88%86%E5%B8%83%E5%BC%8Fid/2.snowflake%E7%94%9F%E4%BA%A7%E6%96%B9%E6%A1%88/">2.分布式id-snowflake生产方案</a></p>
   <p><span>发布时间:</span>2021年01月19日 - 06:01</p>
-  <p><span>最后更新:</span>2022年04月01日 - 08:04</p>
+  <p><span>最后更新:</span>2022年04月02日 - 07:04</p>
   <p><span>原始链接:</span><a href="/hexo/%E5%88%86%E5%B8%83%E5%BC%8Fid/2.snowflake%E7%94%9F%E4%BA%A7%E6%96%B9%E6%A1%88/" title="2.分布式id-snowflake生产方案">https://hongjie123.gitee.io/hexo/%E5%88%86%E5%B8%83%E5%BC%8Fid/2.snowflake%E7%94%9F%E4%BA%A7%E6%96%B9%E6%A1%88/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/%E5%88%86%E5%B8%83%E5%BC%8Fid/2.snowflake%E7%94%9F%E4%BA%A7%E6%96%B9%E6%A1%88/"  aria-label="复制成功！"></i></span>
   </p>
@@ -485,8 +485,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/hexo/%E5%84%92%E7%8C%BF/%E5%A4%A7%E6%95%B0%E6%8D%AE/%E9%98%B6%E6%AE%B5%E4%B8%80%EF%BC%9A%E4%BA%92%E8%81%94%E7%BD%91%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%8A%80%E6%9C%AF%E4%BD%93%E7%B3%BB%E7%9A%84%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90/netty%E6%BA%90%E7%A0%81/%E5%AF%B9NIO%E7%9A%84%E4%BC%98%E5%8C%96/" rel="next" title="3.对NIO的优化">
-                <i class="fa fa-chevron-left"></i> 3.对NIO的优化
+              <a href="/hexo/Spring%20boot/Logback/" rel="next" title="Logback">
+                <i class="fa fa-chevron-left"></i> Logback
               </a>
             
           </div>
@@ -574,7 +574,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/hexo/archives/">
-                <span class="site-state-item-count">215</span>
+                <span class="site-state-item-count">218</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -585,7 +585,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/hexo/categories/index.html">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">19</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -596,7 +596,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/hexo/tags/index.html">
-                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-count">32</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
