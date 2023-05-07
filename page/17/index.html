@@ -398,7 +398,11 @@
 
       
         
-          ……
+          
+          concurrentLinkedQueue是线程安全的无界队列，里面有两个指针，head和tail，还有一个单向链表Node。
+offer()，看这个代码能看出来链表中只有一个元素的时候，tail指向是null的。
+123456789101112131415161718192021222324public boolean offer(E e) &#123;    // 如果是空就抛出异常    checkNotNull(e);    final Node&lt;E&gt; newNode = n
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/10.ConcurrentLinkedQueue/#more" rel="contents">
@@ -552,7 +556,11 @@
 
       
         
-          ……
+          
+          底层还是一个数组，被volatile修饰了，这样可以保证多线程读写的可见性。
+add()
+12345678910111213141516171819public boolean add(E e) &#123;    final ReentrantLock lock = this.lock;    // 可重入锁进行加锁    lock.lock();    try &#123;        Object[] elements = getArray();        // 获取长度      
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/9.CopyOnWriteArrayList/#more" rel="contents">
@@ -706,7 +714,11 @@
 
       
         
-          ……
+          
+          1.8中使用了分段加锁，刚开始是CAS，hash冲突在使用synchronized
+put
+123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566// 计算hash值int hash = spread(key.hashCode());for (Node&lt;K,V&gt;[] tab = table;;)
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/8.ConcurrentHashMap/#more" rel="contents">
@@ -860,7 +872,14 @@
 
       
         
-          ……
+          
+          如果只是修改标志位，一些线程读，尽量使用volatile。
+如果大家都要写，就要判断一下，是不是只是数值的累加，如果是，使用Atomic类。
+不需要多线程共享的数据，使用ThreadLocal。
+读多写少的情况使用读写锁。
+尽可能减少线程占用锁的时间，比如使用分段锁，在加锁的代码块里使用磁盘IO、网络IO。
+还可以使用多级缓存减少读写锁的冲突。比如eureka的两级缓存readOnlyMap和readWriteMap，两级缓存是因为一级缓存的话和不加这个缓存没有区别，无法降低读写锁的冲突，两级缓
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/7.%E9%94%81%E4%BC%98%E5%8C%96/#more" rel="contents">
@@ -1014,7 +1033,11 @@
 
       
         
-          ……
+          
+          线程变量的副本。每个Thread内部有一个ThreadLocalMap，这个map是一个Entry数组，只能是线程自己内部使用，因为他就是内部的变量嘛，Entry中有两个变量，一个是k（ThreadLocal类型），一个是value（自己定义类型）
+set
+1234567891011public void set(T value) &#123;    Thread t = Thread.currentThread();    // 获取线程内部的ThreadLocalMap    ThreadL
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/6.ThreadLocal/#more" rel="contents">
@@ -1168,7 +1191,13 @@
 
       
         
-          ……
+          
+          谈谈对AQS的理解
+
+
+ReentrantLock全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的
+123456789101112131415161718//
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.AQS/#more" rel="contents">

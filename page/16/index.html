@@ -398,7 +398,20 @@
 
       
         
-          ……
+          
+          磁盘的物理组成：
+
+  原型碟片：记录数据。
+  机械手臂：包括手臂和磁头(擦写碟片上的数据)。
+  主轴马达：可以转动碟片。
+  扇区：最小的物理存储单元，有512B和4k两种格式。
+  柱面：扇区组成的一圈。早起分区以柱面为单位，现在使用扇区。
+  磁盘分区表：一种是限制比较多的MBR(Master boot record)，一种是比较新的GPT，MBR中第一个扇区最重要，里面放的主引导记录(MBR，446B)+分区表(64B)，目前最新的是GPT分区表。
+
+磁盘文件名：
+
+  物理磁盘的文
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/linux/3.%E7%A3%81%E7%9B%98%E5%92%8C%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/#more" rel="contents">
@@ -552,7 +565,13 @@
 
       
         
-          ……
+          
+          常见CPU架构精简指令集(RISC)：这种CPU中的每个指令的运行时间都很短，指令集比较精简，如果要执行复杂的指令需要多个指令组合，常见的有：
+
+  甲骨文(Oracle)的SPARC系列，用在学术领域的大型工作站，有的银行的主服务器。
+  IBM公司的Power Architecture(包括PowerPC)系列，索尼的PS3系列最早用的就是这个，现在不知道了，06年之前Mac也是用的这个CPU，06年到20年Mac使用的是Intel的x86架构CPU。
+  ARM的CPU，一些手机、导航、路
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/linux/1.%E7%AE%80%E4%BB%8B/#more" rel="contents">
@@ -706,7 +725,10 @@
 
       
         
-          ……
+          
+          selector是专门在网络通信中使用的，多路复用思想。基于操作系统底层的select机制，监听所有客户端的连接，收到请求不会处理，一般都是交给一个队列，这样selector就专门干监听，我们只要创建一个线程池，每个线程绑定一个队列，消费这个队列就可以了。
+NIO网络demo-服务端123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E7%BD%91%E7%BB%9C/NIO/3.selector/#more" rel="contents">
@@ -860,7 +882,11 @@
 
       
         
-          ……
+          
+          在buffer读取或者写入数据到磁盘或者socket的时候是要先写入channel的，数据管道的角色。
+写数据1.使用buffer加channel往磁盘顺序写数据demo顺序写就是一直往后追加：
+1234567891011121314151617181920// 构造一个传统的文件输出流FileOutputStream out = new FileOutputStream(&quot;/Users/xiaohong/IdeaProjects/io_temp/hello.txt&quot;);//
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E7%BD%91%E7%BB%9C/NIO/2.channel/#more" rel="contents">
@@ -1014,7 +1040,14 @@
 
       
         
-          ……
+          
+          一 创建缓冲区创建缓冲区有3种方式：
+1.创建空缓冲区创建空缓冲区适合用在从磁盘文件读取数据或者从网络里读取数据
+1ByteBuffer buffer = ByteBuffer.allocate(10);
+2.创建有数据的缓冲区把现有数据写入磁盘或者网络
+12byte[] data = new byte[] &#123;1, 2, 3&#125;;ByteBuffer buffer = ByteBuffer.wrap(data);
+3.direct缓冲区正常的缓冲区前面还有一个jvm的缓冲区(堆
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E7%BD%91%E7%BB%9C/NIO/1.buffer/#more" rel="contents">
@@ -1168,7 +1201,12 @@
 
       
         
-          ……
+          
+          他是一个基于HDFS的nosql。强一致性，适用于海量数据的简单增删改查。
+hbase里每行数据都有一个rowkey，表里的数据按照rowkey排序。每列都有自己的列族，猎德命名就是列族:列名，比如order:base，每个数据的值都有自己的时间戳，一个时间戳下的一个单元格数据就是一个cell。他是列式存储，大概是这样：
+rowkey            timestamp                列                值
+order_1_001    t1         
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E9%9D%A2%E8%AF%95/HBase/#more" rel="contents">
@@ -1322,7 +1360,11 @@
 
       
         
-          ……
+          
+          参数优化：1）buffer pool参数优化
+查看缓冲池大小，一般可以调成服务器内存的70%。
+  12345678910111213mysql&gt; show variables like &#x27;%innodb_buffer_pool_size%&#x27;;+-------------------------+-----------+| Variable_name           | Value     |+-------------------------+----------
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/#more" rel="contents">
@@ -1476,7 +1518,15 @@
 
       
         
-          ……
+          
+          真正的SQL优化是根据优化器给出的执行计划，改写SQL，改良索引，让SQL性能提升。
+名词
+system：表中只有1行数据。
+const：直接通过聚簇索引或者索引覆盖或者二级索引加回表就能返回结果的语句，性能是常量级，但是二级索引必须是unique key，也就是说只能查出来一条；
+ref：普通二级索引，而且条件必须是全值匹配，有个例外，当查询条件是主键 is not null时，也是ref；
+res_or_null：这个是说查询使用二级索引的全值匹配，但是有个条件是 is not null；
+
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/9.%E6%9F%A5%E8%AF%A2%E8%AE%A1%E5%88%92/#more" rel="contents">
@@ -1630,7 +1680,18 @@
 
       
         
-          ……
+          
+          四种线程池：
+
+  fixed：固定数量
+  cached：数量不固定，有新任务就创建线程，空闲的线程会回收
+  single：只有一个线程池
+  scheduled：在指定时间后执行提交的线程
+
+
+fixed，fixed中并不会触发reject策略，和maximumPoolSize，因为他用的是无界队列。
+12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/12.%E7%BA%BF%E7%A8%8B%E6%B1%A0/#more" rel="contents">
@@ -1784,7 +1845,11 @@
 
       
         
-          ……
+          
+          一个有界队列，初始化的时候如果传capacity就会设置成参数大小，如果没有就设置成int的最大值。他有两把可重入锁，一个putLock，一个takeLock，这两个lock还对应着两个condition，为什么叫阻塞队列呢？因为当put的时候，如果链表的大小等于capacity，会把线程放到锁的wait队列中去，这样不就是阻塞的了吗。take也是一样的，capacity是0的时候就会阻塞住。
+put
+12345678910111213141516171819202122232425262728
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/11.LinkedBlockingQueue/#more" rel="contents">

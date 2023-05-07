@@ -398,7 +398,9 @@
 
       
         
-          ……
+          
+          123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354# 设置用户名和邮箱# --global：设置当前用户范围内的配置，对机器上的其他用户是无效的# --system：对当前机器上所有用户都生效# 什么都不写是对当前所在的git项目本身生效git config --global user.name &quot;xiaohong&quot;git con
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/git/%E5%91%BD%E4%BB%A4/#more" rel="contents">
@@ -552,7 +554,10 @@
 
       
         
-          ……
+          
+          最开始linux的作者都是手动把社区的人贡献的代码合并的内核源码中，然后代码越来越多，版本、冲突不好解决就把源码放在bitkeeper，bitkeeper是商用的，但是给了作者免费的授权，过了一段时间社区有个人想破解这个gitkeeper被发现了，然后就收回了免费使用权，于是linux作者就自己写了一个版本控制系统，Git。
+Git是把仓库的版本快照都放在本地，和SVN不一样，如果仓库服务器卡了，SVN是提不了代码的，Git可以生成新的版本快照存在本地，然后在推到服务器，如果仓库服务坏了，代码丢
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/git/git/#more" rel="contents">
@@ -706,7 +711,11 @@
 
       
         
-          ……
+          
+          gradle：google发布的，安卓用的比较多，一些开源的项目比如Spring也使用的这个构建的，使用DSL语言构建管理，非常难搞。
+配置maven配置了基本的环境变量之后还要再配一下opts，因为maven也是用java写的，有的时候构建的项目很大也会导致OOM，新建一个用户变量MAVEN_OPTS值是-Xms128m -Xmx512m就够了应该.
+一般配置完settings.xml之后不要把这个文件放在maven的目录下，因为以后maven可能升级，这样还要去搞一下这个文件，所以要把这个配
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/maven/maven%E5%9F%BA%E7%A1%80/#more" rel="contents">
@@ -860,7 +869,12 @@
 
       
         
-          ……
+          
+          字典（hash）和java的HashMap一样，在redis中叫字典hash table，都是使用数组加单向链表的数据结构。字典hash table的结构类似下面这样：
+其中dict的type里是一堆函数，ht对应dictht的数组，应该固定是2，两个数组dictht轮着用，在扩容和缩容时切换。
+计算index首先计算出key的hash值，然后拿到hash值和对应dictht的sizemask的二进制做&amp;运算得到key所在的index。如果hash冲突会扩展成单向链表。
+rehash扩容
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/3.%E5%AD%97%E5%85%B8%E5%92%8C%E9%9B%86%E5%90%88%E5%92%8C%E8%B7%B3%E8%A1%A8/#more" rel="contents">
@@ -1014,7 +1028,15 @@
 
       
         
-          ……
+          
+          redis中的链表(双端无环的双向链表)是list，由于c语言没有链表的数据结构所以redis自己写了一个，但是有两个实现，listNode和list：
+
+  listNode：只包含前置节点(prev)、后置节点(next)、当前节点值；
+  list：头结点(head)、尾节点(tail)、节点数量(len)、复制(dup)函数、释放(free)函数、比较(match)函数，其中节点是listNode对象。
+
+链表API
+
+          
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/2.%E9%93%BE%E8%A1%A8/#more" rel="contents">
@@ -1168,7 +1190,10 @@
 
       
         
-          ……
+          
+          SDS是redis的动态字符串类型，全称是simple dynamic string，因为redis是基于c语言实现的，c语言的字符串都是定长，并且以空字符结尾，而redis自己实现的SDS是可动态变化的string，相当于java中的int[]和ArrayList&lt;Integer&gt;，SDS由三部分组成，分别是free变量、len变量、buf[]数组，len定义的是buf数组的长度，free记录剩余buf数组中未使用的字节数量，buf数组是要使用的字节数组。
+和C语言的字符串比的优势
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.SDS/#more" rel="contents">
@@ -1322,7 +1347,13 @@
 
       
         
-          ……
+          
+          一）事务的4个特性
+  原子性：同一个事物内的SQL要么都成功要么都失败，innodb中使用undo log保证数据的回滚，在事务执行过程中如果宕机的话没有提交的事务不会被恢复，因为redo log中的日志是uncommit的。
+一致性：原子性+隔离性+持久性是为一致性服务的，一致性说的是事务开始之前到结束不会破坏数据库的完整性，可以理解为其他3个特性加在一起就是一致性。一致性分为约束一致性和数据一致性：
+  约束一致性：针对表结构的外键、唯一索引等约束；
+  数据一致性：由原子性+隔离性+持久
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/6.%E4%BA%8B%E5%8A%A1/#more" rel="contents">
@@ -1476,7 +1507,10 @@
 
       
         
-          ……
+          
+          redo logWAL机制：预写日志机制，这是一种日志先行机制，意思是刷新数据的时候，先把数据对应的log刷新到磁盘上的对应的log file中，然后再根据log file刷新数据。针对redo log的WAL机制就是先将内存中的redo log buffer刷新到磁盘上的redo log file里，然后再根据redo log file刷新磁盘上的数据。这样有个好处是如果直接修改磁盘数据是随机写，但是WAL的话会顺序写日志，然后异步随机写。
+1）基本概念redo log叫重做日志，它包括两部分
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/5.%E4%B8%89%E4%B8%AAlog/#more" rel="contents">
@@ -1630,7 +1664,10 @@
 
       
         
-          ……
+          
+          一 buffer pool(缓冲池)用来缓存表数据和索引数据。MySQL的增删改查都是在buffer pool中进行的，如果buffer pool中没有目标数据会从磁盘中加载到buffer pool中。默认是128M。
+1）缓存页直接操作磁盘会让MySQL的效率极低而且扛不住并发，通过在缓存中操作数据可以解决这个问题，从磁盘加载数据到缓存和从缓存写入磁盘都是以数据页的形式，被加载到内存里数据页就叫缓存页，磁盘中每个数据页都是16k，所以一个缓存页也是16k。不管是数据还是索引都是使用数据页方式存
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/3.InnoDB%E7%9A%84%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/#more" rel="contents">
@@ -1784,7 +1821,16 @@
 
       
         
-          ……
+          
+          一 表空间表空间是用来存储表的结构和数据的，InnoDB中表空间分为以下几种：
+
+系统表空间：system tablespace，也叫共享表空间，对应的物理文件是var/lib/mysql/ibdata，这个表空间存了很多东西会越来越大。
+  系统表空间内容：
+
+  数据字典：表结构、数据库名、表名、试图、索引等等元数据
+  change buffer
+  doubleWrite buffer files：双写缓冲区，为了解决写失效问题，因为操作系统的os cache每页只有4k，默认情况下一个
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/4.InnoDB%E7%9A%84%E7%A3%81%E7%9B%98%E7%BB%93%E6%9E%84/#more" rel="contents">

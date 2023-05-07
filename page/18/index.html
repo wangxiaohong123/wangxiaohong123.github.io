@@ -398,7 +398,12 @@
 
       
         
-          ……
+          
+          fail fast就是说，在迭代器遍历的时候，其他线程过来修改集合，迭代器就会报错，concurrentModificationException。
+之前看的集合源码中的增删改操作都会有个操作，modCount++，在初始化迭代器的时候会把modCount赋值给迭代器的exceptedModCount。
+1int expectedModCount = ArrayList.this.modCount;
+在执行next()的时候会执行checkForComodification方法，如果不相等就抛出
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/7.fail%20fast%E6%9C%BA%E5%88%B6/#more" rel="contents">
@@ -552,7 +557,11 @@
 
       
         
-          ……
+          
+          HashSet因为HashMap的key是不会重复的，因为重复的key执行的是替换操作，HashSet就是基于HashMap实现的。value存成new Object()就完事了。源码里也能看到，就是声明了一个HashMap，所有操作就是去操作map。
+LinkedHashSet他继承了HashSet，初始化时调用了HashSet的构造方法，HashSet中会创建一个LinkedHashMap
+123HashSet(int initialCapacity, float loadFactor, b
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/6.set/#more" rel="contents">
@@ -706,7 +715,10 @@
 
       
         
-          ……
+          
+          LinkedHashMap就是有序的。他是HashMap的子类，正常的LinkedHashMap操作都会走到HashMap中去，LinkedHashMap重写了newNode的方法：
+1234567Node&lt;K,V&gt; newNode(int hash, K key, V value, Node&lt;K,V&gt; e) &#123;    LinkedHashMap.Entry&lt;K,V&gt; p =        new LinkedHashMap.Entry&lt;K,V
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/5.LinkedHashMap/#more" rel="contents">
@@ -860,7 +872,11 @@
 
       
         
-          ……
+          
+          HashMap是采用数组存储元素，计算key的hash值，用hash值对数组长度取模，在对应的索引放入元素，如果存在hash冲突，就会使用单向链表，如果链表的长度超过8，链表可能会变成红黑树，为什么是可能，因为在转红黑树的时候会先判断数组的长度是不是小于64，如果是就进行扩容不转红黑树。红黑树的查询复杂度是O(lg^n^)。
+HashMap的元素属性：
+12345678910111213static class Node&lt;K,V&gt; implements Map.Entry&lt;K,
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/4.HashMap/#more" rel="contents">
@@ -1014,7 +1030,12 @@
 
       
         
-          ……
+          
+          Vector也是基于数组来实现的。Stack继承了Vector。
+push操作就是往数组中添加元素
+1234567public synchronized void addElement(E obj) &#123;    modCount++;    // 扩容相关，调用的是Vector的方法    ensureCapacityHelper(elementCount + 1);    // 添加元素    elementData[elementCount++] = obj;&#125;
+pop()
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/3.Vector%E5%92%8CStack/#more" rel="contents">
@@ -1168,7 +1189,10 @@
 
       
         
-          ……
+          
+          核心node，基于前后指针的双向链表：
+1234567891011private static class Node&lt;E&gt; &#123;    E item;    Node&lt;E&gt; next;    Node&lt;E&gt; prev;    Node(Node&lt;E&gt; prev, E element, Node&lt;E&gt; next) &#123;        this.item = element;        this.next = next;
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/2.LinkedList/#more" rel="contents">
@@ -1322,7 +1346,11 @@
 
       
         
-          ……
+          
+          使用默认的构造函数，ArrayList会把数组的长度设置为10（DEFAULT_CAPACITY）。
+插入数据很简单，首先判断是否需要扩容**ensureCapacityInternal()**，如果添加完元素的长度大于现在的长度就扩容成1.5倍。然后把数组赋值。
+12345public boolean add(E e) &#123;    ensureCapacityInternal(size + 1);  // Increments modCount!!    elementData[siz
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/1.ArrayList/#more" rel="contents">
@@ -1476,7 +1504,19 @@
 
       
         
-          ……
+          
+          一些耗时的操作可以使用这个。
+
+步骤5.1失败了：
+
+ 可靠消息服务更新状态为已发送：一直会有一条状态时待确认的消息；
+ 可靠消息服务删除消息失败：一直会有一条状态是待确认的消息；
+
+不管是那种情况操作失败了，都是比较尴尬的。
+步骤7失败：可靠消息服务一直有一条状态是已发送的消息；
+可以看出来出现尴尬问题的点都在可靠消息服务上。
+解决步骤5.1失败：回调机制，可靠消息服务后台线程定时扫描超时的待确认消息，然后回调上游服务，上游服务返回这条消息对应的业务处理结果是成功还是失败，如果失败就删掉这条消
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/5.%E5%8F%AF%E9%9D%A0%E6%B6%88%E6%81%AF%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7/#more" rel="contents">
@@ -1630,7 +1670,14 @@
 
       
         
-          ……
+          
+          saga和tcc很像，tcc是把接口拆成三个，try、confirm、cancel，saga就是两个，try和confirm合并为一个。
+两种思想
+  编排模式：事件驱动模式，服务之间的调用时通过发布事件，监听时间来驱动，比如借助mq，回滚也是一样的，通过事件来驱动。编排模式很有去中心化的思想，而且是异步调用，缺点就是异步发生异常不好排查问题，而且需要依赖mq。
+  命令模式：类似tcc，有一个saga分布式事务管理器，同步调用。优点和缺点和编排模式相反。
+
+AxonFrameworkAxonF
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/4.saga%EF%BC%88%E9%9D%9E%E9%87%8D%E7%82%B9%EF%BC%89/#more" rel="contents">
@@ -1784,7 +1831,16 @@
 
       
         
-          ……
+          
+          
+主业务服务就是调用其他服务的接口，比如说下订单的接口，在这个接口中需要冻结用户钱包金额，主业务服务就是订单服务，从业务服务就是钱包服务，钱包服务需要提供三个接口：try接口、confirm接口、cancel接口。
+业务活动管理器就是管理分布式事务状态的，他会去触发从业务服务的confirm和cancel接口。
+try阶段：会锁定资源，没有资源锁定的操作，try接口就可以留空。
+confirm：执行具体的逻辑；
+cancel：对之前的变动回滚；
+TCC的两个变种
+  异步型TCC方案：从业务服务
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/3.TCC%E5%8F%8A%E5%8F%98%E7%A7%8D%E6%96%B9%E6%A1%88/#more" rel="contents">

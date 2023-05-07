@@ -398,7 +398,10 @@
 
       
         
-          ……
+          
+          消息丢失0丢失方案：发送端发送事务消息：half消息加commit or rollback方式，broker同步刷盘加主从同步，消费端确保一条线程消费成功后提交偏移量；
+消息重复消费问题消费端重复消费的场景：首先我们拉取到的消息可能有很多条，这一批消息如果有一条失败就要全部返回RECONSUME_LATER，在拉取到这些消息后就可能导致之前成功消费的又处理一遍；然后提交偏移量在broker那里是先写到内存在异步刷盘，这也会导致偏移量不准，还有一种情况是broker主节点宕机，从节点的consum
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E6%A1%86%E6%9E%B6/mq/RocketMQ/5.%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/#more" rel="contents">
@@ -552,7 +555,11 @@
 
       
         
-          ……
+          
+          命名长度模块、类、方法等命名不能太长也不能太短，对于一些相对熟悉的名词可以使用缩写代替，比如num代替number，str代替string，doc代替document，sec代替second，方法中的局部变量也不推荐使用太长的名字，因为他的作用域比较小。
+利用上下文比如User实体的变量可以把user起始标记去掉，userName改为name，同理方法的变量也可以把和方法名重复的地方去掉。
+可读可搜索单词不要用生僻的难发音的单词，比如eyrie，我现在还不会读呢，当别人想向你了解eyrie模块或
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83/#more" rel="contents">
@@ -977,164 +984,15 @@
 
       
         
-          ……
+          
+          线上进程kill不掉有的时候kill进程的时候在查看，进程还在，然后状态是zombie，就是僵尸进程，意思是子进程已经释放了资源，但是父进程没确认，这个时候要先执行ps aux查看stat那一列是不是Z，如果是就说明是zombie，那只要用ps -ef | grep 【僵尸进程的id】，找到他的父进程，然后杀掉父进程，再去kill子进程，我就知道这种情况。
+磁盘空间快满了正常情况应该是服务日志太多了。
+用df -h查看磁盘使用情况，然后删一删；
+find / -size +100M | xarg
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E9%9D%A2%E8%AF%95/10.linux/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/5.Spring/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E9%9D%A2%E8%AF%95/5.Spring/" itemprop="url">面试-5.Spring</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-29T08:21:10+08:00">
-                2019-12-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%9D%A2%E8%AF%95%E4%B8%93%E9%A2%98/" itemprop="url" rel="index">
-                    <span itemprop="name">面试专题</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          ……
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E9%9D%A2%E8%AF%95/5.Spring/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1285,10 +1143,173 @@
 
       
         
-          ……
+          
+          1.MyISAM和InnoDB的区别MyISAM不支持事务，不支持外键，索引文件和数据文件分开，并且他没有行锁。
+InnoDB有自己的redo log，他要求必须要有一个自增的主键，如果我们没有指定他会自己生成一个，默认情况会有一个根据主键的B+树索引，叫做聚簇索引，这个索引的叶子节点就是数据文件。
+2.索引为什么不用二叉树、平衡二叉树、B树，而是使用B+树二叉树容易造成节点不平衡，影响查找速度；就算他改成了平衡二叉树，深度太大也会影响查找速度；B树的子节点也会存储数据，因为MySQL的数据页是
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E9%9D%A2%E8%AF%95/4.MySQL/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/5.Spring/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E9%9D%A2%E8%AF%95/5.Spring/" itemprop="url">面试-5.Spring</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-29T08:21:10+08:00">
+                2019-12-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%9D%A2%E8%AF%95%E4%B8%93%E9%A2%98/" itemprop="url" rel="index">
+                    <span itemprop="name">面试专题</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          1.IOC控制反转：把bean的生命周期由程序员自己控制反转给spring控制；
+依赖注入：spring启动时创建bean的实例，程序中不需要自己创建依赖的bean的实例，依靠spring注入进来即可；
+2.AOP面向切面编程，在程序运行中会产生一些横切性问题，比如日志记录、事务的创建和提交回滚，如果不把这些问题统一放到切面里就会耦合到代码里。在Spring中默认情况下，如果是接口的实现类，AOP会使用JDK的动态代理，如果是没有实现接口的类，AOP会使用cglib的动态代理。
+3.动态代理就是
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E9%9D%A2%E8%AF%95/5.Spring/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1593,7 +1614,10 @@
 
       
         
-          ……
+          
+          java基础1.java中是值传递还是引用传递java中都是值传递，基本数据类型是复制的具体值进行传递，引用类型复制的是对象的内存地址进行传递，所以就算是值传递，在方法中修改引用参数的属性会导致外部对象也发生改变。怎么证明引用对象也是值传递？
+12345678910111213141516171819202122232425public class Person &#123;    private String name;&#125;public static void main(String[
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E9%9D%A2%E8%AF%95/2.java/#more" rel="contents">
@@ -1747,7 +1771,11 @@
 
       
         
-          ……
+          
+          SOLID原则
+单一职责原则（SRP）：不要设计大而全的类，要设计粒度小、功能单一的类；具体是否是单一需要根据具体的业务来定，比如用户信息和登录信息，当只有一个平台需要使用登录名密码时，可以和用户信息放到一起，如果多个平台使用同一个账号，最好是把登陆信息抽取出来，但是如果粒度分的很细又会降低内聚性。在类命名时，能够取出体现其职责的名字即可；
+开闭原则（OCP）：模块、类、方法应该对扩展开放，对修改关闭。当添加或者修改功能的时候不可能做到完全的对修改关闭，只要做到修改最少、最外层，让核心、复杂的代
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/#more" rel="contents">

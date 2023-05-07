@@ -96,18 +96,20 @@
 
 
 
-<meta name="description" content="……">
+<meta name="description" content="1.读写原理 在写入数据的时候先记录translog到os cache同时把数据写到内存的indexing buffer中，这个时候数据是查不到的，内存的indexing buffer中的数据每隔一秒会刷到os cache中，刷到os cache之后才能查到数据。os cache中的数据每个5s(默认)或者达到512m(默认)会刷入磁盘，所以如果es的进程挂了最多会丢1s的数据，primary所在">
 <meta property="og:type" content="article">
 <meta property="og:title" content="es-4.原理">
 <meta property="og:url" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/4.%E5%8E%9F%E7%90%86/index.html">
 <meta property="og:site_name" content="小红">
-<meta property="og:description" content="……">
+<meta property="og:description" content="1.读写原理 在写入数据的时候先记录translog到os cache同时把数据写到内存的indexing buffer中，这个时候数据是查不到的，内存的indexing buffer中的数据每隔一秒会刷到os cache中，刷到os cache之后才能查到数据。os cache中的数据每个5s(默认)或者达到512m(默认)会刷入磁盘，所以如果es的进程挂了最多会丢1s的数据，primary所在">
 <meta property="og:locale">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24ely1h1nfx4hv54j218w0u0n1i.jpg">
 <meta property="article:published_time" content="2022-03-14T07:21:14.037Z">
 <meta property="article:modified_time" content="2022-04-26T23:48:15.973Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="elasticsearch">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/e6c9d24ely1h1nfx4hv54j218w0u0n1i.jpg">
 
 
 
@@ -398,18 +400,35 @@
       
 
       
-        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">
-  <script id="hbeData" type="hbeData" data-hmacdigest="be6ea8aa5e4df22b754516fbf1c9d300cff255193849c3db85b3525e39ed2669">982a2f2de999a7307d7563de6c539b2399e876db0a6b4c5ccfefd927680874c3f8773498018fb99a07fd2f9521abae4ba3b80fa5fc3ffec61359bb7d5057c34ded8df0ecdfd4c6f9218b6cce8db5035a0732888a67bc387162daf0d9c0caa9bf6d5a8b0ad26bc61177e403673a837983eee567932f01b5bd4a50f6b87e1522b0fd10009232d820b73ab143465963cbf03e77931687213cd33737be6a31d5079f4a15d83b1ef0be886ea73b660270ef9551d723b8c04997d276a66a3c59a1b04e111fb888e155e8b68f9bf3c2be64233724c0da8df95e0ed715946dc3e5e37660105750fc0f831964e1ccbd306810206f02c69674ad5393f54981fd9eb8bf8298567b27381e13135427f746e537e4f1ebba7c0f267dc9a6b3e0a44e23cd2a07a6be2c7c1caf6047d028e556b3e064791ea0e6ebda57d0b92627e0ff92d66524fd21574e3ea591263950e64b8e6400f507572a98ef8e66458089556a3368ddf3a59ae0a3ad0fd6e93e4fafcaa8f10d7110b0900081112602c36ddec9013b99eb8a3d1a115ba8f282456fa66ed3e234c7dc0fab550e5ef8b25e6f3a919dcffcd8a0c445864b9280d8ab04497dc8ce45f34fb6fd3b8d20352ab9a0438dd972d43b37fc6cf0dae66f3920e7bc7dc71782a533d1cddcbeb97cbcc89620f610b2adf3dd390132981bc765552a9c22b0c8c6aa387730d846e424e05fdc26a88bc149e84a125a617e16c1704d41a68ae10c4af567c7a9af2c50d55ebda27ae739c3a5c23f0d16f06f2414d67f672529debb760d743fb35975bdecfa19691fffc81db30df4f976b3c314f4eecf4eb5bde758305a14683e15051bfb2497b4b62d0886312f13261cfcca0b12d87f7c7d240eaca2098b6c69b203c890beb57438b97159f5623939ab4d30a39129380bfb91165d531a2f3e0a5e400f614d89c055bfa21f8335d0e984166de89170b096c8518605c63c5795f030d483b86c97b17af39315866458b3a21c2ae42a92144d445b21f7e39a7f0bc4b113fdc5e20862b6d2a1112a7ce1a05a386abda3197cd1b7cdeac9519eed0bbafc4eb79bc0277b97f96fa8e007a6412e2ab29a536c997703d33b066e7a62856016e6ef1d363f748a17b8c2bcdf5f0dfb91651030eaec0c0ee21114fe6bbf3ca60f73ea91edf67f09709c2654ae6fb9347faa1c4356d7f0d30d707d8b8329654208eda56c63d4548bb52cac37aa3b423da6ffd2fa74ea966d6f6bd722c3cf48863f1dbff6529566d3217f763f89453ff4dc06e617407106a60941a2aaa916558706d7adae0ba09e20694daec736df03fe432c16db0e4e58703acdd5dbbbce100be1aaa536949e42b8976f80b9a9eb838c79c62c994cc9fc5a84c609bf0bc72051f3f765f59c49d7255719c1751415e6916c6617574cfb119dca0d5fbcbc22eac15e4408948e15eb2e654d14a43e6badd22a7be4f9863f804c7878fc5c8faf95d8fe2f684b065d8bdd54dd987555d3b553b8ab2418a91ec7cfb2d8631ce0c9171f99ff603a0cff5f67fd415f728f28663494d12ceaf2a12d08d5512e6165e15777a58b2dba4d60846c5b1038dc511d63c86dd39a608fe04e087017f8e1a0a301e86ae452f668c69e823ad48f8911d28e5ff54ad7b2641984dce98dbc2dd8595ec47b691c0cdb820310e20293103a762675b4b767a9ffae3ff70b7557aac8dcad5a7ca6332ef6c86d62fd416508576c6d2d4c7bab637c6886f0e39c17cd9c944f5813deb13b68ea5daad9a17d8e87288da6f894ff154ce79038cd7ea06fb98d25dfd5e723a34295bee08bb1454cbe5d6e31e18eea464474c9075df73c09e277b44fa8da6c9091a0e279b211a24b5499fe74b6079ee658d4854dafb8bee26a9a103f89faa72ba248ba2cd9fce461f02cde8e344ca60c1795ce09aab3c27a66cae4332ce4bec6874f6fd7c484eaa8cc621d692ad7c5fc75c4273a02cae665867208c6df2b77081a9541f36bba086f41ce20bdaaf1dc4aa3637c5d05a69df62c881830fc0bd07a71a85e31352a655b3a7d77cad221df92d8ca6b15d7067570859eaef48de8e0a6b0d9803f0442817853d229d4e5e8049faf8b5cdb9cc775c371373c0c998c9af46740226a7e715470d6a2817534129d3554c68c831fc3cfbb3f364fd4158c6e5899163783ff5904a56ce61a8f8f193c509a94530a9757fe6398d518173e0bec8186d6eed10d044901229eac75dbcb41ffec3ecec31140ab9bc7704188985f472bd015197a699f38e04d3cfc66c087ae0f6889fabb0acb2feb8d7856299ddebdae73b4845dcc397a8f8633543da70dd8fbfca8d9b297a33fc5917f8d5983ae4ff575b48109a167db17d77e68c68fe6923ba3b05952ac121478a5cde031a4875cddb0de38e45399d20a956e335cc35aa463ae8692089b0eb7903ed97e3fd30e1b05eaa02bf8c947a6c10446f5c566d1d22203257870a7c962872514fc76f3758bd0eefc884617d0c8765ca157f842acc886f3c8ac4503e3e431ebf644b0b54d4fcf0dc86444c31d816cd1c5f3e96d26b0d5ef506ea170b171cd3b6f2d5b75aea7a39370a5e498fe8ae54f42cbd2bf8e6792ccfe1b36f1be546640c8bcd4b8357cbec60bb4beebaaa1e1402a4f375aae9bd26a2705eebe139d88d41159356d7ae25559acd07f262ea461dc0f38f7a77f0f18a96af7e61ed4587cf7ea6fe1991171c65788d2dca9110f6f8b5b7429ab5f8012980efde42e7044c5ecfa0552f379062f2261662e5b32af20962d0b3233e2aedbd6a9793c857da9ac09d24c102991600744b401ae824ca1a6c92a16081944bd76e65623dc0af6e78112002637895a11aa373f704b0a767912fabf91130a30921c53b9f8f51c243b9f03c9db29b92ca01c737f03d5946035aa711393d98b63aabad94b5db06fb607b6b0b3411d1c17ed24e44f87063d8828cceb6f4689740ef9e9054dda2107634bf87e878930f4eea2b342f3698e94508e137cd9034d2cc9f4844d78bc7c024fbf26efcfb641c28cd381b05173584692ba04d6610a3fb5d490fedc235ac7a86ba9463b6ab92255d4c34e0749facc248f0bdcf13b25f0d86ee62dc80d657b37a85a0d5b7a5d288070fa8bb1c40c1104dd0d43b833634c331bd2c0e3c31201e6cf333fa9eee83c01a2865a0ee1d91babfc2e20e0174644961053295207d02dee6f7355213cb86c48039d7e8c133e0f3f377a25424d361b4f3f5e4d489d56e1adb8df4b1a83a171ea31531d2cd07669c4ace4c6740171fe0084a63c18d464eb5d53c9d65adb1e5321a254c706eddc8b9afbc1d008d6c69fba6f029425c12c4fecd546900b58c9145164471e43c390c39e61da07f630f3bfc917ff35fc0557ef4c657a972917a917ce324cd586cc0e55b6eed1d093b98ebc0dbb2936acdbf985742029b2c7bea110298c8add37f570da3ef8102993ae55960f573f9efd8321c48ff8bfb10134145dbb5a537e4610c21ef24ec918d10ce4f9a033d5afe49cbc684ff86adca3278234315b9e21cddad75ee5a821a7131388ebccb10cbae4e2b3e89eda0cadb6b103d51a3184b4b9edc22a9e86695c8fc21a16fe2f20cf5ec25ce28ad0754f6f7167660b179050a9ca4300b2ea9e8d5770720f666cb5bb61d9fb2f59a22176a1aefc104ffd544339a68049aa5b275bb7e92979eee53bfad0ad7527ab172218505b5eaf26a60a4c201fc22d834c3e0a0301c2097435e3ed66230d3853dd4cfbc6b6996c68d5289efde11e9c7c0c2d2e31f01b6b1728927a23a2e468ab88cd5ff2e04defc270724087bc6efe89fd144eef5d6557e51e14a5f20ddeb2dda3f679f53ae40ccb62fe93502e2476933f576c18fa9f6dee1675eea411b98aaab3b52aee69fc3a33db5cf68483d659dc66beeac21d38cabae4a26e807692f875c1f7d2b573bcac858e4a5e17e80c223a4e8317de121a84a1868d95a5d7d7dd28981b9fadcc469415a6efc0a82c9a1b55d6bd4527f20d190019040ce55acf6bebfe0589481059733eb274e15f9760335dbf2cc4735db7648994c9a0db0830b402d5b2019d99ec7df92b5f61b9707a45691f97426eab7ce08fdb47f38a61d1d6fe2e8b35250d40135ce82e5e744e463de52fab5d3759b4b059d5fc74ca9e0ae85ff583a7177f0856c5ca7bd12682afee99d63cc1e44f2ef23e431cfb04b5ec20f77089bd302290e02cf336f928bfabc4abaea82bc2c3c09e37a9bd758571296a4fa0814f6a9a6e4807b91f2fe0dca4aec344656d23e1ca76bbf12f2253989d0fd71377171823f4e55d86d3ee29347df71be5426648883dfacfa90b4d6d863e15d4aa5c0a690eb93e4d30bc5d086698fc97107607687526b70f433121bc3966e0f95e4f4043bf4e5bcb29298636ebe5cdb96711c28048cce93d9b1023eb4953baa02170b1ab9053a4528ed1d26322cf16f9f7478f2a301cb9df31402cf84d6890f51da1a74218ee5c1812c7e9277c111ead6c2974faaaf6504b6ec6393143a89a41d4e62df4370060923573b308ec5c37980278e3f69cbd61149d5af912a7c9b40e73fa3e8b4b2da5dfa0c73c7bd938013a1150981c45462f2b2faf0a4b7f8c43cb0992bbb9e0aba304a4fed198d665b7d28106b0372b6125bdf401dec4c8f16cb394efd05ef5f66f6a66e0d4b9d892f908ecd0e8cf7e6bcf706aa3d19622dfa1a25eb48937f458b2093b932060ef134657c00651ff74531b13a5430e436cee591e28de67d5fa01484d70f8745b59570878116bc4a55f7030711f615a3ab1ad74ca1a708a04f1629deab361ed5eb470e849d4b69d4dba346a58db20f07783cb9ec7ce0d17802db149682c2754a7b4b4412a361f4699b3b87ef2e3c1f7d261d00f2b7172cf3249033353e56aee3e17a775d0341a6496ffd40a65f4ec541600a046b0fd3cd56cfd2d85a6231a46ec040509ea2325e73560a9296b975bcb0dd49b12aebdfff8f95d8e0cb1ba1e21d3713653a4c6410c6ad3f595385df5460f0c92718be2b70f42a674e84e94da094507a9ab24d6e6d9e414124fa95ebc8604c8994ea05cc56a990d1a1984668c8a7bdf8492136989a7d423fbc5ca9c60c108eb19503407aaae541e52aae97697e897908f6f1403c1e2cd369128dffe1be9104a2451a7c3121f1013fc417fce00d172f7ab28fdc3648f05790015940a1e2f98bfa402485014c1506bfa49fa8b528baa3e8847dc4f08d0a72029f2e03f86e54e9fadb78a920156d173c04e74f5b0510a7c56240c80167b1faa54373d7a66e394703ae2d4ccafaf2b959439b68a5ae9c206518cad0b17a011463135cff409e030f8291f3308ff3de160b8cab30c0ad18bda615c797367632019d13acf2ab9fa49721d7c2aabbcd535289f6a4f00b32ee31a9cd5d1d27c3ac850d0afc5ed36bae820d83ce0acc3cddb9a766a0dcee01a82111ef1a82d537b8807309f0863ede13e29f756bddd4ba20291d8bbed86917986863636f5e381f53c072a69b650fbe626ef07d705dd96da2cdcde4c7022de5976b06e036b678f1d4e15827db78f5702c008070f7e80ae7b3f8ac84eb551079be70e00f4e029974937e6e88c47f55603dfc586b310e9dafd7bcf977564b3b0e873fb2c9f08c5d318e3f17eee442e9b7ecb2d7d47ede22f053c230f1d8db7a2aa03ef95ec2269dde84aa850b95f71419e279d135e10509afd63ba3ae3833c2536612dc16da77df049efe7d91b77b30c5f0125589f8a64a4e896c9deaf7159497e93cd1d16bde3d066e3f61b0f593083e95484bf0bed9ea56a4a6bab46902c23402aec18e70582ed6c4e4064e7f9487b5351cd9b7bf0ff88861a665365df832594216cb8ecdfddadb3114c48aaf140e713caa10beb69d3f142ef8e024320d3e363146ea4504e40eadd6aeb032bc7b8a482236585706db8d53d952bfb4bfd24d515f98980554d3210b81dfc3a28f08f04538d051adcc9daedd3178feb8c17d6738b9ae2e75ebf76b5c6905f3f1a08b91509fe9f0d28390dd8db49edcbe95c4742b9638c31c0cda1335dac628fefc08dd0c608ed3ee94af0365322bcba3e83409864dfd774c1be2393f3906f074f06e4a635d29fd70f817c6227651a6673b7338c33841665dcb1cb2d5ee4d5ea67e7ff5825bc14a40d1f832e4cd2df51ad5acb81b1d96bbedea6757899997b8606635b8cd8afefdc2b589f088168b9b75d263a038ce579bfcc58cb5d57fba0ea1f9b903f9c5ba5712cccc56adcd9d63824bbc63a980a32b8fdb7a7b0c3f14e16d479e84b98b5858ce0b4c184445aa4265c079c04bbaf90769a670fa0c71bd9b31f9740d07268705bedd742386ef9cb15a75df9184fef1c26cac28f0cb520f52fa585a42471a150ae9a47809e0837f9a6633c770f63f3f6bbe6287e9f9435af1c36f207210912075f9c258f83c93275bdf2affe3f8e204cdef46ed5c59cb86c4dc58bb7661977b9090dc512e9ad635735dd5e8921d62e41df038a28dbade17610e7916d9b12aa43f03bd0d5f721c5d3df3d61b64439fc289d5dcdbbc35a60cca676d8dc1b099ccb4c7568913f45d0579c9374fa2f128bb5201a60b9113d21592b842b56fdc0c62ada1a68c4deb5a615d8e58422b397f2fb96faa60cb76f7debd8b647c807b074940ffdc2e7254bebdcab3fa0c2da84b55485388e8972289011a4c690126455285c03d5855ac827e0b677823c29a5369039b21b6ca4b3ff15127e60ab5c422805cb21f8b5d30741951b303b171203a6cfc5635f1374db9bab151b7bb1a6100f0d33d420f3890cb5abe50130bf06f862e33048c1c4032e29f6190dd47adbd3073157f3d4a685438856c6f86cf635a9d8e94ab6744f769501d8799e947c6d9f77a7830cc8550ce033c02cac46651278a8977409a440becdfdae2e505c03bc79436774159553964ec54e8a20a02050765a8c14a4246d4f0dad3508ad667259e40a572ecad6b783e9a2a7c50a77802d1fd5a96e5ead3215fc4a069ca6955b56505d36b4387c44d194384ef00f5d57dafa53b75a53c9bde1a942f2b5c281d5b3dc641ce7941115c2ac593636b59cd02bf2e1b4803b6300636a0ca18d63171ccf730e1c53cf4a87782c17a8b65c77ed19ddc7373bbb2a8256fc4e80ba789023859add86198934835a8363f7e95baac34fe4d7e96b252aaf21173f55737b918c7c8d4170ec9b41e1b873a858dd558114a3faeb89e863aecd8a8fc88ee1952adf159885858d5845c5d99fce968a6d741d44d085edf2077b89e05e2cbf070f0dbefeb94f14c9f393267b3db90f298357979e12db83d621c64eacfe8a82316aad174da85557b17fc35dee6c36c05b4992c55d6d158380d437c05e6b2a4d2f3272b05371d3fc61684994b822203766a4b16faa54d698a5f414f8dd8c398b0082fe4510d7dca132b803abab0dbe27d445954a37902ddcd1011231fdb9be09a007d14b5e75b42ff36ebfe32df3c1cf477dc592282757d1352af047374d2946ff46be6be73ee76d72afcaa78c2992a02ece197748eb4f6806a4cb7e7cca520ab72a18c4dd4183a0754886dcd4c6cc4f460b40dcef08917011cd1888f6a985f6b09f3adc16763ad4d84d141347ab84b0a57091bfac919cc7a07cc034ff8e2e52b72b71b5cd89139d863deb847d15409747a86de1e5cffb458adca329e6734322992b16fd64481443bfec2c5af5dc8588d84ca4e32815eae24b89475ffac2118fcd9c993ef2cb08378486d31f8dbbba765a087fc006ea1881ed61b86223efafc230370f93acb95205106aee1f108bc282f3eb2c48023d1f5aa8ff9d993acbb0253acca875c7f7aca4c252db015af12185520980809916d1cee4dcf080de7e04e9d041f8a4e9b22c3d15df8a2e4c0299470e995f787fce9a424f84119d8d741415943df352db7c4d38ba21f14c2a4e0baf8027ad048f9c3c7d434f1b5bde5750fac6ca40dd2e223337a3064ca86a96dd092d6db7a779d6a371c9d74d401b11beaf8ad6c20583ae0bf75e187c688097045fb89f8eade44fbc24e2b0eb86343f5ca31f089ac466d38d0713b76be8cccec0dbb4e5ab069165ff92f717e630e971aef95631d4873a52eefe12c9a1c190742d97dc3214da7b3534af530d99390483a1ba7a1a534801a825b72ac0b9e37b0f2c4d82fb2198fd6aeca7a448301fc38784983e82be4ceda5775bb62fd5071b84e5bfc0990145554cbabfb4585e7c282c3eb793165ce6de62a27b3b71b6852a06cb6efbe7b2b5b07063ef56086ec064dac263b7a2da33726b9bc5f4271d99db9eb936a9205a487e4c3ab26806ea8655380d1af8bebd16ad3f4a2b20a9ae55383239c95b7b1857c629384d9dec72feccc0fb2bb1ba1d1d7c7252fe5813093ec5934b423c595fe1e37a3976e7bb897116756a7a1bfb18293d1baa0281d46ce5bcc39e9bf9def02f0f6a7cad7983feb5b2dc146f636fd82c0d7974a3758f945e80a0d089e9c54360d5b19fa4acea20987650c20ad3e5b44e85af6e8014839a82beae160b53cdc50db21a29b6b158415c4b60a4b5419c238e9877299cb1df46cc25b08b63998c9066eaaf1c49f86fee6360b0d9075add02995181e9ee9e59c4db4c539ce8116c1f516a5f605a82ede49a3e8b9f3dd8</script>
-  <div class="hbe hbe-content">
-    <div class="hbe hbe-input hbe-input-default">
-      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
-      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
-        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码</span>
-      </label>
-    </div>
-  </div>
-</div>
-<script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">
+        <h3 id="1-读写原理"><a href="#1-读写原理" class="headerlink" title="1.读写原理"></a>1.读写原理</h3><p><img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h1nfx4hv54j218w0u0n1i.jpg"></p>
+<p>在写入数据的时候先记录translog到os cache同时把数据写到内存的indexing buffer中，这个时候数据是查不到的，内存的indexing buffer中的数据每隔一秒会刷到os cache中，刷到os cache之后才能查到数据。os cache中的数据每个5s(默认)或者达到512m(默认)会刷入磁盘，所以如果es的进程挂了最多会丢1s的数据，primary所在服务器宕机也只会丢失1s数据(副本中还有一份数据)，primary和replica所在服务器都宕机才会丢失5s数据(这种情况极少极少)。</p>
+<h5 id="1-1写优化"><a href="#1-1写优化" class="headerlink" title="1.1写优化"></a>1.1写优化</h5><ul>
+<li>  <strong>数据不丢</strong>：如果想要数据不丢就设置<code>index.translog.durability: request</code>，他会让translog同步刷盘，性能也会降低。</li>
+<li>  <strong>常规写优化</strong>：如果允许数据部分丢失可以设置<code>index.translog.durability: async</code>，只要translog写到os cache就算成功，还可以设置<code>index.translog.sync_interval</code>和<code>index.translog.flush_threshold_size</code>控制os cache刷盘的频率。</li>
+<li>  <strong>段合并优化</strong>：<code>indices.memory.index_buffer_size</code>参数控制indexing buffer的大小，如果写满了就会执行刷盘操作，默认是堆内存的10%，可以调大；每次从os cache将索引数据刷盘都会生成一个新的segment文件，segment文件数量到限制后会执行合并操作，数量限制通过<code>index.merge.policy.segments_per_tier</code>参数控制，默认是10，可以调大；</li>
+</ul>
+<h5 id="1-2查询优化"><a href="#1-2查询优化" class="headerlink" title="1.2查询优化"></a>1.2查询优化</h5><ul>
+<li><strong>增加page cache</strong>：es的搜索时严重依赖内存的，如果内存没有需要从磁盘搜索，这个速度就慢了，所以要给es足够内存，一般都是jvm占一般，os cache占一半。</li>
+<li><strong>减少存储空间</strong>：保证没用的数据不写入es，减少数据的大小，_source、_all(6.x后默认禁用)能禁用就禁用，有一些字段不是查询条件比如业务id可以把index属性设置成false，有一些字段不需要持久化就把store属性设置成false。</li>
+<li><strong>容量和集群规划</strong>：搭建es时要考虑数据占用空间，并计算未来3年、5年数据的增长来选择机器配置，同时primary要比机器数量多一点，保证以后可以扩容(因为primary shad数量不能修改)。</li>
+<li><strong>冷热数据分离</strong>：识别出来索引中的冷数据，比如2年前的数据，这些数据可以持久化到Hadoop中。</li>
+<li><strong>pre-index</strong>：预索引，比如说价格是33.22，存储时额外加一个字段存储的是10-50，表示这个价格所在的区间，根据价格范围查找的时候要比直接根据价格字段快，但是也快不了太多。</li>
+<li><strong>提升缓存命中</strong>：比如把日期粗化到天，如果是精确到秒很难用到jvm的缓存，也快不了太多。</li>
+<li><strong>os cache预热</strong>：机器重启的时候可以设置<code>index.store.preload</code>，会把索引提前加载到os cache中。</li>
+</ul>
+<h3 id="2-数据路由原理"><a href="#2-数据路由原理" class="headerlink" title="2.数据路由原理"></a>2.数据路由原理</h3><p>数据路由：因为一个document只能存在一个primary shard上，在创建数据的时候es需要决定这条文档应该放在哪个shard上。</p>
+<p>路由算法：shard = hash(routing) % primary shard数量，当操作中有_id时，这个routing就是_id，然后算出hash值在和primary shard的数量求余。routing值可以手动指定，比如说PUT /test_index/_doc/1?routing=user_id。<br>这样就可以解释为什么primary shard的数量不可变了，一旦发生变化查找数据很容易就找不到。</p>
+<h3 id="3-deep-paging"><a href="#3-deep-paging" class="headerlink" title="3.deep paging"></a>3.deep paging</h3><p>深度分页的意思就是说比如现在有3个shard上有index的数据，每个shard存100000条，然后我要查第10000到10010条数据，他就会把每个shard上的前10010条数据都拿出来，然后根据score排序在拿到第10000到10010条数据返回，deep paging很耗带宽、内存、CPU。</p>
+<h3 id="4-filter和其他搜索区别"><a href="#4-filter和其他搜索区别" class="headerlink" title="4.filter和其他搜索区别"></a>4.filter和其他搜索区别</h3><p>filter只是根据条件过滤，其他搜索像must还需要计算相关度然后在排序，如果只是要筛选使用filter可以提高性能，filter还是用了cache保存最常用的filter。</p>
+<h3 id="5-相关度分数算法"><a href="#5-相关度分数算法" class="headerlink" title="5.相关度分数算法"></a>5.相关度分数算法</h3><p>TF/IDF(term frequency/inverse document frequency )算法：</p>
+<ul>
+<li>  term frequency：搜索的词条在文本里出现了多少次，次数越多越相关；</li>
+<li>  inverse document frequency：搜索的此条在整个index中出现的次数越多就越不想关， 比如搜索词条中有两个词，一个词在整个index中出现5000次，一个词只出现100次，肯定出现100次的词更容易影响分数；</li>
+<li>  field-length norm：field长度和相关度成反比；</li>
+</ul>
+<p>在查询命令的url后面拼上explain参数表示打印出相关度计算的detail。</p>
+<h3 id="6-doc-values-正排索引"><a href="#6-doc-values-正排索引" class="headerlink" title="6.doc values(正排索引)"></a>6.doc values(正排索引)</h3><p>就是类似MySQL，按行存储，排序只能用doc values，如果内存足够的话doc values会存在os cache中，否则只会在磁盘上。</p>
+
       
     </div>
     
@@ -547,8 +566,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/face.jpeg"
@@ -617,6 +645,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%AF%BB%E5%86%99%E5%8E%9F%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">1.读写原理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-1%E5%86%99%E4%BC%98%E5%8C%96"><span class="nav-number">1.0.1.</span> <span class="nav-text">1.1写优化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-2%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="nav-number">1.0.2.</span> <span class="nav-text">1.2查询优化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E6%95%B0%E6%8D%AE%E8%B7%AF%E7%94%B1%E5%8E%9F%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">2.数据路由原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-deep-paging"><span class="nav-number">3.</span> <span class="nav-text">3.deep paging</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-filter%E5%92%8C%E5%85%B6%E4%BB%96%E6%90%9C%E7%B4%A2%E5%8C%BA%E5%88%AB"><span class="nav-number">4.</span> <span class="nav-text">4.filter和其他搜索区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E7%9B%B8%E5%85%B3%E5%BA%A6%E5%88%86%E6%95%B0%E7%AE%97%E6%B3%95"><span class="nav-number">5.</span> <span class="nav-text">5.相关度分数算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-doc-values-%E6%AD%A3%E6%8E%92%E7%B4%A2%E5%BC%95"><span class="nav-number">6.</span> <span class="nav-text">6.doc values(正排索引)</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

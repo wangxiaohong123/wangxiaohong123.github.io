@@ -1225,7 +1225,15 @@ path中添加zk的文件位置：
 
       
         
-          ……
+          
+          作用
+集群监控，负责监控redis master和slave进程是否正常工作
+消息通知，如果某个redis实例有故障，那么哨兵负责发送消息作为报警通知给管理员
+故障转移，如果master node挂掉了，会自动转移到slave node上，同时会修改redis的配置文件
+配置中心，如果故障转移发生了，通知client客户端新的master地址
+
+quorum = 1（配置）：当主节点挂掉时，需要至少多少个哨兵节点认为master宕机就会进行主备切换；majority（概念）：哨兵运行数的最小值，
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/6.%E5%93%A8%E5%85%B5/#more" rel="contents">
@@ -1379,7 +1387,12 @@ path中添加zk的文件位置：
 
       
         
-          ……
+          
+          RDB和AOF的区别rdb是每达到一定条件就生成一个新的文件快照，快照内容是redis中当前内容的全量数据，文件名是dump.rdb，配置文件中的属性如下：
+123save 900 1save 300 10save 60 10000
+意思是达到60s并且数据变化超过10000条或者300s数据变化超过10条或者900s数据变化超过1条就生成一个新的dump.rdb文件，生成完成后覆盖老的快照文件。
+aof存储的向redis中写入数据的指令，以append-only的模式追加，默认关闭，aof备份
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/5.RDB%E5%92%8CAOF/#more" rel="contents">

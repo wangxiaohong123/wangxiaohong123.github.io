@@ -398,7 +398,11 @@
 
       
         
-          ……
+          
+          1.项目里怎么使用缓存，为什么用缓存用缓存的地方比较多，比如一些读多写少的场景，动态、用户信息、存漂流瓶的池子等等；分布式锁；我还见过推荐系统的用户画像也存到redis里的。
+使用redis可以减少数据库的压力(高并发)，还能减少接口的响应时间(高性能)。
+2.redis使用不当会有什么问题2.1.双写不一致问题比如说获取用户信息的流程是先读缓存，缓存中没有就去数据库中查，然后在写缓存，修改数据库的流程是先改数据库，然后在更新缓存，如果在修改用户的同时有线程去查询用户，这个时候缓存刚好过期，那么
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E9%9D%A2%E8%AF%95/8.redis/#more" rel="contents">
@@ -552,7 +556,30 @@
 
       
         
-          ……
+          
+          什么是搜索当我们在百度里搜索关键词的时候就是一个搜索的过程，但是搜索不光是百度，还有一些垂直搜索（站内搜索）比如淘宝里搜一下商品关键字，比如OA系统搜个打卡统计之类的。简单来说就是在任何场景下输入关键字会返回一些想要的信息。
+倒排索引就是把数据拆成词，每个词对应着一条数据的id之类的东西。比如有3条数据：1 生化危机电影，2 生化危机海报， 3 生化危机新闻，这3条数据生成的倒排索引就类似下面这样：
+
+
+
+关键词
+ids
+
+
+
+生化
+1,2,3
+
+
+危机
+1,2,3
+
+
+生化危机
+1,2,3
+
+
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/1.%E6%A6%82%E5%BF%B5/#more" rel="contents">
@@ -706,7 +733,9 @@
 
       
         
-          ……
+          
+          默认配置12345678910111213141516171819202122// 是否允许动态扩容hystrix.threadpool.ServiceA.allowMaximumSizeToDivergeFromCoreSize = false;// 扩容出来的线程存活时间hystrix.threadpool.ServiceA.keepAliveTimeMinutes = 1;// 最大线程数hystrix.threadpool.ServiceA.maximumSize = 10;// 核心线
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E6%A1%86%E6%9E%B6/spring/cloud/hystrix/#more" rel="contents">
@@ -1014,7 +1043,11 @@
 
       
         
-          ……
+          
+          Ribbon三剑客：ILoadbalancer、IRule、IPing。
+ILoadBalancer就是RestClient底层的负载均衡器，基于BaseBalance实现，负载均衡的规则都是基于IRule。
+@LoadBalanced，这个注解的意思就是把RestTemplate标志为底层采用LoadBalanceClient来执行http请求，支持负载均衡。目前这个类里啥都没有，可以去看看这个注解所在包下有什么。看看有没有LoadBalanceAutoConfiguration，真的有。但是
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E6%A1%86%E6%9E%B6/spring/cloud/ribbon/#more" rel="contents">
@@ -1476,7 +1509,13 @@
 
       
         
-          ……
+          
+          一 认证授权1.没有cookie的话session还能用吗cookie的主要作用是保存sessionId，如果没有cookie比如浏览器禁用cookie可以把sessionId保存到别的地方，通过url拼接或者其他参数传过来，如果不想暴露sessionId可以加个密。
+2.分布式session方案1.使用spring session + redis。2.jwt。
+3.什么是jwtjwt是基于token的跨域认证解决方案。jwt由3个base64编码字符串以’.’拼接组成：
+
+  header：定
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E9%9D%A2%E8%AF%95/6.%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/#more" rel="contents">
@@ -1630,7 +1669,10 @@
 
       
         
-          ……
+          
+          1.es原理(es是如何实现分布式的)首先每个节点都有primary shard和replica shard，写数据只能写到primary shard上，读数据可以从primary和replica shard上读。
+写数据的时候会随便选择一个协调节点，协调节点通过hash值把请求路由到具体的primary shard所在机器，然后primary shard把数据写到内存的indexing buffer，同时在OS cache中记录trans log，然后同步数据给replica shard，这个
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E9%9D%A2%E8%AF%95/9.%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%9C%E7%B4%A2%E5%BC%95%E6%93%8E/#more" rel="contents">
@@ -1784,7 +1826,14 @@
 
       
         
-          ……
+          
+          生命周期：
+加载：通过虚拟机内置的类加载器或者自定义的类加载器(重写一个类加载器的findClass或者loadClass方法)把字节流加载到内存中。这个阶段干3件事：
+
+  1.通过类的全限定名获取定义这个类的二进制字节流，这个阶段是扩展性最强的阶段，很多技术都建立在这个阶段，比如从jar包或者war包读取二进制、从网络中读取、动态代理的运行时计算生成、其他文件生成，比如jsp、从加密文件中获取，反编译的保护措施；
+  把字节流转换成方法区需要的存储结构；
+  在堆中生成一个代表这个类的对象(
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/jvm/7.%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/#more" rel="contents">

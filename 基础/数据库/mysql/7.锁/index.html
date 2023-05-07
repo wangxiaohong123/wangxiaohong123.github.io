@@ -96,12 +96,12 @@
 
 
 
-<meta name="description" content="……">
+<meta name="description" content="从操作粒度上可以分成全局锁(主要做全库的逻辑备份)、表锁(每个引擎都支持)、页锁(BDB引擎)、行锁(InnoDB)。 从操作类型分为读锁和写锁，读锁也叫共享锁，写锁也叫排它锁，共享锁和共享锁不互斥，排他锁和排他锁、排他锁和共享锁互斥。除了读写锁还有意向共享锁和意向排它锁，这两个都是表级的锁。 从性能上可以分成乐观锁和悲观锁，乐观锁的实现是通过版本对比来决定是否可以更新，但是更新的时候仍然需要加悲">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL-7.锁">
 <meta property="og:url" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/7.%E9%94%81/index.html">
 <meta property="og:site_name" content="小红">
-<meta property="og:description" content="……">
+<meta property="og:description" content="从操作粒度上可以分成全局锁(主要做全库的逻辑备份)、表锁(每个引擎都支持)、页锁(BDB引擎)、行锁(InnoDB)。 从操作类型分为读锁和写锁，读锁也叫共享锁，写锁也叫排它锁，共享锁和共享锁不互斥，排他锁和排他锁、排他锁和共享锁互斥。除了读写锁还有意向共享锁和意向排它锁，这两个都是表级的锁。 从性能上可以分成乐观锁和悲观锁，乐观锁的实现是通过版本对比来决定是否可以更新，但是更新的时候仍然需要加悲">
 <meta property="og:locale">
 <meta property="article:published_time" content="2020-04-25T04:04:02.308Z">
 <meta property="article:modified_time" content="2023-04-13T09:52:57.063Z">
@@ -398,18 +398,21 @@
       
 
       
-        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">
-  <script id="hbeData" type="hbeData" data-hmacdigest="5e39acb748bcbed5918a1bc5dc391b266d92a8f84b060fe0233ab0de9a35b2a4">982a2f2de999a7307d7563de6c539b23f61d7926f0068f7aa8cef0ea7032eda65c81c7ecce848696b3288fe061a35a894afc248f2b5f90780c94aee4955ad28ad1de5888936065dd022d22d10203baa859dbc091b9f75dc260846a024a82194c0a103499576218499bbc3225610fdaf399b454ae317308c1535d35f9485889a881467f031cd34fb210bc9d7ee5a00f280a27f1a234dcf2974f41da0f04aeabbd07244db452a59be64b6c392b924deea6fd0e6a6575a168df567970fb19ddea7280206fb332f40afcf36bf5318379d33a3f154ca119a711770d3ff0ffe7d8e904cbf837b2af7ff97ab2f571cda4cacb66fae8d7d2cb73069182a03669c078ef7d959955dbdf70823e84bba14e54bc1f10e0367cca9ab014c36ff510c12d876197161844592bc7f1b9ee8be507fd250f986dca8981d882072189caf0ea890b6877d7250ab9ca3f84220cb5f4d8ff0537ec7432032abf4afe44252bf178b67ce6d60570f8ecd613132bcac278bbf5822cffb4c91ffbb22bf6b0315ae2d23092fcc35d85a9a143b5ba09b07fe7861560abfe68a186a83196fbfde39cc195c01a2237619f13a061a02ce2c5f20af17a257a8da07cc0a5fd0f7573095fa088158470cb47e5f67442ef9dae274b35ea67bb27971317fff843206703c4a29731f12a305785f945ae92a9c82132b5d25d12dd9eeed550c7d34ee0289fe675caa1c3ca4b4171459fcc29178a25efba7e4f916b31801b2c5023bf9584163ec5840a0a8838023c07cb4d21bd118546901f84e6ddcbceb6209b668b0f202d3ba1a5b33533006dbb708f8ce81c9ff98d0821a144e43142ecdedf791a3a4b45f5896243e1bf81ba3e70c0ec018efb0bcedc0df82dfd71d5c17a5797b4ba08c5dd067b13ac37b8a72ac875eb49047b22e664e6c2b928d36bcd1cd90bd19dd56491e693c12855a8d2fabfa05c2c969e94aa3b9bfb2a01c316c1bc06489ce44cad9aacec08fa1e0f44ac23d2dc24689c6b1506c94fe9e611fb4a604c1eda592246f43d065fb8d5672fcbd68d70c723ea63ababbf07450f406e47188a4a4f79e6c837f1095c5cb417f6c50b97a3fbe65192e89c2496fdc0454354a03d2bf7beb8cc950f16ec7b5c5492a94f0e6d011ac6fc75bbcf1d84fe9c26d221bd2a1698c7786f2de4a441fd243572491cb2b05d6a239908b709c2457794d1064c7c99a6c8de516b947f076bfad9c27592702556179f2fafdc15aa1c10c4899e2614a29aa0bc1bf92a8300a1fc4fb977c08e7a91f447d124631517343b9c7c8d4b21111bc1fe9b9ddf81f5ad8eeb2b652b63bd2edc26258451da2e537de9296115c0c67748494aec3768fd081c6edb9f25202d0632b793767d1b919758e4b19e4be9de0d86d52b08cbbded93effb49fd16b72cba025216418095f4669e119b7048e6a46f5d91c066be19b6f9a50eaf88063e36761b76e55a39643254edb3c7e3e48452274082c37863dfaf7c842bb6b2d157b6c3dfa7677efd304cfadb5424715eb662364c84071a542305ffe73fba66c166b1e0693d71cdddf72dbea97635e2337053efd185565f6e8e67ff66e809098e418bc7d29fbc7fab765e3d7f4fe963bc593def1609d53bc27e38c03e76d92d5d7abd43e538912c497aa5ed2696dd1cd9981460e95cd97873d4fa80766c70e08abe3ebdd8e6b37d41e30369aa1f16f31dae48566c123976635712c945f980d8eedf7e3c0d2b526948127756f9c36329a8bc227db4604626ac1e512232b2058187eba0d6e87ffe12a784ea4c986daacf5082a0ddd6cb2471b5e976b48c0d56b8e3e647ab5baf3ba1fbd77864cf67ff6f51c90a3a087fe95c98ffe1997dfc247e657472f79d4e8eb16e0135a97e7a7e88659bfb392dc84f6fdb1a1c430f5193afe2a8ee6d9759d3b7907674a00464db16cf6c678af0235d609b597550818c1807eeb58a20f0a6d44bba8bba25e5c63767c0cd1a288f2411ff6b9fd253a6658da8398fb937ef255d1cf8aa3fefadc844b6470f4248c8b7ff823b470a197155bc386a237f8cd13d585de347da9f86a88314df1c1955f5ae955d8327cd8f31cc1bafe3ce99a5851a37e2adce64aa9cee63591ffaad7e78d919cf4544870cb9b1851f8d7fcd2105d0a8461140ecd916287867c3aba40463a484b9051a756835bdcf0361f6e60a6717e096872ce7e575b4e00016184f7f5fedb2a7a6fdfcbc1b9324976cb4b1eda32886d4cc900ba5105a3dfe136f944b85eb25024de226f849fd8fe5aec35fcf4c90a907d744eafd8552d03c3cad6ef880e0096da3f27dec316f33a95730e281b87db726fbbda7080052bd4fca7449b480eb7731ce70683a0cf166e31485cc60d226193295556dd2d95771a966ae0706a904a2392acd2070ae521dc722855f3e4bc62951d7c1bfc07bb3cdd3ba03796221f6a88ece7ab11d577ea1f3a4adc8ed68f2fd026a025a73f83f5f5e27836bfd379c642ccdd9e7af127cc46a2df67058ae7fbe1f81eac7a0e6b6d8c7190bd4bce482af07080baf778ea33d928ee054b05cabbba3a537083f55d3657a599bbb98430e6329369e4827840c45d06c87601f80a46aafe49fd8d8335499b2070b97412586e423da2a45c738f84269c7fb52c7e456dce28e1780175199217a0a15e710401bab948ddd4c68814b5c2833dca9a2f1086ce07b671e86651bdb9092dc89e7494caf2d0918b7a66b519ffb602b220bc7dc1a27985702855bdaaf600de055ed9710ffcd1d60a9df0209d230cff58dc02b53aafd9e15335b9c041ee6ea4db7e10ca848446daf09f80517183b42837e22b1a19055bc16ce1197afb1c479310b3dbf95aba3cc975f46f6c03c7cc2c84d5f6ce3d5d2bb454215a9fb358d764ecc9c8332ad37ba045da806baf9be72bc8259a00f7f34a60db45b95be2b67d6e4db843e890d9ce63d9afb884886cbc50eb89ddc2869c6a9b3fa64ee5b583ff425e60fdcc7a9e7c0e0e7c9d34f1aa06915652ffd7fa254d9d4be4625bb2e729b1f6b7065ef05f6f93d52d79c627a1078e7d16220ae7d80e51736087f545b23c21e4663532a24146507841e114a84453a7b7cef9c3d10f9aac72351bc6fbbbc8fe6ab556e0fa3bd8a0b5fd4da262be13d1210398552c263bf71fb4f1458b659815dbbd719cabeb7d5522dc564be5466c73a3bf5908f67c84188223bcb2b4762d55fb24bd8d40238c12c3d5573a946bfcb95e7c4407d186e78ebb51c4ab7e6e7c72b00a499675afb4bbd19bba57ffef021484574ece2b265741f9af6c361555066aed889e45953829f7a61427c4d8b9f4e03d7a2f45d68b39d953db8abfa0bb4c58748076e6851f09dd82dc41e7fddee48a2d4afe41c1f2c7e80f23a42818ac5fe793182a3ba7edb1270a72c0ca218db84769f11e1ae210909e65576b6e718c4238226c6d1fec333ea60ac05f643eec5940b9ec9aaffa238f1f7ad567605fe5e35d84629b4f69fbc097b2fdf30b355b25e4bd3f230936967cf91e51272cfaf0a16d0c49a6e9a4fc1568948bcaa90979cf4d878370b7f935a4a989afbd81b9ebe47f437683e65ed102c9dc10c0f303c50b698a30a459580e34f51655ea53bd14449690d830fad33ca7b30a6d98fd04172b6385c0c1da7a943e023b073b32369f6b816f15542910c17715f3b196e0d37438dbae1b417b106754250794801a3936b77dcadb63c1891513f28742fc304f34cc94696dc087c8ed404d67a8c2798164bbcb604c789c86944841bd6a00904f916fcf856585deffc4840561cfa253d334648992cec94cbcb3c579ad8e91b43bd42811a040018b90a67dbd754af5d4a04b083b375e7679c67f522dbf2698f00441f8741662ae0f4dc92fef031697f2136c7ab9928b14ebca13a29d02cb41b19b5ee9f9bf51056c23a9c582a5d77c73a00c45320fdf6237204f045192fd1d21ee03adac2cd19e73c7950f04d9178f300e0d6a26aeba3e2d40da8ee8e18d5f8aaa3ff91ee359971420c21747fbb0d298820ab176eb21f1417127a92780d848285fe535fd71570842d3ccf1a05cd8be407cf8dfd202db6a1b929a74f80766bab62475d80c361ccc9272c0e76a98d00085efa3955a3f597a4d0c1ea24c4d27446b82d4620a0bb6c3a9f394850e69309be045b53141378ff1197412fa7a00dcdc781469a80b28c1ddfb0c79695a8da4585c755ed4b2ef89f712a5db9a4506b85ed75a03d1f5551b8c8df0ab8872fd1c0e7157f46bd1e9e45a6be89aeffd1e723705a90bc8c979f001e33ef3de1808493e0447be40f3ca029b3045982e9fd3989c870713c0d87793469db875caf7467c1b0df2e11ebdbdad5d365301ee4d9ab0dfe663f107bd3df08b5c1989404b5798976b6791342d173ea062b90e745cb4a1b15c3c1ba3274765b88671bafffca5a93d3e080f232a2ce70e3adb9fa5cbb58dd5026</script>
-  <div class="hbe hbe-content">
-    <div class="hbe hbe-input hbe-input-default">
-      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
-      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
-        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码</span>
-      </label>
-    </div>
-  </div>
-</div>
-<script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">
+        <p>从操作粒度上可以分成全局锁(主要做全库的逻辑备份)、表锁(每个引擎都支持)、页锁(BDB引擎)、行锁(InnoDB)。</p>
+<p>从操作类型分为读锁和写锁，读锁也叫共享锁，写锁也叫排它锁，共享锁和共享锁不互斥，排他锁和排他锁、排他锁和共享锁互斥。除了读写锁还有意向共享锁和意向排它锁，这两个都是表级的锁。</p>
+<p>从性能上可以分成乐观锁和悲观锁，乐观锁的实现是通过版本对比来决定是否可以更新，但是更新的时候仍然需要加悲观锁。</p>
+<h5 id="全局锁"><a href="#全局锁" class="headerlink" title="全局锁"></a>全局锁</h5><p>通过命令flush tables with read lock;开启全局锁，MySQL异常时会自动断开。开启全局锁后DDL、DML和TCL都会阻塞住，让整个库处于一个只读的状态，使用unlock tables释放锁。通常用于整库备份，不常用，一般备份的话可以用MySQL自带的备份工具，自带的备份工具会开启事务，基于快照的方式备份。</p>
+<h5 id="表级锁"><a href="#表级锁" class="headerlink" title="表级锁"></a>表级锁</h5><p>使用show open tables查看表状态，结果中的inUse列大于0表示有表锁。使用lock table 表名 read/write添加表级读写锁，还是使用unlock tables释放锁。我使用innodb添加表级锁时，不管读锁还是写锁show open tables结果中的inUse都是1。</p>
+<h5 id="行锁"><a href="#行锁" class="headerlink" title="行锁"></a>行锁</h5><p>InnoDB引擎独有的，只有rr隔离级别并且在索引上才能生效。当修改或者删除没有使用索引或者索引失效的时候或者条件再索引中重复率超过30%，InnoDB会把行锁升级成表锁。</p>
+<p>行锁有3种模式：</p>
+<ol>
+<li>  记录锁(Records lock)：为某行数据加锁，加锁的列必须是唯一索引或者聚簇索引；查询语句必须是精准匹配，否则会变成间隙锁；</li>
+<li>  间隙锁(Gap lock)：锁定一个范围内的索引，查询的结果是个范围的时候会添加间隙锁，如果是根据聚簇索引或者唯一索引范围查询，范围的下一条数据也会被加锁；如果是根据聚簇索引或者唯一索引不是范围查询的情况(也就是说操作指定一条数据)，当这条数据不存在的时候会产生间隙锁；</li>
+<li>  临键锁(next-key lock)：它相当于一种特殊的间隙锁，当操作的条件是聚簇或者唯一索引的等值条件时使用记录锁，聚簇或者唯一索引的条件会退化成间隙锁，对于非唯一索引使用临键锁。</li>
+</ol>
+<p><strong>lock in share mode会对二级索引加锁而for update会对二级索引和聚簇索引都加锁。</strong></p>
+<h6 id="1）临键锁解决幻读问题"><a href="#1）临键锁解决幻读问题" class="headerlink" title="1）临键锁解决幻读问题"></a>1）临键锁解决幻读问题</h6><p>MySQL的RR级别如果使用的是快照读，不会出现幻读问题，当使用当前读或者RC级别、RU级别时才会出现幻读。</p>
+
       
     </div>
     
@@ -547,8 +550,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/face.jpeg"
@@ -617,6 +629,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E9%94%81"><span class="nav-number">1.</span> <span class="nav-text">全局锁</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%A1%A8%E7%BA%A7%E9%94%81"><span class="nav-number">2.</span> <span class="nav-text">表级锁</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%A1%8C%E9%94%81"><span class="nav-number">3.</span> <span class="nav-text">行锁</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#1%EF%BC%89%E4%B8%B4%E9%94%AE%E9%94%81%E8%A7%A3%E5%86%B3%E5%B9%BB%E8%AF%BB%E9%97%AE%E9%A2%98"><span class="nav-number">3.1.</span> <span class="nav-text">1）临键锁解决幻读问题</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

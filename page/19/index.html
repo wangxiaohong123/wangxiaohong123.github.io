@@ -398,7 +398,14 @@
 
       
         
-          ……
+          
+          一般项目刚上线不久，数据量稍微有点大的时候，但是还没到分库分表的数据量，会把不同的表放到不同的数据库中，但是这个时候@transactional注解垮裤不会生效了。这时候就要用到XA规范和2PC、3PC理论。
+XA规范
+TM和RM通信的规范就是XA，TM就相当于是引入的一个组件。
+XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/rollback。
+一般的TM用的都是Atomikos
+1234&lt;dependen
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/2.%E5%8D%95%E6%A8%A1%E5%9D%97%E5%A4%9A%E5%BA%93/#more" rel="contents">
@@ -552,7 +559,10 @@
 
       
         
-          ……
+          
+          在Spring中如果想使用注解声明的事务需要添加@EnableTransactionManagement注解，从这个注解进去是个ImportSelector类，然后进入ProxyTransactionManagementConfiguration，这是个全配置类，里面创建了一个Bean：TransactionInterceptor，他是AOP事务的增强逻辑。
+被transactional修饰的方法会被spring生成一个动态代理对象，controller注入的bean也是被代理过的，代理对象的方
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/1.transactional/#more" rel="contents">
@@ -706,7 +716,10 @@
 
       
         
-          ……
+          
+          如果是单台机器上启动多个es，他们会把自己绑定在127.0.0.1（回环地址）上，然后去扫描9300~9305端口，自己就可以维护集群了，生产环境不能这么玩，要想和其他服务器的几点通信需要绑定在非回环地址上，es是peer2peer的分布式系统架构，master负责维护集群信息和其他元数据，把变更的信息推送到其他node（data node）。
+1234567891011121314151617181920212223242526272829303132333435363738394041424
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/9.%E5%8F%82%E6%95%B0/#more" rel="contents">
@@ -860,7 +873,10 @@
 
       
         
-          ……
+          
+          建模有普通建模，就是逻辑外键、冗余建模，一对多的关系放在一个document下，父子关系建模（要求父子在一个shard中）。
+父子关系建模12345678910111213141516171819PUT /company&#123;  &quot;mappings&quot;: &#123;    &quot;rd_center&quot;: &#123;&#125;, // 研发中心type    &quot;employee&quot;: &#123; // 员工type      &quo
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/8.%E5%BB%BA%E6%A8%A1/#more" rel="contents">
@@ -1014,7 +1030,11 @@
 
       
         
-          ……
+          
+          聚合分析的field是不能分词的，因为他用的正排索引，可以在建立索引的时候把fielddata设置成true。
+根据颜色分组：
+1234567891011GET /tvs/sales/_search&#123;  &quot;size&quot;: 0, // size就是document的数据，设置成0就是不要document  &quot;aggs&quot;: &#123;    &quot;popular_color&quot;: &#123;      &quot;terms&quot
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/7.%E8%81%9A%E5%90%88/#more" rel="contents">
@@ -1168,7 +1188,10 @@
 
       
         
-          ……
+          
+          一般match都是拆词，包含一个词就可以
+12345678910111213141516171819202122232425// 查询title中包含java或者elasticsearchGET /forum/article/_search&#123;  &quot;query&quot;: &#123;    &quot;match&quot;: &#123;      &quot;title&quot;: &quot;java elasticsearch&quot;    &#125;  &
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/7.%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2/#more" rel="contents">
@@ -1322,7 +1345,11 @@
 
       
         
-          ……
+          
+          查看分词
+123456// 查看forum索引下的field为articleID内容是XHDK-A-1293-#fJ3的分词GET /forum/_analyze&#123;  &quot;field&quot;: &quot;articleID&quot;,  &quot;text&quot;: &quot;XHDK-A-1293-#fJ3&quot;&#125;
+5版本以后如果field的类型是text，会多建一个field，原field是分词的，es创建的field.keyword是不分词
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/6.filter/#more" rel="contents">
@@ -1476,7 +1503,10 @@
 
       
         
-          ……
+          
+          query string的语法简单的查询可以把过滤条件直接放到url中，使用q表示过滤，比如查询test_field1字段等于test1：
+123456### 两中写法都是包含就可以，包含的意思是分词之后，存在相同单词GET /test_index/_search?q=test_field1:test1GET /test_index/_search?q=+test_field1:test1### 减号表示不等于GET /test_index/_search?q=-test_field1:test
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/6.%E6%90%9C%E7%B4%A2/#more" rel="contents">
@@ -1630,7 +1660,11 @@
 
       
         
-          ……
+          
+          画出自己的项目部署架构图和扩容方案。生产环境开发流程如果是新服务，在路由信息表中添加服务和路径的映射关系，然后就可以部署了。
+如果是修改服务先部署几台机器，在表中开启灰度发布，然后观察修改之后新版本的服务是否正常，如果正常的话就把eureka.instance.metadata-map中的version改成老版本，全部替换新服务。
+redis使用redis cluster，部署了8台8g机器，每台机器上两个redis实例，整个集群是8个master，8个slave。RDB和AOF都是打开的，使用
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E9%9D%A2%E8%AF%95/11.%E9%A1%B9%E7%9B%AE%E5%8F%8A%E4%BC%98%E5%8C%96/#more" rel="contents">
@@ -1784,7 +1818,15 @@
 
       
         
-          ……
+          
+          在7版本以后废弃了type类型，所以一些crud操作的命令会跟着改变
+apicat api，可以查看es中的各种数据，api结尾带上v表示结果带上列名。
+查看基本的集群信息1GET _cat/health?v
+这个请求完了会拿到一个结果，最主要的就是看status参数，他有3个值：
+
+  green：每个索引的primary shard和replica shard都是active状态；
+  yellow：部分replica shard不是active状态，处于不可用状态，当单节点启动es，创建索
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/3.%E5%85%A5%E9%97%A8/#more" rel="contents">

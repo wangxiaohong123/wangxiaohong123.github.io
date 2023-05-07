@@ -96,18 +96,21 @@
 
 
 
-<meta name="description" content="……">
+<meta name="description" content="字典（hash）和java的HashMap一样，在redis中叫字典hash table，都是使用数组加单向链表的数据结构。字典hash table的结构类似下面这样： 其中dict的type里是一堆函数，ht对应dictht的数组，应该固定是2，两个数组dictht轮着用，在扩容和缩容时切换。 计算index首先计算出key的hash值，然后拿到hash值和对应dictht的sizemask的二">
 <meta property="og:type" content="article">
 <meta property="og:title" content="redis-字典、集合、跳表">
 <meta property="og:url" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/3.%E5%AD%97%E5%85%B8%E5%92%8C%E9%9B%86%E5%90%88%E5%92%8C%E8%B7%B3%E8%A1%A8/index.html">
 <meta property="og:site_name" content="小红">
-<meta property="og:description" content="……">
+<meta property="og:description" content="字典（hash）和java的HashMap一样，在redis中叫字典hash table，都是使用数组加单向链表的数据结构。字典hash table的结构类似下面这样： 其中dict的type里是一堆函数，ht对应dictht的数组，应该固定是2，两个数组dictht轮着用，在扩容和缩容时切换。 计算index首先计算出key的hash值，然后拿到hash值和对应dictht的sizemask的二">
 <meta property="og:locale">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24ely1h1gjhufjppj217q0lu400.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24ely1h1h1f4vv0aj216s0tijt9.jpg">
 <meta property="article:published_time" content="2020-04-09T12:52:46.336Z">
 <meta property="article:modified_time" content="2022-04-21T00:41:36.815Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="redis">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/e6c9d24ely1h1gjhufjppj217q0lu400.jpg">
 
 
 
@@ -398,18 +401,18 @@
       
 
       
-        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">
-  <script id="hbeData" type="hbeData" data-hmacdigest="572e48382eefb48a634e953c344eb6171075f3a8022860127192b3b3bfede494">982a2f2de999a7307d7563de6c539b2399e876db0a6b4c5ccfefd927680874c3282cceea430d4723518e85484e936dcd78ab9fb74ca135fc6a21841af424242cd88985bfaa88b2a2543d45aeb5b90ec42cf78072f4a843dcea385677e805044733fbffa271dc9b8df8898b300abfc2ef3722b3cb2f4b62d8bba72e27e9873dbacc707be64cc52b33bb3370e4b934b9d30a3b6cb0130d180b75f4a435fd334daee66da349b97c0fafceec228c049909e2837ecbee5488137cf7d91ceb7a54a9cd59155a30593f02349636a8bdc8eeab87c18032854a2f8ca4f48a36b19ccc057049c1e6d4b3e900ec6bf479285f09a541a9f77cdd024a95d3e33aa21799e9a9a0d61f35198ab749559b4e1bd22e3368d372916aa83e627f2b19367cc2acb553f5c6a8dabe0aae22e6733df0518b05f6e38157130c27a3ea85cc237a46d56d64446259e8a4ce8669ed33e60954acac98a4af3904257b521b1d831faf20f7f24f2e6a56fd290754e0abd7b73e0944657f09cba590274ae44f935488622cc144cfcc5d49fa151231482d987a2bc2751d20369aa8327c179b0bd432a5257ade926911409d2fd14420d9dfd67c774c5290ad54cf2cbfa68f79797bd3502cbc260d202d908f0509e85cd9b4fabc5205875bed0a8f4f3476bc116c619b61277c0366227161ae83247f86feb32158b922c3f7036d7ddc65b5309702d50506995457843d64069f4d96c929d3f79efd5575f6da9660102fa7f80ca2e84f8b0ac549b5dd0f43faba6c5039bd0266aed119271250a0f2819d3b13f6a32921d0569e50195be241ce94975d58d8ebaf45e5d5226c429c150defbffe9f497a672f149e4dcd84244b5499f68b65397e2159dd87698559c0c28f3d424aa266d59447376d0c3d32a67139cc971a3f282ac26ebac7775711ee6326516142b45ce75120d95df7dfcdf6eb38b6e4e51061ce6e96a9678ea010364525ef7acdb2cb443558171990c549197de1815dd4228754edbe22fd375d67239c6ff95908d17030eef87262c4bef9208d2e101fe6f41aad377c97f0087194d9638105455b9b4fe2196ee1eabb782358abe494321688fc4cd001eff7051d3542677ef89f35f09e37580d0ab9a867512a914c9ada5de34d6904161be693d74c0fbe69523eb62d1f31bb5c00f4bf48be2f13d81354842ab32bf7fb6350e30403e9eaa20f86accec99faa0859f12dcc867ddaf042248ccfda0011198eda318120cbf2743d6c22f4739547b2e2c9626e31f17bcabe6a9a3489e898f719060fd04ff784b70e0e3f4ace0c9d1f0b9ebd0e9c28df6685efb99d3cbdbd1fbc027e08e4fcf7385b2cbd38d5b168d879bd21e2c7971a5b9f4eb3058bfb2988f0ed6130ffcf440d51d1c26b850ca37092f8e8707c648675f8f0bea9f622850b2b9a8bc9febd6a4084914531e9304df11a0cedb9b43779b2da21f755125f58fa4ac46f6c7f6e5e1168f81053f5f1b4577330c8121848d530e91cbeedc011984598cd5c442b02b6eec6d3e95613ad8596e50830cdd0b476bab5b2aedaf81606ac4cea38775afc28b472d2920c2cfbe8a4a9d151a6594ae20223776634e8699bb3ceafbe2c99fe0373c804c81fc7976bd6379e3348ceaa03437cad537aae8d36a1b068481d5892b354e6544527712a241c0ea2d842e24f2c935acd141a8d88c2e8fc015ac59935ec63720a0d030925ac7eacb75d9d6457ff2a387c9b87fb410ab0b02bd1ad34a19ccc67fbaf5bd6d9c65d7badaa2e5061745dd27f9a532e56166fd4bec0f427a8cf4ce3c4d5af4142a20f9c26181803274e217d62f492014ae02d0e35006bf9df670c2c01809b12cb481b3ec7a64193edb9201e9136ecb68f7c3d02e131864f11d0cf20ab3ab0fc1d9ce3d7e0f65c5a0e6b9cdb205ec2a65b6e75729c0562167a20b189b631bbe215705c76db631010a31716e26d1d9718bc76d74fa6e92a663cf7510f46a899ac9a051a3b68e177c84eef3d16234f6d144e4d552babeaa828ce91cd106701f9a2e23363f7e30a3710ef12c7b21b08d81ba1545eefc282b58497fe347e1b321b8fb05191161b5484326e7d569a7af7d6a8ed6c74ca9f18a862536e8552ed191b5dfd4714f92220b10a60c766388c6acf1de11806381165754fc37b3a7d96e88a48b655e8da4992fdcc535c94b322787f6249c3648e54954df897a455c93943dfb97778a35246f3eb75c7f7348efd2e449deffebdad5468631d449eb522a1eec04b051e0d8ee2b6a971be91cc890b228c90fc0536333a5ba87cd45fd72554a17b05ffb4b0ca2f52be387ae30771c32c3797d7bcf0cb9a9f1a624c5718e4059183578662a74c17746b06704351710e301abc39ed0e2c85271338ab928f5a798455664e3599cc68985a03595d0804c315c3af31e373ab7fa2f9c0990fe5051be2fca9ece55a2f4f3d7195bea0cd29fdcfd349c4dd4baf048b7d7b3873fba38b47824d9eb6841b366b15277e8f82759bd71203b4ed20bad2fe4a6b8cf742d7ac47220574b8fea97c4c3dc265bf1a8d813a4937286635f09898446d0b37d97ae8a1ebc3e32ad16c89378ac7d3bf7035805ada7482423e5d391178918a7d691b92dd2772a93bab19f8193e3e55ae5df654c474618414a92bba7967c0f3c3d01c0825c1273dc7e7c59e908c93fc19423d7070d3a5c5782e7a20c4e06f6c44c3a42be497f6346262b62109c90c452f80f8bd1c82f12bbcafce927bd8a436f54bf1a889ce030a778ef9bc07c5144f9ea24d289617aefd3c399bdc727bba0d779a1eac05b2b75fa27fb105c22387b2cebb9a0dc83cf23b389210628402041419d186be5031c068ed36b47b16e55319eadd654c0866abc49702c116e6528973496d95d798dfc18d170e6c09ccc08ee565bd5e4c284873c9c673ee7b771de33e5b3cdc2151f5138e9afdab7efa6b4abb9432f2711f77c591791f313ad29b03f56ff16c57b24d418c8da9cc3ca484b6610b9e719c3f0161586b05453249660eb6e2d67c24623866a1650c95b6e44af321611e70522c26736b19308645ab48a88f0f3dd226339083a97cc8a6b56a5c78136bd52dbf37dbd2af0398bfabdb2f2858e2ffd6b36894eae140476685f2d709a45e9b861b49e7deacda73cf29f077a167d7e857b6e3f6a361f7a6e78b1e40146b4ac20c1329e7db1c3b0cd7e863b83212e7a2f3b3780bfeb165b023770de67b0ea3917ce3b6c76113ae29ba148e8a45ff222eef3779404533a8da885c8a85489cd5bdbbb768d5264427e8692b0fa65f5ec579e4373f7bcc792ba6e1602a90f8c6703de7164fb06800f332291f5f3d80d13a1eb6a4bf4c0856fc0b3374b7ca4794629600cd28adcbf973e120e016153b35e8cf0b78be259385d44e157c1e89b942d4341c8b1a6f882826111428ad1c26fc256f83112dc4babc9afa48a10678d82152b45690361c3518ca2f0db18fda8227c9a6439ea0b1442cc2429f540c9dcac6719d23d718eb05fbee6c34666d29f0cbccd907e677da2908c0dcc34148897872a5e100ce43d49c91fe06e00de0b53a4c8a83a6d4973009c3eb770909e958429f6e745f3257e37aba64e00eb06f2a90096f3ce129c194e704cb74e02a74dd1c79761ca50e08a835f7434d97fad9e688a96a1ddb5e32b1a1aa1e2435b389e200eb2eef0e87fc9d02074f9c4312571cc515f5515906dfe88393422a82dce37f0f9c48dff42afefc3c308c66a53a7c34bd7d17f1055f10501b32299f0dbe4155be3eaa05eb4707d223d750a623fbc27a8400a88fc8c14c66e34fa040b35d34f6b6f552710db76396e2c3c3b1e1c74b06b9bddf3cd5b9605afe374987f0b218f20af64dfe1c3dbad0d797e1cbb939c1d2180addc29ee575a157640edcde9e7477bc9e6722743566073a3e6190f964b898deb2f4815d07835162f75bb573878d881612df0be7a264f6c74918466ae296a6fc20b7</script>
-  <div class="hbe hbe-content">
-    <div class="hbe hbe-input hbe-input-default">
-      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
-      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
-        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码</span>
-      </label>
-    </div>
-  </div>
-</div>
-<script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">
+        <h3 id="字典（hash）"><a href="#字典（hash）" class="headerlink" title="字典（hash）"></a>字典（hash）</h3><p>和java的HashMap一样，在redis中叫字典hash table，都是使用数组加单向链表的数据结构。字典hash table的结构类似下面这样：<br><img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h1gjhufjppj217q0lu400.jpg"></p>
+<p>其中dict的type里是一堆函数，ht对应dictht的数组，应该固定是2，两个数组dictht轮着用，在扩容和缩容时切换。</p>
+<h5 id="计算index"><a href="#计算index" class="headerlink" title="计算index"></a>计算index</h5><p>首先计算出key的hash值，然后拿到hash值和对应dictht的sizemask的二进制做&amp;运算得到key所在的index。如果hash冲突会扩展成单向链表。</p>
+<h5 id="rehash"><a href="#rehash" class="headerlink" title="rehash"></a>rehash</h5><p>扩容时扩容的长度(2^n^) &gt;= (used*2)，比如说现在存储了15个元素，那么就要找到一个最小的数，这个数要是2^n^，并且这个数要&gt;=30，结果就是32。</p>
+<p>缩容时缩容的长度(2^n^)&gt;=used，扩容因子少于0.1就要进行缩容。</p>
+<p>在扩容和缩容时，并不是一下把所有数据都迁移，查询是优先查找旧的数据，没有再去新的数组中找，然后把操作数据所在旧的数组index上的链表全部迁移到新的链表，rehashidx++，等到全部迁移完了再把rehashidx设置成-1，把ht[0]指向新数组，ht[1]指向旧数组。</p>
+<h3 id="跳表（zset）"><a href="#跳表（zset）" class="headerlink" title="跳表（zset）"></a>跳表（zset）</h3><p>score set在redis里的功能是最强大的，类似的LSM树、c0树虽然叫树但是实现是跳表。zset的结构类似下面这样：</p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h1h1f4vv0aj216s0tijt9.jpg"></p>
+<p>每个节点除了分数和值还有一些level和一个BW，level最多有32层，level和level之间有一个连线表示两个相同level之间有多少节点。</p>
+<p>当插入元素时首先生成一个1到32的随机数作为节点的level数，也就是层高，然后找到对应位置插入进去。</p>
+<h3 id="集合（set）"><a href="#集合（set）" class="headerlink" title="集合（set）"></a>集合（set）</h3><p>不重复，当集合中都是数字并且长度小于512时，redis使用intset存储数据，intset的编码是指集合中最大元素占多少位，可以存8、16、32、64位的整数，如果超过64位也不会使用intset了，有时候虽然存储的是long类型，所以我们想在set中存储int取出long是不可能的，只能存储一个long，让intset的编码升级，然后集合中所有的数据就都变成long了。</p>
+
       
     </div>
     
@@ -547,8 +550,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/face.jpeg"
@@ -617,6 +629,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%97%E5%85%B8%EF%BC%88hash%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">字典（hash）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97index"><span class="nav-number">1.0.1.</span> <span class="nav-text">计算index</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#rehash"><span class="nav-number">1.0.2.</span> <span class="nav-text">rehash</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%B3%E8%A1%A8%EF%BC%88zset%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">跳表（zset）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9B%86%E5%90%88%EF%BC%88set%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">集合（set）</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

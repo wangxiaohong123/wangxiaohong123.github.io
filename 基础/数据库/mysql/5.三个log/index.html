@@ -96,12 +96,12 @@
 
 
 
-<meta name="description" content="……">
+<meta name="description" content="redo logWAL机制：预写日志机制，这是一种日志先行机制，意思是刷新数据的时候，先把数据对应的log刷新到磁盘上的对应的log file中，然后再根据log file刷新数据。针对redo log的WAL机制就是先将内存中的redo log buffer刷新到磁盘上的redo log file里，然后再根据redo log file刷新磁盘上的数据。这样有个好处是如果直接修改磁盘数据是随机写">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL-5.三个log">
 <meta property="og:url" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/5.%E4%B8%89%E4%B8%AAlog/index.html">
 <meta property="og:site_name" content="小红">
-<meta property="og:description" content="……">
+<meta property="og:description" content="redo logWAL机制：预写日志机制，这是一种日志先行机制，意思是刷新数据的时候，先把数据对应的log刷新到磁盘上的对应的log file中，然后再根据log file刷新数据。针对redo log的WAL机制就是先将内存中的redo log buffer刷新到磁盘上的redo log file里，然后再根据redo log file刷新磁盘上的数据。这样有个好处是如果直接修改磁盘数据是随机写">
 <meta property="og:locale">
 <meta property="article:published_time" content="2020-03-19T13:15:05.017Z">
 <meta property="article:modified_time" content="2023-04-11T01:02:56.833Z">
@@ -398,18 +398,82 @@
       
 
       
-        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">
-  <script id="hbeData" type="hbeData" data-hmacdigest="e39c1968934db3d7d7323fbb98138ee5dceb2e7d0467a9c429cde457be4c0ca7">982a2f2de999a7307d7563de6c539b2399e876db0a6b4c5ccfefd927680874c323e5525639c6d41d967819969b507346bbfe1dcbb327074072a9bd1b8a63cad5f32b7eeb1a1a2b611dce404ea7edd44ef69c59f0f5aa526b64cc6f8399c2ceefb85983a7f66d979b6b4b34cecc18775c800cf095999ad64095652a072cbd96c8c55df87192eb3747696d3584c482449778ba0d7c7d8f36ba6e38fb9fcf1f6ca8aadb29f01f6cca7509bdde2df5c30daa5bc0fa2146fe508906f5715578f6d8d7924b9887aa5ab42bdf2a3cfde71cd78b7dcb7c87d33f463253797a179c20632fc067ee8c0dd9dafb2104fc52b0dc7b104504db7fea9c43c73e0edde8aa53701b4e3c15a4cc976e2dfd3f86c09dc94c8a5c6b1807ed75d2249998b140c9b6f1c44063b2811673f977d87c0961d6b8a72be3843b4971aebed833d13f0cca1c7afa3b0ab12c1435eb570d028fec60c284bc5f892d3f13a84a225ad11267aab0f07d4ed20b9453bafd74b75daba882843e7d7435f64b24f32f5e0b884134b6846ae37f459daddea407672835ec6cf8dde9dd819ad7f6273905778eca064a9aeadfbd8b65d0d39f0a87dc7ce97907647ee0ecd84ead394580ba3919abe56828383804843111b5f685f17b73ad2d1b4feb26ab7e6e951cd303feb23c3573e852eaad84e9504655386dd511dc58699140149039aa9cf7ca247e12e9d993c34e570e89915e62fd0912a39740a2715eea3791e5f650c15b30a96949a81c3e5cfef3162f88a6099f7ce7b50c31f39845af2eb7561e8fd8ab8e9a23e0550143ab28b3a0c27d26b38a93e76b14de9decd35d8878e460a48843666dc592242ab6cf19b758d62a527fb0ace812a9b85bccfae53156d591fef42d4931f370ffc947c6a52c7f9dfe4b0eb1a47910d017b261d916e524783a9e721ee96eb07038976c28c16188e08a116e0fb54cdb5ab0265c72efbd5660b82f0b339f6158a4e2b8ea49b72ca2a7f90954770bed08f9bfb1a09df8aa7edbeea096ac91ef320385704ebdb9a75a9774347bdb24043403e1fc00855d713419ba74594031f7dcaf536cdaf477807fe91819ac1daf88efdd9ccd3ab77fbb782332a6878238a4ac80125bbeccd69c42d2b148b7bc2fd7ef95368a4c608cd4c4d1895c279a40de014df66224cc246118843ffa93b74b76b2809244e8d3d46322aed284048ba4b19ac10a7889b5b43e4b7cd3bde00193e7d8983d647566c2bf09710cf23ce08061dbc6d7269f900a763bc2ca2d92179d8c001d376d47cbb9c96900525cdf7ff3d27298fff3240b7afa32e64cc826c7ae2878d77ef5885ee222dd4ff5f72c34b774fe4ecb281d5ee797415f403efb280fe57690440d3d2a13362b72c7b76a662fe7164ec761edda535f071848be3a7f7c3ff233e26e61ce25cd9d6e60926f2498fcf719eb6855de90d619072ae323ee64f620545df65618f4b706ac9f77725ffb9342c2941f3529703eb390666d0b1f7a31cba33511552bd76281256b84b7f2e6a348524447b75041157ab4532b70e8091e2c23ec1211317bf156ebc0d4f7342b85a1ce6710ee64ed3a46e0f1db7ebc9df619af75fa056b6b71e6e8fb52c455233334a2aac2b1fda74872401e287b99d81ea009b62cf140bc27fc88d2339d5483661c5546e3a1edd9bebf213d62d6793727f0c968ef86c52b22a27b6aff2a2672aa83e5da00e58260401a793c3fefa77f97bb09ca768f4d35dca7bbe365f869815c257924e47d32f8ffec16aae7940f3316af1758c5f0c5cb7018716f2b95f02c0f26b064eb61d7323da4b086d2c4eda46c36f2386c864ecb57296a7b9ef223b59c0add48e28a6a044ea0e1a4a8233d0b1f103b250e2d3c2ff4352d9842c9eb902d46a17eb5fa995a78fa76386cea630494107d27641cb06b95f8c67f71c6d02d3ebb8571f57f05f2f5dabd6d751abacd36bbccf3c650b66a4d6b27eb28a00a97ee3d67482d4035e1c2c51fd8356fe9878ab4e2943b8722733ec1cad34c1352d0910ae5d1419261c35ba1c4a80de96d80331a9386f90726fb12f2a96a32514179e19c4969f8ae81b222aa9379abe81b1128083354c8290a8e80ff813b4520e249b5557b3318e360fdbf7897bbc689949a6ead3b97a2fb7fd6924abb942c30f858fbc141457dd5ca18c7168b13e84151d96c385a7fcbfa0cfbc51b5cae13aa01a72f8d7d5b04f142bc01d91781628a0ba61d5fbbfc9c4c08e464a316718e71b3a91c552fc0059dad8dfde4e6012031fb709b986560c2ffc2f24bba4a24ebbe69a9feb0ef07c838c3ed79e91b8143965ccf4cfd9fb491702d0beecbc34ac934a709b8ba72695b1e18c03fe39b8a9738782c26c7872a7005e7f81e6a83d42d8dde5b5d52c63dcf5d93cf97ca4913be1ac0fca8fd478a71593a35e7c10afe8a623bfbcb80e7790f1d6750c6be62516378518e58f82e036282b1279b4c36a112d93f3443863a52f27ce0afbc827ab8dca353d6b0be812c6dd5f4d8b40676d1ab317e097235d6d68c417292f314d89c663b522a9b1dc963e2fda9e62100c9ac8528b3c4612d3b74c5c6e52401f12bf0690c09039354c5b810c2240b702965b143a6275a2346ebf41e349236c82940601d976dce2e85a87b1b2a370528af351730cbdf8893442b180048d10b659790dc33ff38a8d7935e21626976a68ec9a088a6a1f0231959258bb99362292547d3f47f85bab15e4e26ad7aafaeababd256d667d2ee4121738b9f6e69bc3f2c29547958375de5736420b6001f3ed6473d232d11ec405f6ad4f06c65f7ce9ddd22536aca88cba8648812d95e0ab9616edee438d9f8ce21c1c2eb321d98171fb1dc45499f249f11969f151ff3c1eedeef30b09eccee926860e21cc7fc386826a45253284a11c1a63fc608d3920ea8901be66823840c59aadd5d7fbc2205d30de32f7612d9b5eb2f770d61bbade9d1bd8436bafb6c540f00feadf7f28daa90ff395e53a04dca8f11f6725d9b33b2383f848acae468ca154a6936f34e7dff74025b32e847a8e2f3af05607d369bbea514b1854ab7bc7c90d5d7c6767fd63063f68f3e42f0d88e14c8676ecb063be8cfc47940dbd1fe4ebac12cbe128a2276927ea4c26fcbad3a8a52a7da0b59990520198fbf9fe61bb77074ee7b54799df58a07c703828932bbcbe3f993f3bd3730ef9ee02a4428066655b6c9f08d29dd0471a9fb5c20c4d740d55f142db21bbe5b78a937882026cab81fb90b46b38f7e08215a0a3b5bc59b1067fb0fd6b0a11b8c29c2e07d1ac4fca005f8ac1e95aa4ede366578e2d68161061218bf699503a4f75d83448be94cb3d9a774621ade90f94c5b2d8e5104c8a81593b8544190455d802cc99597a38039259a0c12b5cbd75543fa0b5b3cd111bafb5e098c2743d9d9e5c748e7cccaab9d1e2f49d2415fb653e0531cd02d63742b64a9026bba4d34d4d59319964e5bc8f014268caffe9483904a92a87f7f660fe701662ecd90958030f717567c44dceb494958486236a493a473c999d0f644acbc3287b3628b59f3bffdbd83028e9062f2a5de12552b7fec3305f3d8c689c0c41eab3a964f40af95f9acafe154f680aba00c9c2f451f87bdc81d332f19fe77bde793f5637e3e6b5ee5023cf167b60217550ef8d67e0ce3278835c98253eaecc337bdfd11fa90ccd899a9b61fcf50a295845433e8d9aeeacfd8658adcefae886f2c81c4b9331817454b2fccea20bde16c2a8920e2d54bee26afb83600f07d334c02a6d76a8ce0ccb45e15e23a0da79086c219873a5879c46af722651086d7305c3e4d1bd3202b5190110c170d7f9cc41671bdb653f99ed2cca21e90f0856d7a5ae076236f9f3106e71c727ea93ef50af3878fd63993bececd6ea41cb1bc67ddcf7ca625e38a9e58becd960a96a1f2044825d33f63c7d662d408fc0e334494adb323b6be99e60b6dc811a8f439367f4f037a12935bc98019038ec74729d3a66b171a4df1bd5c64413ab56e8ba7ced053132a8b21399d88ec30665df0eb8d17bc7b76ccdb7233fc4a2dbaa11065909305db6e869aaa8ed5c1b765ae4059d46b78a6e9c470581c3b3fbddb13f211db3aa7032b972e185404027292ad60055dc5e876ecc001092c4a037dcfc5ec680acc46c700df4b7c25ef09782efcf859c2a5ae51ea9cbf1391f885b370329de7988abe0ad4a188b1ebd92e80e15ee9ad697f76e98ecccb2ba5012d566d7a74166b1a0d4e1fd2a094646126fb449f35341bcf72b3e653606264445e302bd48a32a622db5be44def9a471d3df47b9d995c255473648d82a762fd0334cf77f88b95d0bc9c44587b41fa2090020fd9f94f86bc91258358b82bd8289c2443669833c7bed5d990989fb978d899e59962da6cbe45670ef42aa391282be32912bfaf514608fae30a26339835d92bf1e004898eb5601edc067f9dbfdb78075d189b6d42c035b7bf618a072d22ce4c94e99adab0b0c8e96295f1930beba29f17a8553584c71c9b373a6a8ca395444cc3592ceeb9b353c30f1206974a1d36d08d433c8d83a273904943a13f400994fe923a61defef7201a0a814e75240a73658b91dbd7762ae2083825eb2fd5e87ee2b7468e34a5516840d019a333f739b49242efdee2085d8558519b083c4e42df1a4d2e4c51eedee0ad18c75e37c132dab8cbab4ee2cea9fc9c772ff5264d14e539da65e13f17fdea5f0c38220195b366b5d280f1801f26f4abe61b43cafdfac1f1035c8d4f31d6a7315c14f55075983d1a7d5958e49feed80c1369051e679aa4c15da255363217ebfd258be438d9b7a3117f88ee295f3a6575cf20e780380f1d028f071b4f0acbd2fbd72411f23a8d95f0855ace2a38e811619617b42a08f931efc38ead9afb7f864052db984fba13e910d010cf62b96c3a43bd6a5f6b35e14a4dc609ef994990532f63d5c776372bdbc507acfb8a44b36fc2acf677c3dfad8dc00a305759b98d6808d90619cc368066de9c7fadfb648d528493ea665bb3279d543b245b82ba8a8362aadc404553f628fefe3d24a328902a0b6f449256d1a9cebf135eac3dad257797feb001ad6f035b06aedc48d634da05aedbd36ceda1eae9e7678d332c21f7c27f8431a4d5058bea3486a8e30ca4a175e7851c6516f78768c15fd9142f4105fc4a41ee4de7c7c57cbe8a00cb667406bb0519c45d2f913c56ef8948df0c1111aff01a3f1f784fa84d4ebbcd3ab99d2e6b9ed87997e5cee8765ef783f0b9fa94a5ab89c8eaa1a4b06138444f76af30cacde63832a77fecdd0875365a82f0fe6c87402ddb2304ba984ee818c243a77b7ee53a0770a7ac981592c8e8915ad753db8f983bcf9b57470d7c0884281c5de673a0d8af610e1057273f327a7d3e9889defd78ef34f4fc2e03b8d3d90f7d96f131f2177bd41d67fc107bc650375c6f6b4fd6ad7fe3ffe3744b3cde92cab2a2075f321bf6c30a48eb8ddb0915d986f1792b2b0b60fec3a61fb7b64de73873d6160db81f3eaf0a9d104c1836818aae85442f55630a2e17481f9109d7b8140af59817dea0966a3d577f2bc915b949c7f7fae402a6b9bd911973a24d1c78627c49227f2ca21900310b926db5a1c2b3e22b1e34ae6b0a9b37fc0ce9ed286b2b98f6023f1cdfec8d346c0b7fdaa04fd4c1330b69be38088133d1aa99a39c5976c7721c2d9c5839f4d49d7fae35c21ff874df9e54f56efc429e9b6fad2886561fcfbb10557b3b0fbcf4e43a3c7c2d22c7e3ae438aeb95f3306e3310f4ee8a9911078f682f46c135a7923df4711921424b6770fa9b5d10cdafc2afbaa7268401ad770a133b3591d6bf606b67b2a7cb3dc019d382d44ffa03ef4838e271d4775214263bc8151a802fdb6492f6f0600195cd5ef8d0220313c326fefb14f39f2ebadd2775c065b63fd9ee43cfa48bac2c0e93a96ece0a3bf9de87a09758265112bcb28e41879ce70843558046ee074afbabc21c1f376cdff1d78de6b13641d90295b6da05f2b3876853a3e8313086e152786da40a18c13230e31b58bf93d9f52954175233797d1ed7b8a90adf63af98caf9cb931e1a1e2fb991acdc8d12e98ed86dd254846b28c50f9619914e34ad8729d59a43d3b481cf7634940502a261701ae7395bc845c131c87c6ea541d63a80d81dcebe53b70e2e585a92137456047c34d7efcc0d2caf310240b858bead2bb5f58d64345bbdce7af9068a337786bd53d165841897809f42982a90d5623bb107c060bb341a6acea59ee233cef0757643e3f578509772f0f01acf6b06e9f317fede2924a90a45db8411fc7d12a812436136900517d22d300bec222338234a29421400d55ddcd354fdaf3ad64876cd117e866b928a1fd6adf4a04a7992b203ceb9df3a3fb3e6f4afca228de2e0b7a6adf119d88dbce8f7acecc6387340e52eb99ca818fb3a647f27d95bfce7e2c22552e8c46e841b0d4bd38d4bddda1c35113c1645f4c165888de73cb8311781406c3c7173d09375fe99779c6606e8ea1fd52272d4df85b3d7a218c7692cd1b77b9c31e8905270af0b9c47449badc976173d2559a43d91cc2b1d49b8d93e0940c1017ee8f6dfc263c625a533f1360947387bc47799b3bc1407cdb4cd86a42a55113fb2f06a559cd00ab47834a036116728c538cb74a67d6a80d015c288e822d024711a34cc162be3a8c88fade5f03c281ba64c82f0697cb4d45bda4a80ec6607c7f18c684846ec87c8603a129b179d61358d37755c33180eab0736556d8d997f6075dfd48bc96f9997a5068645e0d07343627037ea37dc4082b4d90fd4d4c46ca9cacb4afacdf0871ecdf51aacd444650459566dcb3eff80c962362237fc19e7e4202f1548806740f7c168af1bdc0ac96dc34fc2506364575cd7097d21ad0135d1700f2e2107fdc36f87f72cc18e5c474789df039f8b35d57a2e2affc99c395594f033646706958aa2b2555754876420fa2ca8330378996c336e0db657515c6159b652c89a41d43278752d90ea1ded978df4abf084a7abdc25799badd7362023b74c179698d4125bd2ea6152d2126103bc7c07da1aa64bc73a21a0fad0e5dc70f495a1d4e7f2627bb4e57cd0e1702917865ba364f958711bc11f6a6c4fe084a10fab3144571da2e492e46470faa1fc7f61dfee78df46ffc6b04dc0bf864bdc8121e9f42e1313d3d9ce9855840822e4bed5a8c1b26b15e4ace3221b4e407048be5b745530aeec2a04ec8d49836722d35f08efd9a1f83db664f8b91344fa8e3953ea81d9ee0a00b3539cf504de49297989f7e1d310167eb59488a438699e5948db8474c49dabdc56fccb2b8d7e62552d44f0bb4a4c90098ceb8c03c8ac8d19b4e7d7a606bbc7652d838ce99c75a1b3bf8415058759a24e6bd2a84b6b8cbe60f27f759d07734e36fa96d1dc188030fc196f46243a555968015d94ae8ed5e318b4620884cf79e72a803d1324543067d4574c3e7eb663b6d55fd562875e9b02a033032baa6a5fe750079c6520e01c8d1cda659b6af557b50c210d796289a95f36733925641506b4496f877807e186be1f07244087e6fc57684f7e1ffcc6ecd1b36fc0ef0cf66533e059336f202554e1d10fff696a7a844f92d78a2df27464376c6639971029559403b985f9e91f6c3af3314dac6e36afde29c136da0e39c85387173dcf8c74b4814ca87d6429ce257e76cbc88012a42762f4d68213b8bd5b6cbf2ae314dd23d55c25a2376fb650a89130f80b5740daac9b4aa16649381d2c848f8709ca601285c43f75bb7da6248606b85c189f7f09f0b40642f4e7f0e802283d418110e09fb7e61a3998d9b1d0af46d89d8ff9fa03bf3c349a886ecbf49fa260d2437b5d3a3d4e58a3303a6eb496d3abee64196207a203228fab707e5080f9e5061cb714b6d5b7a916967c5602e777c33130be500c9a5f762d1e078700cce8d3f33c3b5ebd98c475ff3ced1f7752dd935d7f8485b43231114e3a531cce13cfd5f1a095ff8f16b140f9408c96b87e79771c7a6080befefb660fd5df989f574268c79401f47ded9603f3f6793b8643a26be6aea0c03551069c68d60d83de3098507be6753f24edd6421598f1fe72688a1f7ac23421e91fce12d02dc1e775f3d8dd3d7d4dac5f15561772464232710e652510dcb72c1b9b67f31f62359b8e6c93d6ab338fe2250c1287cab9fdf7b4f01ca51e4c5184eab3dce2c57cad470fa79ad87132fd9014316faff5350fb5c60192c5ca9195961b5c4a91c18e55bc6b8b907f3755972f49bc8dfab712c7a324b92e8312863ce6c1b6fee2e13d594f242525d2c799bb426d0db011c7c07facc2b30e5e7241a133430cd9f3e8e931666428af60d6220ca302ad54ce4f79f1474c9ca9342c6eaf56c4860d95efe0fe9dfab516a7b652cd8558a3dc43ceaeac00dcfd0d775003ca9fd99cc54ecdbfd58d4872ba09ed3fbe08ec14f9487064c8ee0a0e85d01f7a4b1e969a6b7221315f7e26cd662c0d7ad4b5d95f10871cb7ef472646a2f4d5af27f98e479a3f9b8c4c211a9f5c6a5a5cf52bd1d0d85409a02671f4c5cd3ceb1e6407c0be20793569ddf2791da177bb948a844704cfa73e5f0d7d42a7486be51653c86ac973bf562736aac9e50f9e0c44af17af751f92be3a69f5fd7a3f0637540d3321495dbd7caeafc9fea2e785682577ab2acfac3b2242f992251a27d1e565a5e8f91bff5fb674243bcec006c73e5e6a8b34e0cfcf337c676e43c8423fbdfd1e6ea95b4c94c3d1452de8c6dbcd7f10f1ab5e0a58effb5dcce8ae91d346bb6ad28dff26bf1e4a377626d46ef8ae26da7b2589b3df86afdab31adcc1f8c79193cd3abdb8f2cea2fd81616099749be57d604d7dd544501221e5fb279a9ff605412432d902e00e1d04433d84543da6c61e1bd4909feb0d44dab2a72645f1372d28d05958223bf05232165573de0af6e269f873a034b58172e6c3fbb1aa6a609e4d124ee655651fd42552d6d2e1f5fa8b719f46814fc9e0a192c988340bb8d9bf9f573b85c0ae26e4189831ddd6416273bfe2f35243d73f390e6c51dfb808f81b47400df013210012f7f1c4979729eddabd370d57bb885cf152dac51361bc791ec3fb010bf589ec66591f52a0fddd957ea994e78855c690847356934fae272e30edca02e0cf43d202b81d468a866083aa05624d950e0a25f84acf4c122cba62fd33d9c6843ed1994cdb1c0773e06c84e7eee907c6081abcd82ed4e409c58aaa835459d2659035099e8a4f7f42978f7d0ad47decdae58feceb1484419812ba44c55d357838bdb62d44746ed3f914fa4c53e0d608498d1d9aa58abf02fe98e25a26875e9f8c0561766013bfa908580df316f11449ab1decfeb3a6c7c0d5217d678b59e38e305498f97c26a4c66a1deae79ab0abe9ed18ec90d8cc4d9c68baa8a77fa3c61a72fa80e366ebaf6df466fed57631107ac0c611579bdc3f51569e55df4f1c2807af7bad76beb67f813bbccdb79b95a5c9e93595a5942853de42a12b9fdd9fca99ad97cde0372c5282989c7ed5952b2046a1a125da3194a1a01f2d5a18638f1a799999602bb791ee27eb83b9a4dc7f3489ed19dc2d367ae9880c46526bcb0014e41992d8a1176e2080144ea849b6c9f9f19ce96b69a06f394b152136d86e0840c202ad12d46d5f4514f9928de3bcc3f81c33ebffd148408787884309b30a9b916bdd0b6c89a03befd0cf527278c854ce4d6a682c96dfdea26f327b78a955aa855085a86f53faa8f55ec6c4080a6085138ff34d80c4ef53b238f2a29f00547da4670eb0a1c2ce0e878236e5fc17c01e0a51438f8e914285bc1a4e8f2e503c4bb8ae946b7727aa389d8467271dcf1ca2c29b75a43db34b08eee2f76e84f40c6d06d90780a5122883af9d8d67700917053d0866f42352f7f1c36f9f4fdf5f64d9878fafd5db269b9e79ac45e9fa51400e397f1f68d1469d9228e8aef2a321e3f7cf103ed18b76b2c78cd4133dd6b0b647aedcfac474c5b7010985c77914fa7f83f638564231b017786029a5161d59878368b49e48fd30580f07ff5f6b5e548e62c1c898bfdf115943607946b9fc31fa2c334bf50f4ff26d180e52301d8f66c192d7ac744f34c4048332588bb740fa91204477fcc96627e4e026dd04f708c6813b1f3c647a447e918a143e3e0ac55ae0dd76e3d9acdbd9449d6c98dd96a45ecd253879a1ffebc0984fdd6f9436d9af18bcbf0bd762c9b307cb589039359ba2b461c678716223ef7cf11f4c86c140cae2b5a7158b01bf99b8aaf1e72200d81defccaf1fe522ca3321ab8bbfde699215b4c3f0a0e5b52b074579517c3f60ea5bd7eed08c1c69a8159d69d8cdc57bdb5fe60e45e430a8a2bdb08f51edb2dd25341f7eeba72aef3244262c5b63dce1a7ee323fd926f98ded4cca2f67ae1fe64161d6a3101d55cd5d73f7bdfda9a75a19b8c1439b17187d3ab91ed07d45cb27067048cb4811ac282e97c79eaa9979bdd4d87ee11290d0921412b723771428297806047d7fe24856e58a6abfab2ad75b92674b4f01923568fe3c1b58d9ef84168753cccbf7e1464b7afcdf546b2cc6221b58ccd1ba2f92017fd11bb99cb0c04b9b5379c366b2799e3c127593bfff6a660186feef3579b67c5557233f736b449fb63c7a13cae1c1043f66745e5e6362b8c6feaee0455b2aab1efeadbfec8feb926c416c8af7146ac66077329aebcbcabb08bb2ce99c149230e3a6f428b4597676b2258d177b709e1bdf6a950f577eb56c7b5f8ea4c316ff89ee2b11c26031a7f1dfafe1910407854417f56898ff1fd373446e23ddddd0ef0e12589a008fbf34da7da483f047d99dd25187370e865e63ca76c9dda3e9d68e4f03481a865e0365f3ec19adabcaa34471205d47dcd18475b22f96f8e5a8d9d420f40db3a9abcdea7538be4cb885d407e1c6fc3cc64b6934709ac50f142f31dde3dd2905c9385284f777606f302d2c07944660cdeaa5e9b8cbfed1ba8d10155450befa8da4652423697eca30f9df5b57b15f8345e14e36a61d26c632e010d4e19a57160b8c6afc8cee8d3a87a12063e37dd004bd6180169403e33a9742241d9b5ba92944eb54280202e307d6d656f540a0590254f6b552394337bcda9789abdb8100c9061ccc49952680921af6a6ffb4c63702a89948a51e8aaaccd9996e99cbe5a38c8d0c03fbc06a0497dcfa38c6b51b6befefc5dc45805fc4fa7b</script>
-  <div class="hbe hbe-content">
-    <div class="hbe hbe-input hbe-input-default">
-      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
-      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
-        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码</span>
-      </label>
-    </div>
-  </div>
-</div>
-<script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">
+        <h3 id="redo-log"><a href="#redo-log" class="headerlink" title="redo log"></a>redo log</h3><p>WAL机制：预写日志机制，这是一种日志先行机制，意思是刷新数据的时候，先把数据对应的log刷新到磁盘上的对应的log file中，然后再根据log file刷新数据。针对redo log的WAL机制就是先将内存中的redo log buffer刷新到磁盘上的redo log file里，然后再根据redo log file刷新磁盘上的数据。这样有个好处是如果直接修改磁盘数据是随机写，但是WAL的话会顺序写日志，然后异步随机写。</p>
+<h5 id="1）基本概念"><a href="#1）基本概念" class="headerlink" title="1）基本概念"></a>1）基本概念</h5><p>redo log叫重做日志，它包括两部分，一部分是内存中的redo log buffer，另一部分是磁盘上的redo log file。通过redo log可以实现数据的持久型。</p>
+<h5 id="2）数据刷盘"><a href="#2）数据刷盘" class="headerlink" title="2）数据刷盘"></a>2）数据刷盘</h5><p>脏页落盘的chack point：</p>
+<ol>
+<li>  强制落盘：关闭数据库的时候把所有脏页落盘；</li>
+<li>  主线程定时将脏页写入磁盘；</li>
+<li>  当redo log快写满的时候：redo log在75%到90%之间会异步落盘，超过90%会同步落盘；</li>
+<li>  lru链表中有脏页被淘汰的脏页会落盘；</li>
+<li>  buffer pool中的脏页超过75%会落盘；</li>
+</ol>
+<h5 id="3）redo-log刷盘策略"><a href="#3）redo-log刷盘策略" class="headerlink" title="3）redo log刷盘策略"></a>3）redo log刷盘策略</h5><p>redo log持久化策略通过innodb_flush_log_at_trx_commit来配置，这个属性有3个选项，分别是0、1、2：</p>
+<ol>
+<li>  为0时：redo log buffer每秒会写入到os cache，并调用fsync操作进行刷盘，设置成0的话当系统崩溃的时候可能会丢失1s的数据。</li>
+<li>  为1时：事务提交时会直接写入os cache并调用fsync操作刷到磁盘，这种不会丢失数据，但是磁盘io会很频繁。</li>
+<li>  为2时：事务提交时会写入os cache，由后台线程每秒执行fsync操作，这种只要不是服务器宕机就不会丢失数据。</li>
+</ol>
+<h5 id="4）日志格式"><a href="#4）日志格式" class="headerlink" title="4）日志格式"></a>4）日志格式</h5><p>redo log记录的是哪个数据页的哪个位置上的数据被修改，修改为多少。</p>
+<table>
+<thead>
+<tr>
+<th>type</th>
+<th>space id</th>
+<th>page number</th>
+<th>offset</th>
+<th>len</th>
+<th>data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>日志类型</td>
+<td>表空间的id</td>
+<td>数据页号</td>
+<td>数据页中的偏移量</td>
+<td>修改的内容不确定长度时占用的字节数</td>
+<td>redo log的具体内容</td>
+</tr>
+</tbody></table>
+<p>日志类型有很多种，在5.7里有五十多种，比如type=1的时候是MLOG_1BYTE，意思是某个偏移量处写入了1字节的数据，type=30的时候是MYLOG_WRITE_STRING，表示修改了字符串的值，这种不确定长度的值的修改会使用len进行标记。</p>
+<h5 id="5）刷盘时机"><a href="#5）刷盘时机" class="headerlink" title="5）刷盘时机"></a>5）刷盘时机</h5><ul>
+<li>  首先在MySQL关闭的时候是必须要刷盘的；</li>
+<li>  其次MySQL在后台有一个线程会每秒刷一次；</li>
+<li>  然后如果1s内产生的redo log超过了redo log buf的一半大小会马上进行刷盘；</li>
+<li>  最后事务提交的时候会进行刷盘；</li>
+</ul>
+<p>默认情况下磁盘中的redo log只有两个文件，ib_logfile0和ib_logfile1，写满了就会覆盖。这两个文件组成了一个日志组。组里的日志文件组成立一个环，比如ib_logfile0写满了会去写ib_logfile1，ib_logfile1写满了之后又会去写ib_logfile0。其中write pos表示当前日志记录到的位置，check point表示将日志记录写进磁盘，然后会将日志擦除，write pos和check point是追逐关系，当write pos追上check point的时候不能写继续写redo log。</p>
+<p>并且在check point进行刷盘的时候是以redo log block为单位进行的，和数据页很像，一个redo log block是512字节，由head（12字节）、body（496字节）、trailer（4字节）组成：</p>
+<h3 id="undo-log-回滚日志"><a href="#undo-log-回滚日志" class="headerlink" title="undo log(回滚日志)"></a>undo log(回滚日志)</h3><p>在开启事务之前会记录当前数据的状态到undo log里，比如删除数据的操作就会记录插入日志，事务提交之后不会销毁，由后台线程purge thread定时扫描回收，同时undo log也有对应的redo log！</p>
+<p>undo log主要用来提供回滚操作，实现了事务的原子性，可以通过undo log进行回滚。undo log的第二个作用是可以实现多版本并发控制，就是mvcc机制里的快照读。</p>
+<h5 id="1）工作原理"><a href="#1）工作原理" class="headerlink" title="1）工作原理"></a>1）工作原理</h5><p>在事务开始之前innodb会生成一个全局唯一递增的trx_id，每行数据还有3个隐藏列：</p>
+<ol>
+<li>  DB_ROW_ID：当建表时没有指定主键或者唯一索引的字段会生成一个DB_ROW_ID。</li>
+<li>  DB_TRX_ID：事务id。</li>
+<li>  DB_ROLL_PTR：回滚指针，指向undo log增删改数据的时候这个指针会指向刚刚创建的undo log。</li>
+<li>  next_record：指向上一条数据的指针，所以表中的数据是从后到前方向的单链表。</li>
+</ol>
+<h3 id="binlog"><a href="#binlog" class="headerlink" title="binlog"></a>binlog</h3><p>他是一个二进制日志，用来记录用户对数据库的增删改操作，他是所有引擎公用的，不限制大小，他记录的是一条SQL的原始逻辑。</p>
+<p>常用于主从复制和数据恢复(通过mysqlBinlog工具或者其他数据同步工具)</p>
+<h5 id="1）三种模式"><a href="#1）三种模式" class="headerlink" title="1）三种模式"></a>1）三种模式</h5><ol>
+<li>  row：日志会记录每一行记录被修改的情况，主从的时候最好使用这个，缺点就是批量操作的时候会产生大量的日志。</li>
+<li>  statement：记录每一条修改数据的SQL，比如一个批量修改10条数据的SQL，这个模式下binlog中只有1条SQL，二row模式下会产生10条SQL。可能会导致主从数据不一致。</li>
+<li>  mixed：上面两个模式的混合，根据场景进行模式切换。</li>
+</ol>
+<h5 id="2）写入机制"><a href="#2）写入机制" class="headerlink" title="2）写入机制"></a>2）写入机制</h5><p>内存中有一块区域是binlog cache，首先会在binlog cache中记录binlog然后写到os cache在fsync到磁盘。</p>
+<p>通过sync_binlog设置binlog的落盘策略，由3个选项：</p>
+<ol>
+<li>为0时：每次提交事务写到os cache就算成功。</li>
+<li>为1时(默认)：每次提交事务都会fsync到磁盘。</li>
+<li>大于1时(假设设置的值为n)：提交事务只写到os cache，累计达到n个的时候刷到磁盘。</li>
+</ol>
+<p>每个事务线程都会有自己的binlog cache，事务执行过程中会把SQL封装成log event，然后事务线程会把log event放到binlog cache中，在写到os cache中，在根据刷盘策略决定是否刷到磁盘。</p>
+<h5 id="3）redo-log和binlog的区别"><a href="#3）redo-log和binlog的区别" class="headerlink" title="3）redo log和binlog的区别"></a>3）redo log和binlog的区别</h5><ol>
+<li>  redo log是innodb引擎独有的，binlog是MySQL实现的所有引擎共享的。</li>
+<li>  redo log记录的是数据的偏移量和具体修改的值，binlog记录的是SQL逻辑。</li>
+<li>  redo log循环写，redo log会被覆盖，binlog是一直增长的，所以binlog可以做全量的数据恢复，redo log只保存少量日志用来做数据库崩溃恢复。</li>
+</ol>
+
       
     </div>
     
@@ -547,8 +611,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/face.jpeg"
@@ -617,6 +690,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#redo-log"><span class="nav-number">1.</span> <span class="nav-text">redo log</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1%EF%BC%89%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">1.0.1.</span> <span class="nav-text">1）基本概念</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2%EF%BC%89%E6%95%B0%E6%8D%AE%E5%88%B7%E7%9B%98"><span class="nav-number">1.0.2.</span> <span class="nav-text">2）数据刷盘</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3%EF%BC%89redo-log%E5%88%B7%E7%9B%98%E7%AD%96%E7%95%A5"><span class="nav-number">1.0.3.</span> <span class="nav-text">3）redo log刷盘策略</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4%EF%BC%89%E6%97%A5%E5%BF%97%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.0.4.</span> <span class="nav-text">4）日志格式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5%EF%BC%89%E5%88%B7%E7%9B%98%E6%97%B6%E6%9C%BA"><span class="nav-number">1.0.5.</span> <span class="nav-text">5）刷盘时机</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#undo-log-%E5%9B%9E%E6%BB%9A%E6%97%A5%E5%BF%97"><span class="nav-number">2.</span> <span class="nav-text">undo log(回滚日志)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1%EF%BC%89%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">2.0.1.</span> <span class="nav-text">1）工作原理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog"><span class="nav-number">3.</span> <span class="nav-text">binlog</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1%EF%BC%89%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F"><span class="nav-number">3.0.1.</span> <span class="nav-text">1）三种模式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2%EF%BC%89%E5%86%99%E5%85%A5%E6%9C%BA%E5%88%B6"><span class="nav-number">3.0.2.</span> <span class="nav-text">2）写入机制</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3%EF%BC%89redo-log%E5%92%8Cbinlog%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.0.3.</span> <span class="nav-text">3）redo log和binlog的区别</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

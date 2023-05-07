@@ -398,7 +398,10 @@
 
       
         
-          ……
+          
+          引入 versions-maven-plugin 插件
+12345678&lt;plugin&gt;    &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;    &lt;artifactId&gt;versions-maven-plugin&lt;/artifactId&gt;    &lt;version&gt;2.7&lt;/version&gt;    &lt;configuration&gt;        &lt;generateBac
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/maven/Maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/#more" rel="contents">
@@ -552,7 +555,22 @@
 
       
         
-          ……
+          
+          仓库有三种：
+
+  group（仓库组）：将各种宿主仓库、代理仓库组成虚拟的仓库组，项目只要配置依赖一个仓库自，相当于自动连接仓库组内的各种仓库。
+
+  proxy（代理仓库）：代理了公司外部的各种仓库，比如Jboss、中央仓库，可以修改为阿里的。
+
+  hosted（宿主仓库）：公司内部的发布包。
+
+
+平时用的仓库就五个
+
+  maven-central：maven中央仓库的代理仓库；
+  maven-public：仓库组，我们平时就连这个；
+  maven-release：公司内部经过完善的
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/maven/nexus/#more" rel="contents">
@@ -706,7 +724,9 @@
 
       
         
-          ……
+          
+          http语法123456789101112131415161718http &#123;	### 定义日志格式	log_format  main  &#x27;$remote_addr - $remote_user [$time_local] &quot;$request&quot; &#x27;                      &#x27;$status $body_bytes_sent &quot;$http_referer&quot; &#x27;                
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/nginx/2.%E9%85%8D%E7%BD%AE/#more" rel="contents">
@@ -860,7 +880,12 @@
 
       
         
-          ……
+          
+          官网推荐vip模式集群，VIP是指虚拟ip，单点故障的时候会自动漂移到可用节点。 三台机器分别安装keepalived和nacos：
+先整个jdk；
+安装keepalived：
+12345678910111213141516171819202122yum install -y gcc openssl-devel popt-develyum install -y libnl libnl-develyum install -y libnfnetlink-develyum install -y cur
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/nacos/1.%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA/#more" rel="contents">
@@ -1014,7 +1039,12 @@
 
       
         
-          ……
+          
+          安装mysql5.7：https://www.cnblogs.com/hsbt2333/p/9915616.html
+首先在主库上创建一个用于主从复制的账号：
+123create user &#39;backup_user&#39;@&#39;%&#39; identified by &#39;qiyuan1502&#39;;grant replication slave on *.* to &#39;backup_user&#39;@&#39;%&#39;;flush privileges;
+
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/0.%E4%B8%BB%E4%BB%8E%E6%90%AD%E5%BB%BA/#more" rel="contents">
@@ -1168,7 +1198,14 @@
 
       
         
-          ……
+          
+          单机安装将redis-3.2.8.tar.gz传到虚拟机/usr/local/下，执行命令tar -zxvf redis-3.2.8.tar.gz解压，然后cd到redis-3.2.8目录下执行make &amp;&amp; make test。
+安装的时候报错，通过错误看到make已经执行完了，在make test的时候报缺少tcl错误，所以要安装一下tcl。
+
+
+执行命令安装tcl
+12345wget http://downloads.sourceforge.net/tcl/tcl8.6.1
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/4.redis%E5%AE%89%E8%A3%85/#more" rel="contents">
@@ -1322,7 +1359,10 @@
 
       
         
-          ……
+          
+          work_connections是nginx的连接池只想数组大小，因为nginx收到请求后需要代理出去，所以一个请求要涉及到两个事件，每个连接对象的大小大约是232字节，每个事件对象大小大约是96字节，所以一个连接需要占用432字节，差不多0.5k。
+
+          
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/nginx/3.%E8%BF%9E%E6%8E%A5%E6%B1%A0/#more" rel="contents">
@@ -1476,7 +1516,21 @@
 
       
         
-          ……
+          
+          优化方法论软件层面：
+增大CPU利用率
+增大内存利用率
+增大磁盘io利用率
+增大网络带宽利用率
+
+硬件层面万兆网卡、固态磁盘、更快主频，多核的CPU、更大的内存
+使用DNS+nginx集群
+
+可以安装numactl工具查看CPU信息，比如核数、命中率什么的。
+设置worker进程数：
+1234# 默认是1# 如果是auto，会根据CPU核数自动创建# 可以设置numberworker_processes number | auto;
+使用pidstat -w -p [pid] 1美妙打印一次进程
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/nginx/4.%E8%B0%83%E4%BC%98/#more" rel="contents">
@@ -1630,7 +1684,19 @@
 
       
         
-          ……
+          
+          服务器
+端口号被占用
+  启动服务发现端口号被占用可以使用netstat或者lsof查看占用端口号进程，没有用就杀掉
+  123netstat -tunlp | grep 80lsof -i:80kill -9 [pid]
+磁盘
+  当磁盘不足的时候可能会收到类似java.io.IOException: 磁盘空间不足这种信息，可以先使用以下指令查看磁盘状态
+  1df -h
+  比如显示下面的信息就表示/目录下的磁盘占用很大
+  
+  就要去/下面查看文件夹大小，一层一层一直找到大文件
+  12
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/linux/1.%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E6%80%9D%E8%B7%AF/#more" rel="contents">
@@ -1784,7 +1850,19 @@
 
       
         
-          ……
+          
+          同步操作：
+
+  读写客户端数据；
+  过期机制是在主线程中执行的；
+  淘汰策略也是在主线程中执行；
+
+异步操作：
+
+  主从同步生成全量的RDB；
+  lazy-free机制，把bigkey的释放内存的耗时操作放在了异步线程中执行；
+  AOF放入rewrite，重写采用的是写时复制机制，最开始只会fork一个子进程，子进程会先复制父进程中的内存页表信息，父子进程指向同一个地址的数据，这时候子进程就可以开始写日志了，但是会有两种情况引起阻塞：1）内存页表很大，也就是数据量很多，在fork完成
+          ...
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/7.%E8%B0%83%E4%BC%98/#more" rel="contents">
