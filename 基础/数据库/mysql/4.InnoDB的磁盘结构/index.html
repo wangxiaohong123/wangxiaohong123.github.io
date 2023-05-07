@@ -103,13 +103,13 @@
 <meta property="og:site_name" content="小红">
 <meta property="og:description" content="一 表空间表空间是用来存储表的结构和数据的，InnoDB中表空间分为以下几种：  系统表空间：system tablespace，也叫共享表空间，对应的物理文件是var&#x2F;lib&#x2F;mysql&#x2F;ibdata，这个表空间存了很多东西会越来越大。   系统表空间内容：    数据字典：表结构、数据库名、表名、试图、索引等等元数据   change buffer   doubleWrite buffer f">
 <meta property="og:locale">
-<meta property="og:image" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/4.InnoDB%E7%9A%84%E7%A3%81%E7%9B%98%E7%BB%93%E6%9E%84/imgs/%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/4/%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84.png">
 <meta property="article:published_time" content="2020-02-18T13:11:54.767Z">
 <meta property="article:modified_time" content="2023-04-11T03:54:18.111Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="MySQL">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/4.InnoDB%E7%9A%84%E7%A3%81%E7%9B%98%E7%BB%93%E6%9E%84/imgs/%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84.png">
+<meta name="twitter:image" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/4/%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84.png">
 
 
 
@@ -421,7 +421,7 @@
 </li>
 </ol>
 <h5 id="1）表空间的逻辑结构"><a href="#1）表空间的逻辑结构" class="headerlink" title="1）表空间的逻辑结构"></a>1）表空间的逻辑结构</h5><p>一个表空间包括多个段(segement)，每个段包括多个区(extent)，每个区有多个页(page)，每个也有多条数据(row)。<br>表空间：相当于innodb存储引擎存储的最高层，用来存储多个idb文件，每个idb文件都是独立的表空间。<br>段：他是一个逻辑概念，用来申请空间和回收，一个段有256个区，常见的段有数据段、索引段、回滚段等等。<br>区：由连续的页组成的空间，一个区有64个页，默认情况下一个页16k，所以一个区就是1M。<br>页：存储多个连续row，常见的页类型有数据页、undo页、索引页等等。</p>
-<p><img src="imgs/%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84.png"></p>
+<p><img src="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/4/%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84.png"></p>
 <h5 id="2）page结构"><a href="#2）page结构" class="headerlink" title="2）page结构"></a>2）page结构</h5><p>innoDB的数据都是以页为单位存储的，每个数据页都有一个38字节的file header(描述信息) + 56字节的page header(存储页状态) + infimum + supermum records(26字节的最大最小行记录) + user records(存储的数据行记录) + free space(空闲空间大小) + page directory(页目录，存储数据记录的偏移量) + file trailer(8字节文件尾，用来校验页的完整性)。</p>
 <p>file header中有上一页信息，file trailer有下一页的信息，这样数据页之间就组成了一个双向链表。</p>
 <h5 id="3）行数据结构"><a href="#3）行数据结构" class="headerlink" title="3）行数据结构"></a>3）行数据结构</h5><p>行格式有4种，可以在建表的时候指定row_format或者alter table修改，5.7之后默认使用dynamic。</p>

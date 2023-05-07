@@ -105,7 +105,7 @@
 <meta property="og:locale">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gz9e109wjoj31sy0nqdri.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gz9ehe6wnwj30yy09sdj5.jpg">
-<meta property="og:image" content="https://wangxiaohong123.github.io/Users/xiaohong/Desktop/008i3skNly1gz9ft62f7uj30u00xj42r.png">
+<meta property="og:image" content="https://wangxiaohong123.github.io/linux/1/xiaohong/Desktop/008i3skNly1gz9ft62f7uj30u00xj42r.png">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gz9l9zxpthj315q0fm44l.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gz9meryc4fj30v80u00yr.jpg">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gz9msd404dj30uo0gq40b.jpg">
@@ -410,9 +410,9 @@
 <p>登录网关服务器检查oom日志和GC日志，并没有OOM日志，GC也都正常，然后进入/var/log/查看messages文件看看是不是操作系统把进程杀死，果然看到了日志：<br><img src="https://tva1.sinaimg.cn/large/008i3skNly1gz9e109wjoj31sy0nqdri.jpg"><br>操作系统内存溢出把网关进程杀死，anon-rss就是网关进程malloc出来的内存，可以理解成实际使用内存，7个G很高了，但是total-vm更高，先看一下服务的启动参数，看到堆内存分配了6个G，元数据空间256M，再加上栈什么的7个G也差不多，然后我把堆内存调成4G，重启网关，并在arms中添加内存报警规则，启动之前我在启动参数中增加参数：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 打开NMT会带来5%－10%的性能损耗</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 可以使用jcmd 5687 VM.native_memory shutdown关闭NMT</span></span><br><span class="line">-XX:NativeMemoryTracking=detail</span><br></pre></td></tr></table></figure>
 <p>因为total-vm过大，而网关进程已经被杀死，防止不是堆内存问题导致的操作系统OOM到时候可以使用<strong>jcmd pid VM.native_memory detail scale=MB &gt;temp.txt</strong>查看内存分布。</p>
-<p>果然没过几天突然收到内存报警，还是网关，使用top命令查看内存使用已经快6个G了：<br><img src="https://tva1.sinaimg.cn/large/008i3skNly1gz9ehe6wnwj30yy09sdj5.jpg"  /><br>virt是申请的大小，res是实际使用的大小，这两个不管那个都很大，然后我使用一下命令把内存分布输出到文件里:</p>
+<p>果然没过几天突然收到内存报警，还是网关，使用top命令查看内存使用已经快6个G了：<br><img src="https://tva1.sinaimg.cn/large/008i3skNly1gz9ehe6wnwj30yy09sdj5.jpg"><br>virt是申请的大小，res是实际使用的大小，这两个不管那个都很大，然后我使用一下命令把内存分布输出到文件里:</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jcmd 5687 VM.native_memory detail scale=MB &gt; temp.txt</span><br></pre></td></tr></table></figure>
-<p><img src="/Users/xiaohong/Desktop/008i3skNly1gz9ft62f7uj30u00xj42r.png"><br>可以看到Internal占用很大，使用命令<strong>jmap -heap 5687</strong>看一下是否是元数据空间过大，但是并没有，怀疑是堆外内存溢出。</p>
+<p><img src="/linux/1/xiaohong/Desktop/008i3skNly1gz9ft62f7uj30u00xj42r.png"><br>可以看到Internal占用很大，使用命令<strong>jmap -heap 5687</strong>看一下是否是元数据空间过大，但是并没有，怀疑是堆外内存溢出。</p>
 <p>如果不是堆外内存的问题可以使用以下命令分析内存快照，使用mat分析：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmap -dump:live,format=b,file=gateway.hprof 5687</span><br></pre></td></tr></table></figure>
 <h5 id="排查堆外内存泄露"><a href="#排查堆外内存泄露" class="headerlink" title="排查堆外内存泄露"></a>排查堆外内存泄露</h5><p>使用strace追踪申请内存请求：</p>
@@ -422,7 +422,7 @@
 <p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gz9meryc4fj30v80u00yr.jpg"></p>
 <p>第2列是内存占用字节数，第3列是常驻内存，可以理解成实际使用内存，第4列是脏页内存，虽然有很多64M内存，但是使用都是0，应该是释放了，那个2459920k的内存就很可疑，大约2.3个G，去smaps里找到这个内存的地址：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">less /proc/5687/smaps</span><br></pre></td></tr></table></figure>
-<p>按d向下翻页：<br><img src="https://tva1.sinaimg.cn/large/008i3skNly1gz9msd404dj30uo0gq40b.jpg"  /></p>
+<p>按d向下翻页：<br><img src="https://tva1.sinaimg.cn/large/008i3skNly1gz9msd404dj30uo0gq40b.jpg"></p>
 <p>使用gdb命令dump内存，注意dump过程会挂起进程，所以我在另一台服务器上启动一个新的网关，把nginx代理到另一台服务器上<br>执行以下命令进行dump操作：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装gdb</span></span><br><span class="line">yum install -y gdb</span><br><span class="line"><span class="meta">#</span><span class="bash"> 连接程序</span></span><br><span class="line">gdb -pid 5687</span><br><span class="line"><span class="meta">#</span><span class="bash"> mem.bin是内存dump出来的文件，后面是地址</span></span><br><span class="line">dump memory mem.bin 0x7fbe514bf000 0x7fbf0166d000</span><br><span class="line"><span class="meta">#</span><span class="bash"> 将二进制文件读取成字符串并输出到文件，方便查阅</span></span><br><span class="line">strings mem.bin &gt; mem.log</span><br></pre></td></tr></table></figure>
 <p>从文件里就可以看到是哪个线程那个方法申请的内存了，但是由于我这里内存不够没法dump出来，所以我把网关放到了内存更大的服务器上，并且安装了gperftools：</p>
