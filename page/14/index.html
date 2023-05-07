@@ -306,7 +306,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/Hbase/04put%E6%B5%81%E7%A8%8B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -325,7 +325,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/" itemprop="url">3.物理模型</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/Hbase/04put%E6%B5%81%E7%A8%8B/" itemprop="url">4.put流程</a></h1>
         
 
         <div class="post-meta">
@@ -399,13 +399,11 @@
       
         
           
-          hbase使用多维的稀疏排序map存储数据，比如像下面这样：
-rowkey_01+列族1:列1+put+t3：v1，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，value就是操作的值，这样看的话就是一个多维排序的map，稀疏的话说的是每一列不一定有值，这样看起来就很稀疏。
-他是一种列簇式存储，把同一列族下的所有列的值存到一个大文件里，所以查询同一列族下的数据会很快，到是一次查找多个列族，就会涉及到读取多个文件，所以在建表的时候需要考虑好
+          hbase:metaput就是找到对应的regision，然后把数据写到HLog和对应的store里去，所以第一步就是要先拿到region信息，这个信息存到了一张meta表里，所属空间是hbase，当client端没找到region信息的时候就回去这个表里查出来region的信息，然后缓存在本地，下次直接读取本地的就可以了，但是hbase:meta也是一张表，client怎么知道这个表在那个region上呢？在zk中，zk里维护了一份meta表的信息，client先去zk上拿到meta在那，然后
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/Hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/Hbase/04put%E6%B5%81%E7%A8%8B/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
