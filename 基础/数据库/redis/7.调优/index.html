@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/hexo/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/hexo/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/hexo/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="redis," />
+
+
+
+
+
+  <link rel="alternate" href="/hexo/atom.xml" title="小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/hexo/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="……">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis-调优">
+<meta property="og:url" content="https://hongjie123.gitee.io/hexo/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/7.%E8%B0%83%E4%BC%98/index.html">
+<meta property="og:site_name" content="小红">
+<meta property="og:description" content="……">
+<meta property="og:locale">
+<meta property="article:published_time" content="2020-11-08T07:52:13.140Z">
+<meta property="article:modified_time" content="2023-03-07T08:07:19.423Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://hongjie123.gitee.io/hexo/基础/数据库/redis/7.调优/"/>
+
+
+
+
+
+  <title>redis-调优 | 小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/hexo/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/hexo/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/hexo/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/hexo/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/hexo/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://hongjie123.gitee.io/hexo/hexo/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/7.%E8%B0%83%E4%BC%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/hexo/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">redis-调优</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-11-08T15:52:13+08:00">
+                2020-11-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="密码错误,请重新输入" data-whm="文章不能被校验,不过您还是能看看解密后的内容">
+  <script id="hbeData" type="hbeData" data-hmacdigest="3a4e3e7807328431feebad906d7305ad26980055900c8ca8dd73a1abc37cb973">982a2f2de999a7307d7563de6c539b23dee21ba341031e9aee8fdae9512613e4af9ffa77ffdc5eec8d4ab133a3bf2c483e5f734a742406e260915ff4d767745f62cf69f6c880f591892713e6005a895ead7adea689fe0c7e99202aaf452269cf7d6e4c431944a250f6d8093c9aa5813b447ceeb12dc0a4762b980b07845438db2afb3a20f70cc9c21c1c3bf7b88659cece08aac51cb76341ffefee86aaa036ba3a0be03f42acd4518320fc6a70ec2249d1d6825e4fbc9cdccfa66cded0f1a78699b848afc1fa0ad00aa37ed9242413a341a483c6e50192615553146aaebd46dfcaa88ba32b91134a76315d60fb8b0968f5460ef8af6f1d8dc0429d1b82037b7b3114791450a704c2ffdf11c69aca6b4e8060af01934b4f5562eae1bea9a5e70b538d97566bf91a15e889c98c1a7279535f6673579900e9d1295859a9864555f06a62bca56cce0bee3784f0c456a37b072979af26babf2a76a6492de1c4db0ce8c15c3fd62958e3aa8321724b1756ac04262e690488f37cfaa9474a8efd09fa262e81454230b2b1588c2eb625fac7d749a2a230da788dff24c9ce89315ff3976ff5852ff31e1b79bd19064cc368ec8ab93bf46ba036f42811bcbb9169b434a82f65b580a587511fe78882ccc67b6a5d1963fa7bd0a7831f2ce81f63ae5129e319905dbd26f759869763eae9c73879debb30b305c22c69a26fea5cec44c622b9adbfd1325c5543bddeceff9a4b58dd499dd70a56e8715f0a560cb55e7f552d727ac88903c5253c41e1f5f26e420548a09c3a530783aff7a73034fe1706c26a01853e53c5a600d44f3c4e84cb06e80f0320988bf10eaeb7bc3df440188ee83c20d50400810a6f656e74a490a3342d986fa273e461f86a39eba118fbd4702e34db3ecda6dc6299bcd37c974778a0b96b47df21f7a564a27490aa14098e9001904e383d7f1364e28b027dfaaa4874238af4f29f8284d80372fd056a54b68b307edfc32232b6beaf216f84899fcab4ff234458d63e95d09c9bcceda28c6f4c1084a92556b342fd19233f921d8500e2a0e75868aafb7bc63f85022f498f6d6efc2c76b2aee8b2bf3d4aaf4a8bca39f5ef288310aea4657e56275f60e016fae05acee6850d97a4e026f3645c5ac4c33fa4cd03aa02f403a3f5c84368c5c74de12a44093610c84d57b1abbfcdd6ce65a86c9ab09f9979fdc714f0425392e2c36e6d1c8d33a09ea3e7e3ebe79fa2ac39e3f542b9410f0780f89f2319101a4374531eb7ad34777de19bf5a7450e31e7beb7089f7b8eac75f63200f798396dfc7681555770b06e2f22a3b8c0cc3e4a3b52d803989ce174534fdbac319458df6623017f9e572f5e401fb6da363a38e3e95dedd2bede6a52be454d09997aee1077c8dc2f932b09ada3897f850f16e0bd0771ae1f259b28f6f39574c18fca8bb1484b16042d773dcbb7ffd3e88eed6c40b7619f5e45555c0974c10e09d698b5d115688eb897b5ab146cb50681c528da6e38019630b0553e57932e25220097117358a5d7aee12a589ff8ad54b59047736641c0d56832b0ddaae43407aea6c005a3045a9b3263386c6cb264c1297376fb4274b783e41aa597211e4b979aa9755255906fd31cfa7e469449850af65358b832315f3d0fd49e457d54b92e78d80f1e1124233d08d72ea6f6afc806f1ff2992fa35c43fdb19832f452bfe876a20ebf82678c3756472a8f48c8a3e31322254c1af8b869da21b05c238a9cc828b7d61819be5467209266565a02c95dff3f363acba60694c12c65966808f6881267f51eacf4157fc3e6d74cac1901b3d36cd9d381829eb02d0fe2da9dd0a6a7f84847e00a45e9604ea883c32ce1989e679a069c1ddc0b06500f713a5fc565a5996f064cac132ca6d9aa104468e085e116387a53f88ccc5c6faa82e4e3d4fdf7c63f5fc8e762295b2718a2da676f35da4f9a9ba74441865cd2b7581e935729ef6d0551f80f30e5876f0491915223f01bef236cd90c4c5e780571c25eecf64175661653ea8aa59a3391b44492596aa3677870de76c8034ec826747a187506db9007ad4afd9e540f9688c80abadff581f0da13ba9b500ef403426fc286fc50419dea967ebf6e4dabf91b57942781a47b9398036159f353cfcf541fd5a33d0d7e3544910868801fc769bfa19870c81e09bf6a1a97e6fd7b8b51290a414d0589af3021aad40dfc1a99f73e9c22b36ce23116caf096939a43d8e278355cc3af7c858bd9413ca20225084ce042fb4935aecf1f2767df35b30d5ce247c503037262ce2cab041242b58889c911cd77591051b44622fccc4061b69fd43682d1133564c1db6ff5cf2bc1740d494544b9b4bf96d637cd84b938956f05fde38d941160056544da7c1f83e4627ea335f47a3bb06910494acdd25592d8e178d36a05917cfefd7ac3ce98fe97e1218909d18615c67db9fb5dc394901bc8ab487e13af4b5f5d77e65a06660692006d6bbc29d77a4db1b47b899eea0b4afd7eaf10534fb84e35e07851a04d2523658651d5f51acfab7245b42bfdab853679724b1fabbec459e8e2d1943d5ef767f532e7518825e03c4c8f2dba05473f01126156552c16d1ff5bd5f2180999f9cb3bbcc168d8360fd13fafc6dbbc6ee02425307ffecb37c4808614ac3a2586539aa19e11d4cf62ce1bdea289555886e1ad182dc56c576f035c63f7a6c62cfa7e7c893b6b209c29326f0e95f0557b0fe6b2c9bb0fe1295350451dff897044f491e3a58a9fc0983c7ab6abd5ad503acbfb57b28da8c301bf0e30df093cbc2d9c643346fc9af616598b65f37a0d023a3b5be7e777e63c70add7cbbeaed0bd9214716673a96bb37d14f1de82bc5f5027b7ca9f05e119154c6cbb0f6d9a0ecd41e54c51f2fa3a67ee1233a9b5bbb801076258f9e5f1f4fa5947f6537efd2dbc8133a8c756660895be793eb56d71d5b42948b443c097e2644b0fb2f3dd01083592bfdd6dbe09ac78cccb860e9ee6aa576edc477aa7ba1cc5ccf569faea8e4f43e297de5878a5b461150ab24423dec7f54721a1bec6c47ff0aef164f0c738d500518522e7021c3174808981ee8771cbffff8b50f573b01c32bf1a114f42efe576385fa103f99e76e381d5cd9cb6c0ea48837f630b24e1ac1ea8c26bba7a9c3089df15998649b5f027aed9b4a633084b914cf8ad7dece7a07ca86e0ed6e8c3138047f774a5f7194ece284433c5133bb499f4f4801fd1aff1d7bf96ee71f37528d4b99af90b9cd8c3549c95471144bb8baf4de2cec5a4016fa1a9a1e2e3280346ab4af94c4082b820d05f27b0b3e0130f5e59d551d7a54dce4254c76522ffa493a295ef3f8dcdfdce3870ae67d7070bca556ffc334e494019b0272453b0d10afdc805ddccc7d48daa25ed1fb3e7989a58c0a25422cd4ac7a4a47fe4e6f1eccecc725ee51343402948468d771775df957a65d604cde0bac168d316a15dd7a7dd6fa584f5dc25d5263c626956043765efdbf2943c59dbf645fe97e868cec84a09eb1ffdf09ce90a8cd5776f56ff225731f1fd1f892746f74a55e7b678dbb2af992dbef4fbec6e88c91dba452f9d53151e3c2240b062707716d16fc46acd6d0b1e7b9e6bbafc194632abcdf04bc1cb643c5bd391992c87eb2e5f3b65aa48da655b8f9f06c59f66ea4e394b304a790cc3a61e6cb613397baaac79b7bc9e2f84a1e73ecc5052a77ce8249e0e25d568f696096cd17b0dc29e757b26bb54411cb5de14094d8954443058ee9d4aec81b96eab3c36dd8ecbbe002b9835d69a8805e64b1d7afa1db2afcd07279c8e6fe74ffac638a211d47a57fa400a9dec377c8fb57e00192f61858cd683f93bf7c4ed248b46a916659372b4d78f2dcde4b84d5637e770737db0c83ddf5dee739f4f232cdcb8ecebc035c19c4df0d6f563281c63a8cee406cb3d43772d7627e9249a191f27c8fc6decabb086aaf3e9730c92642345d1db2aea60717c293a9bb9060c37a31ba9d5a859f574c2b714ffa54ee538527243aad2a11d93f37efccc0bb0fbe8817369e951f75995c4a4bde9740a70bb36b0b48d5d05a6a9910b53a3751acc856982599e5625e4ecc485e608de09c43ac00abcf5402eac22ea283a74e477131e9d0c1c93ce4d8d56eae2f439b2ce4965b04dc945164280d91e572c43f5210bf709735f6691ea64ff968d7717cb9333163e04ca43d86f414e41d16c95c25cbcdac3fa985e750ae2447e274103b0728d33ae746ccd4649468dec63be70ce64269bb6aac8637d4a21d39ac41f42f916aa28e9e021d1b657da18a51bd83b89a63fe35e9d22a834a2f9d0459fc8f2007c37fcc451bae0e283bb649f06b2a2e6b114a30e3341542f4034dfece979ef4b072535b8dc8c03b18f50ff4345fdaeb47927edde054e396991aa644561c25fc79edbbc8f5a9ffe1c08d4ca75e08f950951c8de26a157e69ab90137c768bf2c9ae7fda84d190f0da0bd6fd803b9ceee47e304c6c78a8aee6740f984894a0c006f8ab19802c937dfccdc21b6433968dccd0430f2ac56d2f29d40ebc0e24eb9157f205b508b42adf7e5680b5e38b4691a938fbad692ec67428ce39c6ae55696f731223e5e2d8291ac4344a26ed94bf7141b143fc647cc1254f01554c9ee8d6723e0be103f4839a26ef826d85b4fd0e9f996d83fd157ddd43e7772e9d463d5a6fd613f459ff0750011cfbc62521316629e073a58a9ddca45a97910b82e2f7ca3b3274d874d87b74122ec8735529ad8e2136ab49bda5d906640f28c840c68819e13456e6e45d7f9c55964864929de87e57e45724b8aae4a3ff8d00cd99d79ad0ba835aca87e67715adf60a9c2a8f9e8f0828094bd2e5f7134dad7d8adacccceef0519b8d1ff3b323cda751c0c84db175bafac27de6fea8196c8ebd5b90a8f0f633fbb6d6f2439f52b7c7c87e1c1604b4304d5e6dd8528a8c616b716a28a404b859d4a4f791fea8512b9c513d1eaddffe44236d5e05f45d8122364b4aa5305a19da08529960006351137fc670434399f5c7097ede9caee428afbfacfd6717c6791b76dc45928d88a166978cb39396fdd4ac348adb17469e1b45e370f6bfa0672e7a570aeba5d595b438577378d63806fba85d44482562dc37243346a1c9f6a85abe2e3541fa2a997bc1d2dea6bda6b88dc628aec1055b8893ede6051f7f9c4c42eb9dd9634a4d00df47fa70f7339e0072405c2769140d7c7395f3abd94bee310ac10a2edf7df8ef6a8e77f5191b1035fa620d582e8e79b01d97e6e69f0d18ecd4065ae137b6ec0b4ece61fe06ea803626309ddf4c71898f2127fd4764987480c1ccb243966de0d3cba67ef02dfdb29a6f76088be8b05e2a5fd55687e29a308e21e3db2f9d88cec3a39861d53aaacb25d4e44b11f261d535c1a20a20c8e0c8c6cdffb2ff68dd814a0f7d176af0bdf0b678681218860158744fedcb9fa1112a6780d164ead76706cf00222d3014560805802583a4d198457de0a07921b36f4a87c0d0ae3029c1f22ab8a6dc6854bd00910d53098292187902540f9e2cb7cbe43f12fb86cc19f89ed826d6b992506b38af5bcd99f082901e72b1a3b29189d824a38a4fb97f16b087ebffeedcfb97ac36a07cb6be051672950b7417689cf6e02c2f398c691eaafc2c25a0b3658f9d7f6a35944a12a22b8607e2aefa41e4639212c151c17c38e483c0d6ecee154f9081d43597b281944752633af6a6021d6dccb28db10baea384b07a14233edd0da6c8e66c7a400379cae213f87656df5467cc485c0f94e65cc47645a5a1823e5cb0f98c1dfbac691d4936294afdd36bff546a574624b4adfbaa675ac39bf8c49c3da377e1f7568a5ec5542f179b41710ae161690bafb7b1d0a1964ff3e43c42597eb671b9f938bdd07749d87b2cc60d9aa1bfa849715c58d8618cd23eed1b08e2897e73cf017f290054f720f1b71077e20db339977d374bd415d6527e0ad75247f7ef27527a47bd165fbe1a02af14ca1c08c744750ac8294527dbc41607e578415b8b2e74cb8aa157cdfde12340cc0c630f346e1e1980416a5fb52bcfd5818998fe418b4fc4dd3ce6f3b0ab7d7dee8b7c8ae60e6bc18348bb2cc44cd679811ac2cfe130e7cb34954b45dd9e68c7801dee6d64f14eba30c0c73eefe29342e4ca447f7128886ea108492b3021b96ca9409f2df96a5aa5b4e18087df9f571133030b3f91372a283bee3739f1959dfa794d8b3f01c7a69b6c40a5d633923f66c7c2bf8a5f3244653ce07db4166c6ad34bc9bea8ec851c19cbc47747849ca1e630c10a4827486eff6109f27d99f197ad2bf484b76e4edfaeb9520de378338d3c87204739bd53cc3d42b97e89cffd1ec58439d0cb6db00b54b7f3a4c624927770a8bc482e8cdec5970d355759a865b6cb0015626b0e3b257dce09e77e61b6160d8efdb53a047ea0d9f0041f4a51a0301f0a1a7b2647afc5e7f465fbbb428ccba7c7283c868c52fb989a3f5fda023165976ccf21a8c0fb9964829d30c1fc3c1543e3856a6135054582d6db8a269ec2e793c43c90095208dcc33a52755e2643865d6aab80e69007591f2d08044f8b7a907ecae3d074a4ab88e7d984b37f95190238aa5d521dc30cc446e7ab1247884e049114b96c583ffefabababf5e5c1a0b14b9c67dcf16afc6fd84ff4b0167eccfc0216cef30f402aa621230dfccf186cbeb6321033e2371ce55960e2718aec9c605f2c6048d9c47a31a63022141eecf2a1f30e145567bf23a262b0275da5654b8270799924c233418ef34d458850f94f5fa489c7eecbe7c27bb2a02736b3012d180076072f46289cb6c417d82e6693b971ded41992ef19deb22b68f7929fbfba77f84cd1f11445a87c0f2171a55aaa9c2d4ede3b65a915e66eec52638ae9a4baee78f9500e259bed624abf3fd28c7c4abb5134651b07231e21821e003aae3d166f21248b395e107ea199838fa137e8109120db8c55bba2c02e5bfa80418977fcfaa72eae2ce58cc1bc6f9440876a5bcfa7a49e3151591e34c45af7121f3b18eef8c1478f272acab13818c7ba8ad3656301bbec6f2e708fd11837086eae6e302e88952396f62f43dccae7aff283f2a5371c22c8fc13ffc5332405c8c902e3c6074363badc48d7ab866b28edca2ede23dd5de65fc5c59a1777d20c3d398db68115693c9180653ceb5b4c152274b0da322d78eadaa83b25076e12f20183e41f7717cdd30129b4cce08c6b95ed2f4a3a33980129dc24eab47ae9262c282be5deb2e47bed414917a37c213818ce3fe549dbc233b51232bd56ab540700cdf471e944003f5174d73ace378f43e665d52b04289406c6e4de305d4ba7bbf2461ba267f6fb61127905bda11843d39ae5e29d8bcc42433a7df5d541df86454017309e181e725c9213f1d46464c9c34a5c18958e7bb67035a0f58e4acb48c295ab68d6c9a08174b1174e2c306a015ccdb39241a56a1e0e8dc153786a0e0bce48bd8ba3793569d8449cedbfffc7c67387b2dca4a986c2de7c9083c17bb5284b4d5167350ae89c787e503ca733435371d97c7ba3d7e6b17d6447ae27d06ebf1f948019d274601da9b85c15050f8b66158ca8bd5810ec639dc9246ca59c42d6111428ed5ebd247addf4ef4fe5b0f2d9cb26d3b23a568a48c43e95f25f30b23e5f1de9ee70f51dd3bf87944823290aa2acb94702de99d2ac03053717048faa0ee932851cdb00c9113cee5e39a1c5d69f59cc518b200c7937e610bf5ff6594a416a1ad0b36a2da79a0dab35c3acb1ca5aa4d8797a789dc8560556edbc0676b9560783d605162b286d01b09124bfbe22c204cf84d92ed61a04f4da6cd37a5e0dce5ea32647d3d59847ca0a2e8a43e9ae028ed55b7a7f55aed9d6533d817d4ad5a5a2bf14480bc98d3c9c190d855ff376eb148f12592ee1cb42126a338580f41c65afbeeec96e8bb1a13206f9e645073a5d9ea9bcf746d4f324235c0f861a7f464d8cb1b7606ba1d195a2d1af48a2b8c9ae989ef48cfe1ac3198ac8b8295c31302164a616b2c43b868bc4f984d8206fd90c19ea724549af2fb07d70889f4bee9b5385aaf9d8d52d5b9b20909a690f9b1adb1922d2010674dc74344decc5f3994c45f5d5e8a80499da5954c5bc9596f034f0512b5a2d982afddf34569ea94dfebd84b2f6ee9de9fa4a9f4ecf678f2322f5bbf4b2a57ad65eaaa5ab28b884acbc081c9eea883e1361f1e8f5299732d3d2a50d36c2dbdd3181520f2d2a873c82c72fd00d2b2090591ed21ded2e0aefe8a5aaec7417ca405fd586b37f3840ca0db9566a82fbfb632b3fddaa6a800e22c30b8732b58cdc31e0f48ad22905706c7993310b3227bd1c6b05d72b4bee6256bef5485e99652a92727633cc3acf1a8a26fb7667a4ac7f4e608538de4c65587a1aedbc0be0902c8d0eff86d8b92f18aade318a22ca6eeafc1bcaf6a7240ab810e7c0cf742517ad04706ff7f1359b10f88e5ffc7c050101f07ef0be06ef249aa751aef85d892399dadf00c322b83ccca813a157548a27c84087cad4cbeb35e32335d33c53ed807f9fc2315d2c1132e9482679e3ea6b8af4ad073ce3cfb2b</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">这里需要密码</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script src="/hexo/lib/hbe.js"></script><link href="/hexo/css/hbe.style.css" rel="stylesheet" type="text/css">
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/hexo/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/7.%E8%B0%83%E4%BC%98/">redis-调优</a></p>
+  <p><span>发布时间:</span>2020年11月08日 - 15:11</p>
+  <p><span>最后更新:</span>2023年03月07日 - 16:03</p>
+  <p><span>原始链接:</span><a href="/hexo/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/7.%E8%B0%83%E4%BC%98/" title="redis-调优">https://hongjie123.gitee.io/hexo/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/7.%E8%B0%83%E4%BC%98/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/7.%E8%B0%83%E4%BC%98/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/hexo/tags/redis/" rel="tag"><i class="fa fa-tag"></i> redis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/hexo/linux/3.%E7%A3%81%E7%9B%98%E5%92%8C%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" rel="next" title="linux-3.磁盘和文件系统">
+                <i class="fa fa-chevron-left"></i> linux-3.磁盘和文件系统
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/hexo/linux/1.%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E6%80%9D%E8%B7%AF/" rel="prev" title="线上问题排查">
+                线上问题排查 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview sidebar-panel sidebar-panel-active">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/hexo/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/hexo/archives/">
+                <span class="site-state-item-count">268</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/hexo/categories/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/hexo/tags/index.html">
+                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/hexo/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/hexo/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/hexo/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/hexo/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

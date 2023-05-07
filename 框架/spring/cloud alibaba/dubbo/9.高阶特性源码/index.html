@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/hexo/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/hexo/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/hexo/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="源码," />
+
+
+
+
+
+  <link rel="alternate" href="/hexo/atom.xml" title="小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/hexo/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="一、triple协议使用triple协议时DubboProtocol会被替换成TripleProtocol。TripleProtocol的export()方法和DubboProtocol的区别就是调用的是PortUnificationExchanger的bind()方法： 123456789101112&#x2F;** * PortUnificationExchanger *&#x2F;public static v">
+<meta property="og:type" content="article">
+<meta property="og:title" content="9.dubbo-高阶特性源码">
+<meta property="og:url" content="https://hongjie123.gitee.io/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/dubbo/9.%E9%AB%98%E9%98%B6%E7%89%B9%E6%80%A7%E6%BA%90%E7%A0%81/index.html">
+<meta property="og:site_name" content="小红">
+<meta property="og:description" content="一、triple协议使用triple协议时DubboProtocol会被替换成TripleProtocol。TripleProtocol的export()方法和DubboProtocol的区别就是调用的是PortUnificationExchanger的bind()方法： 123456789101112&#x2F;** * PortUnificationExchanger *&#x2F;public static v">
+<meta property="og:locale">
+<meta property="article:published_time" content="2022-11-16T22:27:35.000Z">
+<meta property="article:modified_time" content="2023-02-20T03:41:47.469Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="源码">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://hongjie123.gitee.io/hexo/框架/spring/cloud alibaba/dubbo/9.高阶特性源码/"/>
+
+
+
+
+
+  <title>9.dubbo-高阶特性源码 | 小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/hexo/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/hexo/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/hexo/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/hexo/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/hexo/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://hongjie123.gitee.io/hexo/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/dubbo/9.%E9%AB%98%E9%98%B6%E7%89%B9%E6%80%A7%E6%BA%90%E7%A0%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/hexo/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">9.dubbo-高阶特性源码</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-11-17T06:27:35+08:00">
+                2022-11-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/Dubbo/" itemprop="url" rel="index">
+                    <span itemprop="name">Dubbo</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="一、triple协议"><a href="#一、triple协议" class="headerlink" title="一、triple协议"></a>一、triple协议</h3><p>使用triple协议时DubboProtocol会被替换成TripleProtocol。TripleProtocol的export()方法和DubboProtocol的区别就是调用的是PortUnificationExchanger的bind()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * PortUnificationExchanger</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">bind</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    servers.computeIfAbsent(url.getAddress(), addr -&gt; &#123;</span><br><span class="line">        <span class="comment">// 构建server</span></span><br><span class="line">        <span class="keyword">final</span> PortUnificationServer server = <span class="keyword">new</span> PortUnificationServer(url);</span><br><span class="line">        <span class="comment">// 启动server，这里还是使用netty</span></span><br><span class="line">        server.bind();</span><br><span class="line">        <span class="keyword">return</span> server;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>server.bind();方法就是启动netty服务，但是使用的handler和Dubbo协议不一样，triple使用的handler是PortUnificationServerHandler。</p>
+<p>消费端也是一样的，会走到TripleProtocol的refer()方法。</p>
+<p>但是看源码的时候好像没看到triple协议使用了Exchanger和Transporter。</p>
+<h3 id="二、三大中心源码"><a href="#二、三大中心源码" class="headerlink" title="二、三大中心源码"></a>二、三大中心源码</h3><h5 id="1-注册中心"><a href="#1-注册中心" class="headerlink" title="1.注册中心"></a>1.注册中心</h5><p>注册中心分成5层：</p>
+<ol>
+<li>  第一层接口层（Registry、RegistryService等），订阅、取消订阅、注册、下线等方法；</li>
+<li>  第二层抽象层（AbstractRegistry），公共方法的默认实现，数据的磁盘缓存处理；</li>
+<li>  第三层重试层（FailbackRegistry），负责订阅、取消订阅、注册、下线等任务的失败重试；</li>
+<li>  第四层缓存层（CacheableFailbackRegistry），基于内存缓存节点信息；</li>
+<li>  第五层实现层（ZookeeperRegistry、NacosRegistry等），主要负责和注册中心的交互；</li>
+</ol>
+<h6 id="1）ZookeeperRegistry源码"><a href="#1）ZookeeperRegistry源码" class="headerlink" title="1）ZookeeperRegistry源码"></a>1）ZookeeperRegistry源码</h6><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ZookeeperRegistry</span><span class="params">(URL url, ZookeeperTransporter zookeeperTransporter)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 传进来的url是zk的注册地址</span></span><br><span class="line">    <span class="comment">// 初始化缓存、构建缓存清理定时任务、构造重试时间轮、创建磁盘缓存文件，如果文件已经存在还会读取磁盘缓存</span></span><br><span class="line">    <span class="keyword">super</span>(url);</span><br><span class="line">    <span class="keyword">if</span> (url.isAnyHost()) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;registry address == null&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    String group = url.getGroup(DEFAULT_ROOT);</span><br><span class="line">    <span class="keyword">if</span> (!group.startsWith(PATH_SEPARATOR)) &#123;</span><br><span class="line">        group = PATH_SEPARATOR + group;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">this</span>.root = group;</span><br><span class="line">    <span class="comment">// 基于zookeeperTransporter构建zk客户端</span></span><br><span class="line">    <span class="comment">// zookeeperTransporter是在ZookeeperRegistryFactory中通过SPI获取的</span></span><br><span class="line">    <span class="comment">// 这里需要注意创建Curator5ZookeeperClient的时候添加的监听里解决了zk网络抖动导致节点消失的bug</span></span><br><span class="line">    zkClient = zookeeperTransporter.connect(url);</span><br><span class="line">    zkClient.addStateListener((state) -&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (state == StateListener.RECONNECTED) &#123;</span><br><span class="line">            <span class="comment">// 重连之后尝试拉取provider最新的集群地址</span></span><br><span class="line">            <span class="comment">// 这里不会重新注册，因为短暂的网络断开不会删除临时节点</span></span><br><span class="line">            logger.warn(<span class="string">&quot;Trying to fetch the latest urls, in case there&#x27;re provider changes during connection loss.\n&quot;</span> +</span><br><span class="line">                <span class="string">&quot; Since ephemeral ZNode will not get deleted for a connection lose, &quot;</span> +</span><br><span class="line">                <span class="string">&quot;there&#x27;s no need to re-register url of this instance.&quot;</span>);</span><br><span class="line">            ZookeeperRegistry.<span class="keyword">this</span>.fetchLatestAddresses();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (state == StateListener.NEW_SESSION_CREATED) &#123;</span><br><span class="line">            <span class="comment">// 经历SESSION_LOST并且重新连接之后</span></span><br><span class="line">            <span class="comment">// 需要重新注册和监听</span></span><br><span class="line">            <span class="comment">// 因为zk可能因为网络抖动+延迟删除节点，导致我们在注册时提示节点已存在</span></span><br><span class="line">            <span class="comment">// 但是过一会zk把节点删除，这样就会导致节点丢失</span></span><br><span class="line">            <span class="comment">// 这个recover()就是调用FailbackRegistry把注册和定于添加定时任务，到时候会执行这个类的doRegister方法</span></span><br><span class="line">            logger.warn(<span class="string">&quot;Trying to re-register urls and re-subscribe listeners of this instance to registry...&quot;</span>);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                ZookeeperRegistry.<span class="keyword">this</span>.recover();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                logger.error(e.getMessage(), e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (state == StateListener.SESSION_LOST) &#123;</span><br><span class="line">            <span class="comment">// 连接断开的时间超过了阈值，此时会话过期，zk端会把当前客户端创建的临时节点删除</span></span><br><span class="line">            <span class="comment">// 客户端户收到一个SESSION_LOST的监听回调</span></span><br><span class="line">            logger.warn(<span class="string">&quot;Url of this instance will be deleted from registry soon. &quot;</span> +</span><br><span class="line">                <span class="string">&quot;Dubbo client will try to re-register once a new session is created.&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (state == StateListener.SUSPENDED) &#123;</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (state == StateListener.CONNECTED) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ZookeeperRegistry的构造方法中会调用CacheableFailbackRegistry的构造方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">CacheableFailbackRegistry</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 初始化重试时间轮</span></span><br><span class="line">    <span class="keyword">super</span>(url);</span><br><span class="line">    extraParameters = <span class="keyword">new</span> HashMap&lt;&gt;(<span class="number">8</span>);</span><br><span class="line">    extraParameters.put(CHECK_KEY, String.valueOf(<span class="keyword">false</span>));</span><br><span class="line">    <span class="comment">// 定时缓存清理使用单线程线程池</span></span><br><span class="line">    cacheRemovalScheduler = url.getOrDefaultApplicationModel().getExtensionLoader(ExecutorRepository.class).getDefaultExtension().nextScheduledExecutor();</span><br><span class="line">    cacheRemovalTaskIntervalInMillis = getIntConfig(url.getScopeModel(), CACHE_CLEAR_TASK_INTERVAL, <span class="number">2</span> * <span class="number">60</span> * <span class="number">1000</span>);</span><br><span class="line">    cacheClearWaitingThresholdInMillis = getIntConfig(url.getScopeModel(), CACHE_CLEAR_WAITING_THRESHOLD, <span class="number">5</span> * <span class="number">60</span> * <span class="number">1000</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>CacheableFailbackRegistry的构造方法会调用FailbackRegistry的构造方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">FailbackRegistry</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 拿到这个url先去创建磁盘缓存文件，如果文件已经存在还会读取磁盘缓存</span></span><br><span class="line">    <span class="keyword">super</span>(url);</span><br><span class="line">    <span class="comment">// 设置重试间隔，默认5s</span></span><br><span class="line">    <span class="keyword">this</span>.retryPeriod = url.getParameter(REGISTRY_RETRY_PERIOD_KEY, DEFAULT_REGISTRY_RETRY_PERIOD);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化时间轮</span></span><br><span class="line">    retryTimer = <span class="keyword">new</span> HashedWheelTimer(<span class="keyword">new</span> NamedThreadFactory(<span class="string">&quot;DubboRegistryRetryTimer&quot;</span>, <span class="keyword">true</span>), retryPeriod, TimeUnit.MILLISECONDS, <span class="number">128</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>FailbackRegistry的构造方法最后会调AbstractRegistry的构造方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">AbstractRegistry</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    setUrl(url);</span><br><span class="line">    <span class="comment">// 从Model组件里获取Bean工厂，在获取RegistryManager</span></span><br><span class="line">    registryManager = url.getOrDefaultApplicationModel().getBeanFactory().getBean(RegistryManager.class);</span><br><span class="line">    <span class="comment">// 是否开启本地磁盘缓存</span></span><br><span class="line">    localCacheEnabled = url.getParameter(REGISTRY_LOCAL_FILE_CACHE_ENABLED, <span class="keyword">true</span>);</span><br><span class="line">    <span class="comment">// 获取共享线程池</span></span><br><span class="line">    registryCacheExecutor = url.getOrDefaultApplicationModel().getDefaultExtension(ExecutorRepository.class).getSharedExecutor();</span><br><span class="line">    <span class="keyword">if</span> (localCacheEnabled) &#123;</span><br><span class="line">        <span class="comment">// 开启刷盘定时任务</span></span><br><span class="line">        <span class="comment">// 同步刷盘，默认是false</span></span><br><span class="line">        syncSaveFile = url.getParameter(REGISTRY_FILESAVE_SYNC_KEY, <span class="keyword">false</span>);</span><br><span class="line">        <span class="comment">// 获取缓存文件的目录和文件名</span></span><br><span class="line">        String defaultFilename = System.getProperty(USER_HOME) + DUBBO_REGISTRY +</span><br><span class="line">            url.getApplication() + <span class="string">&quot;-&quot;</span> + url.getAddress().replaceAll(<span class="string">&quot;:&quot;</span>, <span class="string">&quot;-&quot;</span>) + CACHE;</span><br><span class="line">        String filename = url.getParameter(FILE_KEY, defaultFilename);</span><br><span class="line">        <span class="comment">// 获取file对象和创建目录</span></span><br><span class="line">        File file = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (ConfigUtils.isNotEmpty(filename)) &#123;</span><br><span class="line">            file = <span class="keyword">new</span> File(filename);</span><br><span class="line">            <span class="keyword">if</span> (!file.exists() &amp;&amp; file.getParentFile() != <span class="keyword">null</span> &amp;&amp; !file.getParentFile().exists()) &#123;</span><br><span class="line">                <span class="keyword">if</span> (!file.getParentFile().mkdirs()) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Invalid registry cache file &quot;</span> + file + <span class="string">&quot;, cause: Failed to create directory &quot;</span> + file.getParentFile() + <span class="string">&quot;!&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">this</span>.file = file;</span><br><span class="line">        <span class="comment">// 先把磁盘缓存读取出来</span></span><br><span class="line">        <span class="comment">// 为了远程订阅失败的容错</span></span><br><span class="line">        loadProperties();</span><br><span class="line">        <span class="comment">// 先拿到备用的url，备用的url里最少也要有一个当前url自己</span></span><br><span class="line">        <span class="comment">// 启动的时候这步什么都没干</span></span><br><span class="line">        notify(url.getBackupUrls());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>父类的构造方法调用完了之后就开始建立zk的链接并且添加状态监听，调用Curator5ZookeeperTransporter的connect()方法，通过双重检查建立一个curator的客户端，初始化curator客户端的源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Curator5ZookeeperClient</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(url);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 连接超时时间和会话过期时间</span></span><br><span class="line">        <span class="keyword">int</span> timeout = url.getParameter(TIMEOUT_KEY, DEFAULT_CONNECTION_TIMEOUT_MS);</span><br><span class="line">        <span class="keyword">int</span> sessionExpireMs = url.getParameter(ZK_SESSION_EXPIRE_KEY, DEFAULT_SESSION_TIMEOUT_MS);</span><br><span class="line">        CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()</span><br><span class="line">                .connectString(url.getBackupAddress())</span><br><span class="line">                .retryPolicy(<span class="keyword">new</span> RetryNTimes(<span class="number">1</span>, <span class="number">1000</span>)) <span class="comment">// 连接失败过1s再重试1次</span></span><br><span class="line">                .connectionTimeoutMs(timeout)</span><br><span class="line">                .sessionTimeoutMs(sessionExpireMs);</span><br><span class="line">        String authority = url.getAuthority();</span><br><span class="line">        <span class="keyword">if</span> (authority != <span class="keyword">null</span> &amp;&amp; authority.length() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            builder = builder.authorization(<span class="string">&quot;digest&quot;</span>, authority.getBytes());</span><br><span class="line">        &#125;</span><br><span class="line">        client = builder.build();</span><br><span class="line">        <span class="comment">// 添加状态监听</span></span><br><span class="line">        client.getConnectionStateListenable().addListener(<span class="keyword">new</span> CuratorConnectionStateListener(url));</span><br><span class="line">        client.start();</span><br><span class="line">        <span class="comment">// 阻塞等待结果</span></span><br><span class="line">        <span class="keyword">boolean</span> connected = client.blockUntilConnected(timeout, TimeUnit.MILLISECONDS);</span><br><span class="line">        <span class="keyword">if</span> (!connected) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;zookeeper not connected&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>注册</strong>的方法并没有重写父类的，所以注册会先进到FailbackRegistry的register()方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">register</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!acceptable(url)) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">super</span>.register(url);</span><br><span class="line">    <span class="comment">// 把这个url相关的失败注册、下线任务清理</span></span><br><span class="line">    removeFailedRegistered(url);</span><br><span class="line">    removeFailedUnregistered(url);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 这里调用具体子类的逻辑</span></span><br><span class="line">        doRegister(url);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Throwable t = e;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 配置check参数是false才会重试</span></span><br><span class="line">        <span class="keyword">boolean</span> check = getUrl().getParameter(Constants.CHECK_KEY, <span class="keyword">true</span>)</span><br><span class="line">                &amp;&amp; url.getParameter(Constants.CHECK_KEY, <span class="keyword">true</span>)</span><br><span class="line">                &amp;&amp; !(url.getPort() == <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">boolean</span> skipFailback = t <span class="keyword">instanceof</span> SkipFailbackWrapperException;</span><br><span class="line">        <span class="keyword">if</span> (check || skipFailback) &#123;</span><br><span class="line">            <span class="keyword">if</span> (skipFailback) &#123;</span><br><span class="line">                t = t.getCause();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Failed to register &quot;</span> + url + <span class="string">&quot; to registry &quot;</span> + getUrl().getAddress() + <span class="string">&quot;, cause: &quot;</span> + t.getMessage(), t);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            logger.error(<span class="string">&quot;Failed to register &quot;</span> + url + <span class="string">&quot;, waiting for retry, cause: &quot;</span> + t.getMessage(), t);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 注册失败向时间轮中添加失败任务</span></span><br><span class="line">        addFailedRegistered(url);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>doRegister()就是用zkClient创建临时节点：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doRegister</span><span class="params">(URL url)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 这个就是检查zkClient有没有被初始化</span></span><br><span class="line">        checkDestroyed();</span><br><span class="line">        <span class="comment">// 把URL转成目录，创建临时节点</span></span><br><span class="line">        <span class="comment">// 目录类似于/dubbo/接口路径/categoryPath[provider,consumer]/ip……</span></span><br><span class="line">        zkClient.create(toUrlPath(url), url.getParameter(DYNAMIC_KEY, <span class="keyword">true</span>));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(<span class="string">&quot;Failed to register &quot;</span> + url + <span class="string">&quot; to zookeeper &quot;</span> + getUrl() + <span class="string">&quot;, cause: &quot;</span> + e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建临时节点就是调用curator的api：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createEphemeral</span><span class="params">(String path)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        client.create().withMode(CreateMode.EPHEMERAL).forPath(path);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (NodeExistsException e) &#123;</span><br><span class="line">        logger.warn(<span class="string">&quot;ZNode &quot;</span> + path + <span class="string">&quot; already exists, since we will only try to recreate a node on a session expiration, this duplication might be caused by a delete delay from the zk server, which means the old expired session may still holds this ZNode and the server just hasn&#x27;t got time to do the deletion. In this case, we can just try to delete and create again.&quot;</span>, e);</span><br><span class="line">        <span class="comment">// 如果重复创建，要先删掉这个节点，在重新注册</span></span><br><span class="line">        <span class="comment">// 这个就是解决zk因为网络抖动节点丢失的问题</span></span><br><span class="line">        deletePath(path);</span><br><span class="line">        createEphemeral(path);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下线的操作和注册差不多。</p>
+<p><strong>订阅</strong>也是走到了FailbackRegistry的subscribe()方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">subscribe</span><span class="params">(URL url, NotifyListener listener)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 调用父类的订阅方法</span></span><br><span class="line">    <span class="comment">// 把传进来的监听器放到set里</span></span><br><span class="line">    <span class="keyword">super</span>.subscribe(url, listener);</span><br><span class="line">    <span class="comment">// 移除失败的订阅任务</span></span><br><span class="line">    removeFailedSubscribed(url, listener);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// Sending a subscription request to the server side</span></span><br><span class="line">        <span class="comment">// 这里就是执行订阅的代码，直接走到了zkRegistry中</span></span><br><span class="line">        doSubscribe(url, listener);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Throwable t = e;</span><br><span class="line">        <span class="comment">// 如果失败的话尝试拿到之前从磁盘缓存读取出来的url信息容错处理</span></span><br><span class="line">        List&lt;URL&gt; urls = getCacheUrls(url);</span><br><span class="line">        <span class="keyword">if</span> (CollectionUtils.isNotEmpty(urls)) &#123;</span><br><span class="line">            notify(url, listener, urls);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 没有缓存并且配置check参数是false才会重试</span></span><br><span class="line">            <span class="keyword">boolean</span> check = getUrl().getParameter(Constants.CHECK_KEY, <span class="keyword">true</span>)</span><br><span class="line">                    &amp;&amp; url.getParameter(Constants.CHECK_KEY, <span class="keyword">true</span>);</span><br><span class="line">            <span class="keyword">boolean</span> skipFailback = t <span class="keyword">instanceof</span> SkipFailbackWrapperException;</span><br><span class="line">            <span class="keyword">if</span> (check || skipFailback) &#123;</span><br><span class="line">                <span class="keyword">if</span> (skipFailback) &#123;</span><br><span class="line">                    t = t.getCause();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Failed to subscribe &quot;</span> + url + <span class="string">&quot;, cause: &quot;</span> + t.getMessage(), t);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Record a failed registration request to a failed list, retry regularly</span></span><br><span class="line">        addFailedSubscribed(url, listener);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>doSubscribe()又会调到ZookeeperRegistry里：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doSubscribe</span><span class="params">(<span class="keyword">final</span> URL url, <span class="keyword">final</span> NotifyListener listener)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        checkDestroyed();</span><br><span class="line">        <span class="keyword">if</span> (ANY_VALUE.equals(url.getServiceInterface())) &#123;</span><br><span class="line">            String root = toRootPath();</span><br><span class="line">            <span class="keyword">boolean</span> check = url.getParameter(CHECK_KEY, <span class="keyword">false</span>);</span><br><span class="line">            ConcurrentMap&lt;NotifyListener, ChildListener&gt; listeners = zkListeners.computeIfAbsent(url, k -&gt; <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;());</span><br><span class="line">            ChildListener zkListener = listeners.computeIfAbsent(listener, k -&gt; (parentPath, currentChilds) -&gt; &#123;</span><br><span class="line">                <span class="keyword">for</span> (String child : currentChilds) &#123;</span><br><span class="line">                    child = URL.decode(child);</span><br><span class="line">                    <span class="keyword">if</span> (!anyServices.contains(child)) &#123;</span><br><span class="line">                        anyServices.add(child);</span><br><span class="line">                        subscribe(url.setPath(child).addParameters(INTERFACE_KEY, child,</span><br><span class="line">                            Constants.CHECK_KEY, String.valueOf(check)), k);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">            zkClient.create(root, <span class="keyword">false</span>);</span><br><span class="line">            List&lt;String&gt; services = zkClient.addChildListener(root, zkListener);</span><br><span class="line">            <span class="keyword">if</span> (CollectionUtils.isNotEmpty(services)) &#123;</span><br><span class="line">                <span class="keyword">for</span> (String service : services) &#123;</span><br><span class="line">                    service = URL.decode(service);</span><br><span class="line">                    anyServices.add(service);</span><br><span class="line">                    subscribe(url.setPath(service).addParameters(INTERFACE_KEY, service,</span><br><span class="line">                        Constants.CHECK_KEY, String.valueOf(check)), listener);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 正常来说都是针对指定的接口进行监听</span></span><br><span class="line">            CountDownLatch latch = <span class="keyword">new</span> CountDownLatch(<span class="number">1</span>);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                List&lt;URL&gt; urls = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">                <span class="comment">// toCategoriesPath()拿到的是/dubbo/接口路径/provider</span></span><br><span class="line">                <span class="comment">// 拿到这个节点之后就可以监听这个节点下的子节点了</span></span><br><span class="line">                <span class="keyword">for</span> (String path : toCategoriesPath(url)) &#123;</span><br><span class="line">                    ConcurrentMap&lt;NotifyListener, ChildListener&gt; listeners = zkListeners.computeIfAbsent(url, k -&gt; <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;());</span><br><span class="line">                    <span class="comment">// ChildListener是zk的子节点监听</span></span><br><span class="line">                    ChildListener zkListener = listeners.computeIfAbsent(listener, k -&gt; <span class="keyword">new</span> RegistryChildListenerImpl(url, path, k, latch));</span><br><span class="line">                    <span class="keyword">if</span> (zkListener <span class="keyword">instanceof</span> RegistryChildListenerImpl) &#123;</span><br><span class="line">                        ((RegistryChildListenerImpl) zkListener).setLatch(latch);</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="comment">// 创建持久节点</span></span><br><span class="line">                    <span class="comment">// 其实是对/dubbo/接口路径/provider路径的检查</span></span><br><span class="line">                    zkClient.create(path, <span class="keyword">false</span>);</span><br><span class="line">                    <span class="comment">// 对子节点监听</span></span><br><span class="line">                    List&lt;String&gt; children = zkClient.addChildListener(path, zkListener);</span><br><span class="line">                    <span class="keyword">if</span> (children != <span class="keyword">null</span>) &#123;</span><br><span class="line">                        <span class="comment">// 每个children都是一个子节点字符串，把他们转成具体的服务URL</span></span><br><span class="line">                        <span class="comment">// 而且toUrlsWithEmpty调用的是CacheableFailbackRegistry父类</span></span><br><span class="line">                        urls.addAll(toUrlsWithEmpty(url, path, children));</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 这里是对每个实例的客户端建立netty连接</span></span><br><span class="line">                <span class="comment">// 这个类里的notify()就是调用父类的notify()</span></span><br><span class="line">                notify(url, listener, urls);</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                <span class="comment">// tells the listener to run only after the sync notification of main thread finishes.</span></span><br><span class="line">                latch.countDown();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RpcException(<span class="string">&quot;Failed to subscribe &quot;</span> + url + <span class="string">&quot; to zookeeper &quot;</span> + getUrl() + <span class="string">&quot;, cause: &quot;</span> + e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用toUrlsWithEmpty()进行raw url -&gt; URL的时候，使用父类进行缓存优化。</p>
+<p>notify()方法会去调用抽象父类AbstractRegistry里：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">notify</span><span class="params">(URL url, NotifyListener listener, List&lt;URL&gt; urls)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 上面是一堆校验</span></span><br><span class="line">    <span class="comment">// keep every provider&#x27;s category.</span></span><br><span class="line">    Map&lt;String, List&lt;URL&gt;&gt; result = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (URL u : urls) &#123;</span><br><span class="line">        <span class="keyword">if</span> (UrlUtils.isMatch(url, u)) &#123;</span><br><span class="line">            String category = u.getCategory(DEFAULT_CATEGORY);</span><br><span class="line">            List&lt;URL&gt; categoryList = result.computeIfAbsent(category, k -&gt; <span class="keyword">new</span> ArrayList&lt;&gt;());</span><br><span class="line">            categoryList.add(u);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (result.size() == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    Map&lt;String, List&lt;URL&gt;&gt; categoryNotified = notified.computeIfAbsent(url, u -&gt; <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;());</span><br><span class="line">    <span class="comment">// 遍历 回调listener的notify()</span></span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;String, List&lt;URL&gt;&gt; entry : result.entrySet()) &#123;</span><br><span class="line">        String category = entry.getKey();</span><br><span class="line">        List&lt;URL&gt; categoryList = entry.getValue();</span><br><span class="line">        categoryNotified.put(category, categoryList);</span><br><span class="line">        listener.notify(categoryList);</span><br><span class="line">        <span class="keyword">if</span> (localCacheEnabled) &#123;</span><br><span class="line">            <span class="comment">// 缓存数据刷盘</span></span><br><span class="line">            saveProperties(url);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>listener.notify()，这个listener是NotifyListener类型，这里的notify()走到了RegistryDirectory里，因为RegistryDirectory继承了DynamicDirectory，而DynamicDirectory是实现了NotifyListener接口的。就是在RegistryDirectory里进行了netty连接+DubboInvoker封装。</p>
+<h6 id="2）NacosRegistry源码"><a href="#2）NacosRegistry源码" class="headerlink" title="2）NacosRegistry源码"></a>2）NacosRegistry源码</h6><p>NacosRegistry是直接注册FailbackRegistry的，没有row url -&gt; URL的转换。和zk的registry思路一样，只不多他使用的是nacos提供的api。</p>
+<h6 id="3）DNSRegistry"><a href="#3）DNSRegistry" class="headerlink" title="3）DNSRegistry"></a>3）DNSRegistry</h6><p>使用dns当注册中心，那么dns保存的就不是域名和ip的映射了，保存的应该是接口名称和ip的映射。</p>
+<p>dubbo中没有实现DNSRegistry，里面都是空方法。但是他有个DNSServiceDiscovery。</p>
+<h5 id="2-配置中心"><a href="#2-配置中心" class="headerlink" title="2.配置中心"></a>2.配置中心</h5><p>获取具体的配置中心是根据配置中心的url中的protocol属性，protocol可以是nacos、zookeeper、appllo。</p>
+<p>配置中心没有什么代码，都是别人声明一个监听，然后来调用配置中心添加监听器，这样配置发生变化的时候，对应的关注这个配置的类就会收到监听。</p>
+<h6 id="1）ZookeeperDynamicConfiguration"><a href="#1）ZookeeperDynamicConfiguration" class="headerlink" title="1）ZookeeperDynamicConfiguration"></a>1）ZookeeperDynamicConfiguration</h6><p>看下构造方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">ZookeeperDynamicConfiguration(URL url, ZookeeperTransporter zookeeperTransporter) &#123;</span><br><span class="line">    <span class="comment">// 这个url就是zk的链接地址</span></span><br><span class="line">    <span class="comment">// super(url)里也没干啥，就是创建了个线程池</span></span><br><span class="line">    <span class="keyword">super</span>(url);</span><br><span class="line">    <span class="keyword">this</span>.url = url;</span><br><span class="line">    rootPath = getRootPath(url);</span><br><span class="line">	<span class="comment">// 这个就是缓存每个节点对应的所有监听器的</span></span><br><span class="line">    <span class="keyword">this</span>.cacheListener = <span class="keyword">new</span> CacheListener(rootPath);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> String threadName = <span class="keyword">this</span>.getClass().getSimpleName();</span><br><span class="line">    <span class="comment">// 又搞了个线程池</span></span><br><span class="line">    <span class="keyword">this</span>.executor = <span class="keyword">new</span> ThreadPoolExecutor(DEFAULT_ZK_EXECUTOR_THREADS_NUM, DEFAULT_ZK_EXECUTOR_THREADS_NUM,</span><br><span class="line">            THREAD_KEEP_ALIVE_TIME, TimeUnit.MILLISECONDS,</span><br><span class="line">            <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;(DEFAULT_QUEUE),</span><br><span class="line">            <span class="keyword">new</span> NamedThreadFactory(threadName, <span class="keyword">true</span>),</span><br><span class="line">            <span class="keyword">new</span> AbortPolicyWithReport(threadName, url));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 基于ZookeeperTransporter创建zk客户端</span></span><br><span class="line">    zkClient = zookeeperTransporter.connect(url);</span><br><span class="line">    <span class="keyword">boolean</span> isConnected = zkClient.isConnected();</span><br><span class="line">    <span class="keyword">if</span> (!isConnected) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Failed to connect with zookeeper, pls check if url &quot;</span> + url + <span class="string">&quot; is correct.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>添加监听：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 这个方法在MeshRuleManager和MigrationRuleListener初始化的时候会调用CompositeDynamicConfiguration的addListener()</span></span><br><span class="line"><span class="comment"> * 然后调到这个方法添加监听</span></span><br><span class="line"><span class="comment"> * 当监听到节点有变化时就会反过来调用监听</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doAddListener</span><span class="params">(String pathKey, ConfigurationListener listener)</span> </span>&#123;</span><br><span class="line">    cacheListener.addListener(pathKey, listener);</span><br><span class="line">    zkClient.addDataListener(pathKey, cacheListener, executor);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="2）nacos和apollo配置中心"><a href="#2）nacos和apollo配置中心" class="headerlink" title="2）nacos和apollo配置中心"></a>2）nacos和apollo配置中心</h6><p>他俩和zk的思路一样，都是维护一堆监听，收到对应配置中心回调的时候再去回调维护的监听，而且都有现成的api。</p>
+<h6 id="3）元数据中心"><a href="#3）元数据中心" class="headerlink" title="3）元数据中心"></a>3）元数据中心</h6><p>以provider启动来说，在ServiceConfig的init()方法中会获取ModelDeployer，然后调用他的start()方法，然后调用ApplicationDeployer的initialize()方法，这个方法里会初始化配置中心和元数据中心。就是把接口的属性、版本号什么赋值，然后在发布的时候，判断需要远程发布的下面有一行代码是上报元数据的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MetadataUtils.publishServiceDefinition(url);</span><br></pre></td></tr></table></figure>
+<p>最终会调用到AbstractMetadataReport的storeProviderMetadataTask()：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">storeProviderMetadataTask</span><span class="params">(MetadataIdentifier providerMetadataIdentifier, ServiceDefinition serviceDefinition)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (logger.isInfoEnabled()) &#123;</span><br><span class="line">            logger.info(<span class="string">&quot;store provider metadata. Identifier : &quot;</span> + providerMetadataIdentifier + <span class="string">&quot;; definition: &quot;</span> + serviceDefinition);</span><br><span class="line">        &#125;</span><br><span class="line">        allMetadataReports.put(providerMetadataIdentifier, serviceDefinition);</span><br><span class="line">        failedReports.remove(providerMetadataIdentifier);</span><br><span class="line">        <span class="comment">// 把元数据转成json</span></span><br><span class="line">        Gson gson = <span class="keyword">new</span> Gson();</span><br><span class="line">        String data = gson.toJson(serviceDefinition);</span><br><span class="line">        <span class="comment">// 调用对应的元数据上报实现，上报元数据</span></span><br><span class="line">        <span class="comment">// 比如zookeeper就是ZookeeperMetadataReport</span></span><br><span class="line">        doStoreProviderMetadata(providerMetadataIdentifier, data);</span><br><span class="line">        saveProperties(providerMetadataIdentifier, data, <span class="keyword">true</span>, !syncReport);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="comment">// retry again. If failed again, throw exception.</span></span><br><span class="line">        failedReports.put(providerMetadataIdentifier, serviceDefinition);</span><br><span class="line">        metadataReportRetry.startRetryTask();</span><br><span class="line">        logger.error(<span class="string">&quot;Failed to put provider metadata &quot;</span> + providerMetadataIdentifier + <span class="string">&quot; in  &quot;</span> + serviceDefinition + <span class="string">&quot;, cause: &quot;</span> + e.getMessage(), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="三、启动时检查"><a href="#三、启动时检查" class="headerlink" title="三、启动时检查"></a>三、启动时检查</h3><p>启动时检查的配置有3个</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 关闭具体服务的启动时检查，没有提供者时不报错</span></span><br><span class="line"><span class="meta">dubbo.reference.具体的接口路径.check</span>=<span class="string">false</span></span><br><span class="line"><span class="comment"># 关闭所有服务的启动时检查</span></span><br><span class="line"><span class="meta">dubbo.consumer.check</span>=<span class="string">false</span></span><br><span class="line"><span class="comment"># 关闭注册中心的启动时检查，关闭这个如果注册订阅失败也允许启动，会在后台定时重试</span></span><br><span class="line"><span class="meta">dubbo.registry.check</span>=<span class="string">false</span></span><br></pre></td></tr></table></figure>
+<p>前两个都是针对consumer的，对应的代码在ReferenceConfig的checkInvokerAvailable()里：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">checkInvokerAvailable</span><span class="params">()</span> <span class="keyword">throws</span> IllegalStateException </span>&#123;</span><br><span class="line">    <span class="comment">// shouldCheck()就是上面的参数，具体的还没看</span></span><br><span class="line">    <span class="comment">// invoker.isAvailable()就是通过netty判断是否连接</span></span><br><span class="line">    <span class="keyword">if</span> (shouldCheck() &amp;&amp; !invoker.isAvailable()) &#123;</span><br><span class="line">        invoker.destroy();</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Should has at least one way to know which services this interface belongs to,&quot;</span> + <span class="string">&quot; subscription url: &quot;</span> + invoker.getUrl());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="四、多注册中心"><a href="#四、多注册中心" class="headerlink" title="四、多注册中心"></a>四、多注册中心</h3><p>多注册中心的源码对应MultipleRegistry，代码都差不多，就是用for循环注册、订阅什么的。</p>
+
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/dubbo/9.%E9%AB%98%E9%98%B6%E7%89%B9%E6%80%A7%E6%BA%90%E7%A0%81/">9.dubbo-高阶特性源码</a></p>
+  <p><span>发布时间:</span>2022年11月17日 - 06:11</p>
+  <p><span>最后更新:</span>2023年02月20日 - 11:02</p>
+  <p><span>原始链接:</span><a href="/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/dubbo/9.%E9%AB%98%E9%98%B6%E7%89%B9%E6%80%A7%E6%BA%90%E7%A0%81/" title="9.dubbo-高阶特性源码">https://hongjie123.gitee.io/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/dubbo/9.%E9%AB%98%E9%98%B6%E7%89%B9%E6%80%A7%E6%BA%90%E7%A0%81/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/dubbo/9.%E9%AB%98%E9%98%B6%E7%89%B9%E6%80%A7%E6%BA%90%E7%A0%81/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/hexo/tags/%E6%BA%90%E7%A0%81/" rel="tag"><i class="fa fa-tag"></i> 源码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/hexo/%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/leecode/27.%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E4%B8%AD%E5%BA%8F%E9%81%8D%E5%8E%86/" rel="next" title="27.二叉树的中序遍历">
+                <i class="fa fa-chevron-left"></i> 27.二叉树的中序遍历
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/dubbo/10.%E6%80%BB%E7%BB%93/" rel="prev" title="10.dubbo-总结">
+                10.dubbo-总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/hexo/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/hexo/archives/">
+                <span class="site-state-item-count">268</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/hexo/categories/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/hexo/tags/index.html">
+                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/hexo/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81triple%E5%8D%8F%E8%AE%AE"><span class="nav-number">1.</span> <span class="nav-text">一、triple协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E4%B8%89%E5%A4%A7%E4%B8%AD%E5%BF%83%E6%BA%90%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">二、三大中心源码</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83"><span class="nav-number">2.0.1.</span> <span class="nav-text">1.注册中心</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#1%EF%BC%89ZookeeperRegistry%E6%BA%90%E7%A0%81"><span class="nav-number">2.0.1.1.</span> <span class="nav-text">1）ZookeeperRegistry源码</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2%EF%BC%89NacosRegistry%E6%BA%90%E7%A0%81"><span class="nav-number">2.0.1.2.</span> <span class="nav-text">2）NacosRegistry源码</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#3%EF%BC%89DNSRegistry"><span class="nav-number">2.0.1.3.</span> <span class="nav-text">3）DNSRegistry</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83"><span class="nav-number">2.0.2.</span> <span class="nav-text">2.配置中心</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#1%EF%BC%89ZookeeperDynamicConfiguration"><span class="nav-number">2.0.2.1.</span> <span class="nav-text">1）ZookeeperDynamicConfiguration</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#2%EF%BC%89nacos%E5%92%8Capollo%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83"><span class="nav-number">2.0.2.2.</span> <span class="nav-text">2）nacos和apollo配置中心</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#3%EF%BC%89%E5%85%83%E6%95%B0%E6%8D%AE%E4%B8%AD%E5%BF%83"><span class="nav-number">2.0.2.3.</span> <span class="nav-text">3）元数据中心</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%90%AF%E5%8A%A8%E6%97%B6%E6%A3%80%E6%9F%A5"><span class="nav-number">3.</span> <span class="nav-text">三、启动时检查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E5%A4%9A%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83"><span class="nav-number">4.</span> <span class="nav-text">四、多注册中心</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/hexo/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/hexo/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/hexo/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

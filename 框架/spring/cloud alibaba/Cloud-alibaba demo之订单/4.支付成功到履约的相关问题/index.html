@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/hexo/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/hexo/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/hexo/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="cloud-alibaba," />
+
+
+
+
+
+  <link rel="alternate" href="/hexo/atom.xml" title="小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/hexo/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="支付成功之前进行的预支付和取消订单的延迟消息处理需要用到分布式锁，防止在处理订单超时时，用户支付，不同业务可能还要加上在支付回调中检测订单取消后发起退款 同时为了防止发送延时消息失败需要有一个定时任务，定时扫描超过30分钟没有支付的订单，执行超时操作 在支付成功后订单系统会受到一条回调，这个时候需要把订单状态更新成已支付，然后发送支付完成消息，发出去消息后再由订单系统自己来消费这个消息，为什么要发">
+<meta property="og:type" content="article">
+<meta property="og:title" content="4.支付成功到履约相关问题">
+<meta property="og:url" content="https://hongjie123.gitee.io/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="小红">
+<meta property="og:description" content="支付成功之前进行的预支付和取消订单的延迟消息处理需要用到分布式锁，防止在处理订单超时时，用户支付，不同业务可能还要加上在支付回调中检测订单取消后发起退款 同时为了防止发送延时消息失败需要有一个定时任务，定时扫描超过30分钟没有支付的订单，执行超时操作 在支付成功后订单系统会受到一条回调，这个时候需要把订单状态更新成已支付，然后发送支付完成消息，发出去消息后再由订单系统自己来消费这个消息，为什么要发">
+<meta property="og:locale">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gxrl8dth1dj318h0u0ju7.jpg">
+<meta property="article:published_time" content="2021-12-25T22:27:35.000Z">
+<meta property="article:modified_time" content="2022-01-04T00:32:59.434Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="cloud-alibaba">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gxrl8dth1dj318h0u0ju7.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://hongjie123.gitee.io/hexo/框架/spring/cloud alibaba/Cloud-alibaba demo之订单/4.支付成功到履约的相关问题/"/>
+
+
+
+
+
+  <title>4.支付成功到履约相关问题 | 小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/hexo/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/hexo/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/hexo/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/hexo/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/hexo/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://hongjie123.gitee.io/hexo/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/hexo/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">4.支付成功到履约相关问题</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-12-26T06:27:35+08:00">
+                2021-12-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E8%AE%A2%E5%8D%95demo/" itemprop="url" rel="index">
+                    <span itemprop="name">订单demo</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>支付成功之前进行的预支付和取消订单的延迟消息处理需要用到分布式锁，防止在处理订单超时时，用户支付，不同业务可能还要加上在支付回调中检测订单取消后发起退款</strong></p>
+<p><strong>同时为了防止发送延时消息失败需要有一个定时任务，定时扫描超过30分钟没有支付的订单，执行超时操作</strong></p>
+<p>在支付成功后订单系统会受到一条回调，这个时候需要把订单状态更新成已支付，然后发送支付完成消息，发出去消息后再由订单系统自己来消费这个消息，为什么要发消息，第一履约执行很耗时间，通过mq解耦加快支付成功的响应时间，然后其他服务需要监听支付成功不需要通过api，直接消费消息就好了。</p>
+<p>当收到支付成功事件后，先调用履约系统，调用履约系统成功后再把订单改成已履约，流程如下图，红线表示可能出现问题的步骤：</p>
+<p><img src="https://tva1.sinaimg.cn/large/008i3skNly1gxrl8dth1dj318h0u0ju7.jpg"></p>
+<h5 id="发送支付成功消息失败"><a href="#发送支付成功消息失败" class="headerlink" title="发送支付成功消息失败"></a>发送支付成功消息失败</h5><p>收到回调并且修改完订单状态，此时如果发送mq消息失败，需要回滚数据，这里用到的是rocket的事务消息，他的事务消息使用的是TransactionMQProducer，使用**TransactionSendResult result = transactionMQProducer.sendMessageInTransaction(mq, orderInfoDO);**发送消息，每次发送消息之前producer都需要设置监听，用来处理发送消息成功和失败的情况，例如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">transactionMQProducer.setTransactionListener(<span class="keyword">new</span> TransactionListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> LocalTransactionState <span class="title">executeLocalTransaction</span><span class="params">(Message message, Object o)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 正常的业务逻辑代码</span></span><br><span class="line">            <span class="keyword">return</span> LocalTransactionState.COMMIT_MESSAGE;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (BaseBizException e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> e;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">&quot;system error&quot;</span>, e);</span><br><span class="line">            <span class="keyword">return</span> LocalTransactionState.ROLLBACK_MESSAGE;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> LocalTransactionState <span class="title">checkLocalTransaction</span><span class="params">(MessageExt messageExt)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 这个回调只有mq检测到存在长时间没提交的half消息时调用</span></span><br><span class="line">        <span class="comment">// 逻辑就是判断之前的的正常业务代码有没有执行完</span></span><br><span class="line">        <span class="comment">// 执行完就返回COMMIT_MESSAGE，没执行完就返回ROLLBACK_MESSAGE</span></span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> LocalTransactionState.COMMIT_MESSAGE;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> LocalTransactionState.ROLLBACK_MESSAGE;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h4 id="消费支付成功消息"><a href="#消费支付成功消息" class="headerlink" title="消费支付成功消息"></a>消费支付成功消息</h4><h5 id="调用履约系统失败"><a href="#调用履约系统失败" class="headerlink" title="调用履约系统失败"></a>调用履约系统失败</h5><p>调用履约失败只要消费者返回Action.RECONSUME_LATER就可以了，返回这个rocket就会把消息放到重试队列里，重试超过16次会把消息放到死信队列里，这个时候需要在起一个消费者负责消费私信队列。</p>
+<h5 id="调用履约系统成功后修改订单状态失败"><a href="#调用履约系统成功后修改订单状态失败" class="headerlink" title="调用履约系统成功后修改订单状态失败"></a>调用履约系统成功后修改订单状态失败</h5><p>这里也是用到事务消息</p>
+<h5 id="履约后订单状态消息乱序问题"><a href="#履约后订单状态消息乱序问题" class="headerlink" title="履约后订单状态消息乱序问题"></a>履约后订单状态消息乱序问题</h5><p>首先RocketMQ的消息要存储在不同的consumerQueue里，那就有可能出库和发货在不同的queue中，可能造成先消费发货，又消费出库，或者Ian消费了签收，又消费发货，再或者消费状态消息的时候出错，导致重新消费，这个时候也可能造成状态不正确，不管怎么样订单的数据都不准了，解决的办法就是使用mq的顺序消息，在发送的时候把同一个订单的状态改变消息发送到同一个consumerQueue中，只要在发送消息的时候多传入两个参数，一个MessageQueueSelector并重写select方法，一个需要路由的key：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SendResult sendResult = defaultMQProducer.send(message, <span class="keyword">new</span> MessageQueueSelector() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> MessageQueue <span class="title">select</span><span class="params">(List&lt;MessageQueue&gt; mqs, Message message, Object arg)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//根据订单id选择发送queue</span></span><br><span class="line">        String orderId = (String) arg;</span><br><span class="line">        <span class="keyword">long</span> index = hash(orderId) % mqs.size();</span><br><span class="line">        <span class="keyword">return</span> mqs.get((<span class="keyword">int</span>) index);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;, orderId);</span><br></pre></td></tr></table></figure>
+<p>消费者应该是MessageListenerOrderly类型，然后消费失败导致时也不应该返回RECONSUME_LATER了，而是返回ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;这样的话整个队列都不会消费，被挂起，这样的话只需要在消费的时候加锁，不需要幂等校验，因为队列已经被挂起了。</p>
+<h5 id="seata-解决履约实务问题"><a href="#seata-解决履约实务问题" class="headerlink" title="seata 解决履约实务问题"></a>seata 解决履约实务问题</h5><p>履约的流程比较复杂这里选择使用saga事务，saga相对于AT来说没有全局锁，这是优点，也是缺点，并且不需要单独的表；相对于TCC来说不会对代码做那么多的侵入，不需要每个节点都实现3个方法；还还可以实现异步调用的事务机制。</p>
+<p>使用seata实现saga首先需要定义状态基文件，在resources的statelang文件夹下创建order_fullfill.json：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 事务状态名成</span></span><br><span class="line">    <span class="attr">&quot;Name&quot;</span>: <span class="string">&quot;order_fulfill&quot;</span>,</span><br><span class="line">    <span class="comment">// 备注</span></span><br><span class="line">    <span class="attr">&quot;Comment&quot;</span>: <span class="string">&quot;订单履约流程&quot;</span>,</span><br><span class="line">    <span class="comment">// 初始状态</span></span><br><span class="line">    <span class="attr">&quot;StartState&quot;</span>: <span class="string">&quot;FulfillService&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;Version&quot;</span>: <span class="string">&quot;1.0.0&quot;</span>,</span><br><span class="line">    <span class="comment">// 里面定义了各种状态，每个状态里有流转的节点</span></span><br><span class="line">    <span class="comment">// 里面有两种节点，一种正常的任务节点，负责逻辑处理，还有一种判断节点根据上一个节点的结果判断流转方向</span></span><br><span class="line">    <span class="attr">&quot;States&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;FulfillService&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;fulfillSagaService&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;createFulfillOrder&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;CompensateState&quot;</span>: <span class="string">&quot;CreateFulfillOrderCompensate&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;ChoiceWmsState&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Input&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;$.[receiveFulfillRequest]&quot;</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;Output&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;CreateFulfillOrderResult&quot;</span>: <span class="string">&quot;$.#root&quot;</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;Status&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;#root == true&quot;</span>: <span class="string">&quot;SU&quot;</span>,</span><br><span class="line">                <span class="attr">&quot;#root == false&quot;</span>: <span class="string">&quot;FA&quot;</span>,</span><br><span class="line">                <span class="attr">&quot;$Exception&#123;java.lang.Throwable&#125;&quot;</span>: <span class="string">&quot;UN&quot;</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;Catch&quot;</span>: [</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="attr">&quot;Exceptions&quot;</span>: [</span><br><span class="line">                        <span class="string">&quot;java.lang.Throwable&quot;</span></span><br><span class="line">                    ],</span><br><span class="line">                    <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;CompensationTrigger&quot;</span></span><br><span class="line">                &#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;ChoiceWmsState&quot;</span>:&#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;Choice&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Choices&quot;</span>:[</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="attr">&quot;Expression&quot;</span>:<span class="string">&quot;[CreateFulfillOrderResult] == true&quot;</span>,</span><br><span class="line">                    <span class="attr">&quot;Next&quot;</span>:<span class="string">&quot;WmsService&quot;</span></span><br><span class="line">                &#125;</span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;Default&quot;</span>:<span class="string">&quot;Fail&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;WmsService&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;wmsSageService&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;pickGoods&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;CompensateState&quot;</span>: <span class="string">&quot;WmsPickGoodsCompensate&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;ChoiceTmsState&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Input&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;$.[receiveFulfillRequest]&quot;</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;Output&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;WmsPickGoodsResult&quot;</span>: <span class="string">&quot;$.#root&quot;</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;Status&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;#root == true&quot;</span>: <span class="string">&quot;SU&quot;</span>,</span><br><span class="line">                <span class="attr">&quot;#root == false&quot;</span>: <span class="string">&quot;FA&quot;</span>,</span><br><span class="line">                <span class="attr">&quot;$Exception&#123;java.lang.Throwable&#125;&quot;</span>: <span class="string">&quot;UN&quot;</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;Catch&quot;</span>: [</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="attr">&quot;Exceptions&quot;</span>: [</span><br><span class="line">                        <span class="string">&quot;java.lang.Throwable&quot;</span></span><br><span class="line">                    ],</span><br><span class="line">                    <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;CompensationTrigger&quot;</span></span><br><span class="line">                &#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;ChoiceTmsState&quot;</span>:&#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;Choice&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Choices&quot;</span>:[</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="attr">&quot;Expression&quot;</span>:<span class="string">&quot;[WmsPickGoodsResult] == true&quot;</span>,</span><br><span class="line">                    <span class="attr">&quot;Next&quot;</span>:<span class="string">&quot;TmsService&quot;</span></span><br><span class="line">                &#125;</span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;Default&quot;</span>:<span class="string">&quot;Fail&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;TmsService&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;tmsSagaService&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;sendOut&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;CompensateState&quot;</span>: <span class="string">&quot;TmsSendOutCompensate&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Input&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;$.[receiveFulfillRequest]&quot;</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;Output&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;TmsSendOutResult&quot;</span>: <span class="string">&quot;$.#root&quot;</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;Status&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;#root == true&quot;</span>: <span class="string">&quot;SU&quot;</span>,</span><br><span class="line">                <span class="attr">&quot;#root == false&quot;</span>: <span class="string">&quot;FA&quot;</span>,</span><br><span class="line">                <span class="attr">&quot;$Exception&#123;java.lang.Throwable&#125;&quot;</span>: <span class="string">&quot;UN&quot;</span></span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;Catch&quot;</span>: [</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="attr">&quot;Exceptions&quot;</span>: [</span><br><span class="line">                        <span class="string">&quot;java.lang.Throwable&quot;</span></span><br><span class="line">                    ],</span><br><span class="line">                    <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;CompensationTrigger&quot;</span></span><br><span class="line">                &#125;</span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;Succeed&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;CreateFulfillOrderCompensate&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;fulfillSagaService&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;createFulfillOrderCompensate&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Input&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;$.[receiveFulfillRequest]&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;WmsPickGoodsCompensate&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;wmsSageService&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;pickGoodsCompensate&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Input&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;$.[receiveFulfillRequest]&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;TmsSendOutCompensate&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;tmsSagaService&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;sendOutCompensate&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Input&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;$.[receiveFulfillRequest]&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;CompensationTrigger&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;CompensationTrigger&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;Fail&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;Succeed&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>:<span class="string">&quot;Succeed&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">&quot;Fail&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;Type&quot;</span>:<span class="string">&quot;Fail&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ErrorCode&quot;</span>: <span class="string">&quot;500&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;Message&quot;</span>: <span class="string">&quot;订单履约异常！！&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后为saga创建数据库配置和状态基配置：</p>
+<p>DataSourceConfiguration：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DataSourceConfiguration</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ConfigurationProperties(prefix = &quot;spring.datasource&quot;)</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DruidDataSource <span class="title">druidDataSource</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DruidDataSource();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;transactionManager&quot;)</span></span><br><span class="line">    <span class="meta">@Primary</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSourceTransactionManager <span class="title">transactionManager</span><span class="params">(<span class="meta">@Qualifier(&quot;druidDataSource&quot;)</span> DruidDataSource druidDataSource)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> DataSourceTransactionManager(druidDataSource);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>StateMachineConfiguration：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StateMachineConfiguration</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ThreadPoolExecutorFactoryBean <span class="title">threadExecutor</span><span class="params">()</span></span>&#123;</span><br><span class="line">        ThreadPoolExecutorFactoryBean threadExecutor = <span class="keyword">new</span> ThreadPoolExecutorFactoryBean();</span><br><span class="line">        threadExecutor.setThreadNamePrefix(<span class="string">&quot;SAGA_ASYNC_EXE_&quot;</span>);</span><br><span class="line">        threadExecutor.setCorePoolSize(<span class="number">1</span>);</span><br><span class="line">        threadExecutor.setMaxPoolSize(<span class="number">20</span>);</span><br><span class="line">        <span class="keyword">return</span> threadExecutor;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DbStateMachineConfig <span class="title">dbStateMachineConfig</span><span class="params">(ThreadPoolExecutorFactoryBean threadExecutor</span></span></span><br><span class="line"><span class="function"><span class="params">            , DruidDataSource druidDataSource)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        DbStateMachineConfig dbStateMachineConfig = <span class="keyword">new</span> DbStateMachineConfig();</span><br><span class="line">        dbStateMachineConfig.setDataSource(druidDataSource);</span><br><span class="line">        dbStateMachineConfig.setThreadPoolExecutor((ThreadPoolExecutor) threadExecutor.getObject());</span><br><span class="line">        dbStateMachineConfig.setResources(<span class="keyword">new</span> PathMatchingResourcePatternResolver()</span><br><span class="line">                .getResources(<span class="string">&quot;classpath*:statelang/*.json&quot;</span>));</span><br><span class="line">        dbStateMachineConfig.setEnableAsync(<span class="keyword">true</span>);</span><br><span class="line">        dbStateMachineConfig.setTxServiceGroup(<span class="string">&quot;ruyuan-eshop-fulfill-group&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> dbStateMachineConfig;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * saga状态机实例</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ProcessCtrlStateMachineEngine <span class="title">stateMachineEngine</span><span class="params">(DbStateMachineConfig dbStateMachineConfig)</span></span>&#123;</span><br><span class="line">        ProcessCtrlStateMachineEngine stateMachineEngine = <span class="keyword">new</span> ProcessCtrlStateMachineEngine();</span><br><span class="line">        stateMachineEngine.setStateMachineConfig(dbStateMachineConfig);</span><br><span class="line">        <span class="keyword">return</span> stateMachineEngine;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> StateMachineEngineHolder <span class="title">stateMachineEngineHolder</span><span class="params">(ProcessCtrlStateMachineEngine stateMachineEngine)</span></span>&#123;</span><br><span class="line">        StateMachineEngineHolder stateMachineEngineHolder = <span class="keyword">new</span> StateMachineEngineHolder();</span><br><span class="line">        stateMachineEngineHolder.setStateMachineEngine(stateMachineEngine);</span><br><span class="line">        <span class="keyword">return</span> stateMachineEngineHolder;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后根据定义的流程实现方法就可以了，同时需要注意saga也有幂等或者空回滚/空悬挂问题。</p>
+
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/">4.支付成功到履约相关问题</a></p>
+  <p><span>发布时间:</span>2021年12月26日 - 06:12</p>
+  <p><span>最后更新:</span>2022年01月04日 - 08:01</p>
+  <p><span>原始链接:</span><a href="/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" title="4.支付成功到履约相关问题">https://hongjie123.gitee.io/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/hexo/tags/cloud-alibaba/" rel="tag"><i class="fa fa-tag"></i> cloud-alibaba</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/6.%E9%99%90%E6%B5%81%E7%86%94%E6%96%AD/" rel="next" title="6.限流熔断">
+                <i class="fa fa-chevron-left"></i> 6.限流熔断
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/hexo/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/5.%E5%8E%8B%E6%B5%8B/" rel="prev" title="5.压测">
+                5.压测 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/hexo/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/hexo/archives/">
+                <span class="site-state-item-count">268</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/hexo/categories/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/hexo/tags/index.html">
+                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/hexo/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8F%91%E9%80%81%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E6%B6%88%E6%81%AF%E5%A4%B1%E8%B4%A5"><span class="nav-number">1.</span> <span class="nav-text">发送支付成功消息失败</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B6%88%E8%B4%B9%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E6%B6%88%E6%81%AF"><span class="nav-number"></span> <span class="nav-text">消费支付成功消息</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B0%83%E7%94%A8%E5%B1%A5%E7%BA%A6%E7%B3%BB%E7%BB%9F%E5%A4%B1%E8%B4%A5"><span class="nav-number">1.</span> <span class="nav-text">调用履约系统失败</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%B0%83%E7%94%A8%E5%B1%A5%E7%BA%A6%E7%B3%BB%E7%BB%9F%E6%88%90%E5%8A%9F%E5%90%8E%E4%BF%AE%E6%94%B9%E8%AE%A2%E5%8D%95%E7%8A%B6%E6%80%81%E5%A4%B1%E8%B4%A5"><span class="nav-number">2.</span> <span class="nav-text">调用履约系统成功后修改订单状态失败</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B1%A5%E7%BA%A6%E5%90%8E%E8%AE%A2%E5%8D%95%E7%8A%B6%E6%80%81%E6%B6%88%E6%81%AF%E4%B9%B1%E5%BA%8F%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">履约后订单状态消息乱序问题</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#seata-%E8%A7%A3%E5%86%B3%E5%B1%A5%E7%BA%A6%E5%AE%9E%E5%8A%A1%E9%97%AE%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">seata 解决履约实务问题</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/hexo/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/hexo/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/hexo/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/hexo/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/hexo/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/hexo/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spring-boot," />
+
+
+
+
+
+  <link rel="alternate" href="/hexo/atom.xml" title="小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/hexo/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Spring boot的源码和spring的代码耦合的很多，所以看的时候不能看细节，一细就会进到spring的源码里，所以查看主要功能的思路就可以，比如自动装配。 源码都在spring-boot-project模块里，直接进到SpringApplication的run(Class&lt;?&gt;[] primarySources, String[] args)方法里，这个也是我们启动服务的入口：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spring-boot-2.源码">
+<meta property="og:url" content="https://hongjie123.gitee.io/hexo/%E6%A1%86%E6%9E%B6/spring/Spring%20boot/%E6%BA%90%E7%A0%81/index.html">
+<meta property="og:site_name" content="小红">
+<meta property="og:description" content="Spring boot的源码和spring的代码耦合的很多，所以看的时候不能看细节，一细就会进到spring的源码里，所以查看主要功能的思路就可以，比如自动装配。 源码都在spring-boot-project模块里，直接进到SpringApplication的run(Class&lt;?&gt;[] primarySources, String[] args)方法里，这个也是我们启动服务的入口：">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-01-18T22:27:35.000Z">
+<meta property="article:modified_time" content="2023-02-15T04:03:45.556Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="spring-boot">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://hongjie123.gitee.io/hexo/框架/spring/Spring boot/源码/"/>
+
+
+
+
+
+  <title>spring-boot-2.源码 | 小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/hexo/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/hexo/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/hexo/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/hexo/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/hexo/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://hongjie123.gitee.io/hexo/hexo/%E6%A1%86%E6%9E%B6/spring/Spring%20boot/%E6%BA%90%E7%A0%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/hexo/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">spring-boot-2.源码</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-19T06:27:35+08:00">
+                2021-01-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/hexo/categories/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
+                    <span itemprop="name">框架</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Spring boot的源码和spring的代码耦合的很多，所以看的时候不能看细节，一细就会进到spring的源码里，所以查看主要功能的思路就可以，比如自动装配。</p>
+<p>源码都在spring-boot-project模块里，直接进到SpringApplication的run(Class&lt;?&gt;[] primarySources, String[] args)方法里，这个也是我们启动服务的入口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ConfigurableApplicationContext <span class="title">run</span><span class="params">(Class&lt;?&gt;[] primarySources, String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 先用我们自己的Application类初始化一个SpringApplication，然后调用他的run()方法</span></span><br><span class="line">   <span class="keyword">return</span> <span class="keyword">new</span> SpringApplication(primarySources).run(args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="一、初始化SpringApplication源码："><a href="#一、初始化SpringApplication源码：" class="headerlink" title="一、初始化SpringApplication源码："></a>一、初始化SpringApplication源码：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">SpringApplication</span><span class="params">(ResourceLoader resourceLoader, Class&lt;?&gt;... primarySources)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">this</span>.resourceLoader = resourceLoader;</span><br><span class="line">   Assert.notNull(primarySources, <span class="string">&quot;PrimarySources must not be null&quot;</span>);</span><br><span class="line">   <span class="comment">// 这个就是我们传进来的类</span></span><br><span class="line">   <span class="keyword">this</span>.primarySources = <span class="keyword">new</span> LinkedHashSet&lt;&gt;(Arrays.asList(primarySources));</span><br><span class="line">   <span class="comment">// 根据classpath推断工程类型,拿到的是SERVLET</span></span><br><span class="line">   <span class="keyword">this</span>.webApplicationType = WebApplicationType.deduceFromClasspath();</span><br><span class="line">    <span class="comment">// ApplicationContextInitializer是个借口，我们自己或者第三方框架可能自定义他的实现类</span></span><br><span class="line">	<span class="comment">// 在spring容器初始化的时候会被调用</span></span><br><span class="line">   setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));</span><br><span class="line">    <span class="comment">// ApplicationListener他也是个接口，他是在发生事件的时候会被回调</span></span><br><span class="line">   setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));</span><br><span class="line">   <span class="keyword">this</span>.mainApplicationClass = deduceMainApplicationClass();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="1-推断工程类型就是看项目里有没有和对应类型匹配的类："><a href="#1-推断工程类型就是看项目里有没有和对应类型匹配的类：" class="headerlink" title="1.推断工程类型就是看项目里有没有和对应类型匹配的类："></a>1.推断工程类型就是看项目里有没有和对应类型匹配的类：</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> WebApplicationType <span class="title">deduceFromClasspath</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   <span class="comment">// 他写死了一些类，然后再classpath里扫描jar包和我们自己开发的类，如果和写死的类匹配上了就返回对应的类型</span></span><br><span class="line">   <span class="keyword">if</span> (ClassUtils.isPresent(WEBFLUX_INDICATOR_CLASS, <span class="keyword">null</span>) &amp;&amp; !ClassUtils.isPresent(WEBMVC_INDICATOR_CLASS, <span class="keyword">null</span>)</span><br><span class="line">         &amp;&amp; !ClassUtils.isPresent(JERSEY_INDICATOR_CLASS, <span class="keyword">null</span>)) &#123;</span><br><span class="line">      <span class="keyword">return</span> WebApplicationType.REACTIVE;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">for</span> (String className : SERVLET_INDICATOR_CLASSES) &#123;</span><br><span class="line">      <span class="keyword">if</span> (!ClassUtils.isPresent(className, <span class="keyword">null</span>)) &#123;</span><br><span class="line">         <span class="keyword">return</span> WebApplicationType.NONE;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> WebApplicationType.SERVLET;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="2-设置ApplicationContextInitializer和ApplicationListener调用的是Spring的SpringFactoriesLoader里的方法，他会扫描各个META-INF-spring-factories文件里的配置类。"><a href="#2-设置ApplicationContextInitializer和ApplicationListener调用的是Spring的SpringFactoriesLoader里的方法，他会扫描各个META-INF-spring-factories文件里的配置类。" class="headerlink" title="2.设置ApplicationContextInitializer和ApplicationListener调用的是Spring的SpringFactoriesLoader里的方法，他会扫描各个META-INF/spring.factories文件里的配置类。"></a>2.设置ApplicationContextInitializer和ApplicationListener调用的是Spring的SpringFactoriesLoader里的方法，他会扫描各个META-INF/spring.factories文件里的配置类。</h5><h5 id="3-找到项目主类："><a href="#3-找到项目主类：" class="headerlink" title="3.找到项目主类："></a>3.找到项目主类：</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Class&lt;?&gt; deduceMainApplicationClass() &#123;</span><br><span class="line">   <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// new RuntimeException().getStackTrace()可以获取方法的调用栈</span></span><br><span class="line">      StackTraceElement[] stackTrace = <span class="keyword">new</span> RuntimeException().getStackTrace();</span><br><span class="line">      <span class="comment">// 找到调用栈里第一个main方法所在的类</span></span><br><span class="line">      <span class="keyword">for</span> (StackTraceElement stackTraceElement : stackTrace) &#123;</span><br><span class="line">         <span class="keyword">if</span> (<span class="string">&quot;main&quot;</span>.equals(stackTraceElement.getMethodName())) &#123;</span><br><span class="line">            <span class="keyword">return</span> Class.forName(stackTraceElement.getClassName());</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">catch</span> (ClassNotFoundException ex) &#123;</span><br><span class="line">      <span class="comment">// Swallow and continue</span></span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="二、SpringApplication-run-方法源码"><a href="#二、SpringApplication-run-方法源码" class="headerlink" title="二、SpringApplication.run()方法源码"></a>二、SpringApplication.run()方法源码</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ConfigurableApplicationContext <span class="title">run</span><span class="params">(String... args)</span> </span>&#123;</span><br><span class="line">   StopWatch stopWatch = <span class="keyword">new</span> StopWatch();</span><br><span class="line">   stopWatch.start();</span><br><span class="line">   ConfigurableApplicationContext context = <span class="keyword">null</span>;</span><br><span class="line">   Collection&lt;SpringBootExceptionReporter&gt; exceptionReporters = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">   configureHeadlessProperty();</span><br><span class="line">   <span class="comment">// 拿到SpringApplicationRunListeners，里面放到是SpringApplicationRunListener的实现类</span></span><br><span class="line">   <span class="comment">// 就是说我们可以自己实现SpringApplicationRunListener，在这个方法里就会调用对应的方法</span></span><br><span class="line">   SpringApplicationRunListeners listeners = getRunListeners(args);</span><br><span class="line">   <span class="comment">// 拿到所有的listener然后遍历调用starting()，就是广播了一下启动事件</span></span><br><span class="line">   listeners.starting();</span><br><span class="line">   <span class="keyword">try</span> &#123;</span><br><span class="line">      ApplicationArguments applicationArguments = <span class="keyword">new</span> DefaultApplicationArguments(args);</span><br><span class="line">      <span class="comment">// 准备环境</span></span><br><span class="line">      <span class="comment">// 在这里也会回调listener的一个方法</span></span><br><span class="line">      ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);</span><br><span class="line">      configureIgnoreBeanInfo(environment);</span><br><span class="line">      Banner printedBanner = printBanner(environment);</span><br><span class="line">      <span class="comment">// 这个非常关键，创建AnnotationConfigServletWebServerApplicationContext</span></span><br><span class="line">      context = createApplicationContext();</span><br><span class="line">      exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,</span><br><span class="line">            <span class="keyword">new</span> Class[] &#123; ConfigurableApplicationContext.class &#125;, context);</span><br><span class="line">      prepareContext(context, environment, listeners, applicationArguments, printedBanner);</span><br><span class="line">      <span class="comment">// 这个很关键，刷新刚才加载进去的postProcessor</span></span><br><span class="line">      <span class="comment">// 这里可能会执行核心代码逻辑，比如spring bean的初始化、spring mvc、tomcat等等</span></span><br><span class="line">      refreshContext(context);</span><br><span class="line">      afterRefresh(context, applicationArguments);</span><br><span class="line">      stopWatch.stop();</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">this</span>.logStartupInfo) &#123;</span><br><span class="line">         <span class="keyword">new</span> StartupInfoLogger(<span class="keyword">this</span>.mainApplicationClass).logStarted(getApplicationLog(), stopWatch);</span><br><span class="line">      &#125;</span><br><span class="line">       <span class="comment">// 第一个spring容器启动之后会通过监听回调触发正式的spring容器初始化和后面的系统启动工作</span></span><br><span class="line">      listeners.started(context);</span><br><span class="line">      callRunners(context, applicationArguments);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">      handleRunFailure(context, ex, exceptionReporters, listeners);</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(ex);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">try</span> &#123;</span><br><span class="line">      listeners.running(context);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">      handleRunFailure(context, ex, exceptionReporters, <span class="keyword">null</span>);</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(ex);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> context;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>refreshContext(context);时已知这个context是AnnotationConfigServletWebServerApplicationContext，refresh()方法会走到他的父类<strong>ServletWebServerApplicationContext</strong>的refresh()方法。</p>
+<p>refresh()首先会调用到<strong>AbstractApplicationContext</strong>里，AbstractApplicationContext的refresh()方法里有几个调用非常关键：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">refresh</span><span class="params">()</span> <span class="keyword">throws</span> BeansException, IllegalStateException </span>&#123;</span><br><span class="line">    <span class="keyword">synchronized</span>(<span class="keyword">this</span>.startupShutdownMonitor) &#123;</span><br><span class="line">        <span class="comment">// 创建spring容器</span></span><br><span class="line">        <span class="keyword">this</span>.prepareRefresh();</span><br><span class="line">        ConfigurableListableBeanFactory beanFactory = <span class="keyword">this</span>.obtainFreshBeanFactory();</span><br><span class="line">        <span class="keyword">this</span>.prepareBeanFactory(beanFactory);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.postProcessBeanFactory(beanFactory);</span><br><span class="line">            <span class="keyword">this</span>.invokeBeanFactoryPostProcessors(beanFactory);</span><br><span class="line">            <span class="comment">// 注册bean的后处理器</span></span><br><span class="line">            <span class="comment">// 比如AutowriteAnnotationBeanPostProcessor</span></span><br><span class="line">            <span class="keyword">this</span>.registerBeanPostProcessors(beanFactory);</span><br><span class="line">            <span class="keyword">this</span>.initMessageSource();</span><br><span class="line">            <span class="keyword">this</span>.initApplicationEventMulticaster();</span><br><span class="line">            <span class="comment">// 启动tomcat</span></span><br><span class="line">            <span class="keyword">this</span>.onRefresh();</span><br><span class="line">            <span class="keyword">this</span>.registerListeners();</span><br><span class="line">            <span class="comment">// 这里通过spring的getBean()来初始化各种bean，比如数据库相关、dubbo相关</span></span><br><span class="line">            <span class="keyword">this</span>.finishBeanFactoryInitialization(beanFactory);</span><br><span class="line">            <span class="comment">// </span></span><br><span class="line">            <span class="keyword">this</span>.finishRefresh();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (BeansException var9) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">this</span>.logger.isWarnEnabled()) &#123;</span><br><span class="line">                <span class="keyword">this</span>.logger.warn(<span class="string">&quot;Exception encountered during context initialization - cancelling refresh attempt: &quot;</span> + var9);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">this</span>.destroyBeans();</span><br><span class="line">            <span class="keyword">this</span>.cancelRefresh(var9);</span><br><span class="line">            <span class="keyword">throw</span> var9;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.resetCommonCaches();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="1-启动tomcat源码"><a href="#1-启动tomcat源码" class="headerlink" title="1.启动tomcat源码"></a>1.启动tomcat源码</h5><p>onRefresh()方法会调回AnnotationConfigServletWebServerApplicationContext的onRefresh()，onRefresh()中又会调用createWebServer():</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">createWebServer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   WebServer webServer = <span class="keyword">this</span>.webServer;</span><br><span class="line">   ServletContext servletContext = getServletContext();</span><br><span class="line">   <span class="keyword">if</span> (webServer == <span class="keyword">null</span> &amp;&amp; servletContext == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 从beanFactory中获取webServerFactory</span></span><br><span class="line">      <span class="comment">// 默认拿到的是TomcatServletWebServerFactory，可以改成JettyServletWebServerFactory</span></span><br><span class="line">      ServletWebServerFactory factory = getWebServerFactory();</span><br><span class="line">      <span class="comment">// 获取网络容器</span></span><br><span class="line">      <span class="keyword">this</span>.webServer = factory.getWebServer(getSelfInitializer());</span><br><span class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (servletContext != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">         getSelfInitializer().onStartup(servletContext);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (ServletException ex) &#123;</span><br><span class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> ApplicationContextException(<span class="string">&quot;Cannot initialize servlet context&quot;</span>, ex);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   initPropertySources();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进到TomcatServletWebServerFactory的getWebServer中查看创建tomcat的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> WebServer <span class="title">getWebServer</span><span class="params">(ServletContextInitializer... initializers)</span> </span>&#123;</span><br><span class="line">   Tomcat tomcat = <span class="keyword">new</span> Tomcat();</span><br><span class="line">   File baseDir = (<span class="keyword">this</span>.baseDirectory != <span class="keyword">null</span>) ? <span class="keyword">this</span>.baseDirectory : createTempDir(<span class="string">&quot;tomcat&quot;</span>);</span><br><span class="line">   tomcat.setBaseDir(baseDir.getAbsolutePath());</span><br><span class="line">   Connector connector = <span class="keyword">new</span> Connector(<span class="keyword">this</span>.protocol);</span><br><span class="line">   tomcat.getService().addConnector(connector);</span><br><span class="line">   customizeConnector(connector);</span><br><span class="line">   tomcat.setConnector(connector);</span><br><span class="line">   tomcat.getHost().setAutoDeploy(<span class="keyword">false</span>);</span><br><span class="line">   configureEngine(tomcat.getEngine());</span><br><span class="line">   <span class="keyword">for</span> (Connector additionalConnector : <span class="keyword">this</span>.additionalTomcatConnectors) &#123;</span><br><span class="line">      tomcat.getService().addConnector(additionalConnector);</span><br><span class="line">   &#125;</span><br><span class="line">   prepareContext(tomcat.getHost(), initializers);</span><br><span class="line">   <span class="keyword">return</span> getTomcatWebServer(tomcat);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建完Tomcat之后需要组装成WebServer，在调用WebServer构造方法时会调用WebServer的initialize()方法，在这个方法里启动了tomcat：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">()</span> <span class="keyword">throws</span> WebServerException </span>&#123;</span><br><span class="line">		logger.info(<span class="string">&quot;Tomcat initialized with port(s): &quot;</span> + getPortsDescription(<span class="keyword">false</span>));</span><br><span class="line">		<span class="keyword">synchronized</span> (<span class="keyword">this</span>.monitor) &#123;</span><br><span class="line">			<span class="keyword">try</span> &#123;</span><br><span class="line">				……</span><br><span class="line">				<span class="comment">// 启动tomcat</span></span><br><span class="line">                <span class="comment">// 这里还会创建一个WebApplicationContext</span></span><br><span class="line">				<span class="keyword">this</span>.tomcat.start();</span><br><span class="line">				rethrowDeferredStartupExceptions();</span><br><span class="line"></span><br><span class="line">				<span class="keyword">try</span> &#123;</span><br><span class="line">					ContextBindings.bindClassLoader(context, context.getNamingToken(), getClass().getClassLoader());</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="comment">// Unlike Jetty, all Tomcat threads are daemon threads. We create a</span></span><br><span class="line">				<span class="comment">// blocking non-daemon to stop immediate shutdown</span></span><br><span class="line">				startDaemonAwaitThread();</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">				stopSilently();</span><br><span class="line">				destroySilently();</span><br><span class="line">				<span class="keyword">throw</span> <span class="keyword">new</span> WebServerException(<span class="string">&quot;Unable to start embedded Tomcat&quot;</span>, ex);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="三、-EnableAutoConfiguration源码"><a href="#三、-EnableAutoConfiguration源码" class="headerlink" title="三、@EnableAutoConfiguration源码"></a>三、@EnableAutoConfiguration源码</h4><p>这个是启用自动装配的注解，这个注解里有个@Import注解，很关键，引入的类是AutoConfigurationImportSelector，断点跟进发现这个类的内部类AutoConfigurationGroup的selectImports()方法会被引用，这里就是根据autoConfigurationEntries过滤，然后返回符合条件的自动装配的配置类，这些配置类都是在spring.factories文件中配置的，web，redis，jdbc等是spring boot自带的，其他的三方可以自己创建并配置spring.factories。</p>
+<p>这些配置类什么时候被扫描到了autoConfigurationEntries对象中？</p>
+<h5 id="1-web-server的自动装配"><a href="#1-web-server的自动装配" class="headerlink" title="1.web server的自动装配"></a>1.web server的自动装配</h5><p>autoConfigurationEntries中有一个自动装配的类是ServletWebServerFactoryAutoConfiguration，他是负责注入网络容器的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自动注入网络容器</span></span><br><span class="line"><span class="comment"> * 这个类创建了两个bean，ServletWebServerFactoryCustomizer和TomcatServletWebServerFactoryCustomizer</span></span><br><span class="line"><span class="comment"> * 其中TomcatServletWebServerFactoryCustomizer的创建条件是需要有Tomcat这个bean</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Import</span>注解引入的第一个类是这个类的内部类，BeanPostProcessorsRegistrar注册了两个PostProcessor</span></span><br><span class="line"><span class="comment"> * EmbeddedTomcat就是创建一个TomcatServletWebServerFactory，在启动tomcat的时候会用到这个类</span></span><br><span class="line"><span class="comment"> * EmbeddedJetty就是创建一个JettyServletWebServerFactory</span></span><br><span class="line"><span class="comment"> * EmbeddedUndertow也是一个web容器，但是用的不多，红冒公司的</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)</span></span><br><span class="line"><span class="meta">@ConditionalOnClass(ServletRequest.class)</span></span><br><span class="line"><span class="meta">@ConditionalOnWebApplication(type = Type.SERVLET)</span></span><br><span class="line"><span class="meta">@EnableConfigurationProperties(ServerProperties.class)</span></span><br><span class="line"><span class="meta">@Import(&#123; ServletWebServerFactoryAutoConfiguration.BeanPostProcessorsRegistrar.class,</span></span><br><span class="line"><span class="meta">      ServletWebServerFactoryConfiguration.EmbeddedTomcat.class,</span></span><br><span class="line"><span class="meta">      ServletWebServerFactoryConfiguration.EmbeddedJetty.class,</span></span><br><span class="line"><span class="meta">      ServletWebServerFactoryConfiguration.EmbeddedUndertow.class &#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ServletWebServerFactoryAutoConfiguration</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">   <span class="meta">@Bean</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> ServletWebServerFactoryCustomizer <span class="title">servletWebServerFactoryCustomizer</span><span class="params">(ServerProperties serverProperties)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> ServletWebServerFactoryCustomizer(serverProperties);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="meta">@Bean</span></span><br><span class="line">   <span class="meta">@ConditionalOnClass(name = &quot;org.apache.catalina.startup.Tomcat&quot;)</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> TomcatServletWebServerFactoryCustomizer <span class="title">tomcatServletWebServerFactoryCustomizer</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">         ServerProperties serverProperties)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> TomcatServletWebServerFactoryCustomizer(serverProperties);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 这个类是在上面的<span class="doctag">@Import</span>注解引入的，这个类里注册了两个PostProcessor</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">BeanPostProcessorsRegistrar</span> <span class="keyword">implements</span> <span class="title">ImportBeanDefinitionRegistrar</span>, <span class="title">BeanFactoryAware</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">private</span> ConfigurableListableBeanFactory beanFactory;</span><br><span class="line"></span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setBeanFactory</span><span class="params">(BeanFactory beanFactory)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">         <span class="keyword">if</span> (beanFactory <span class="keyword">instanceof</span> ConfigurableListableBeanFactory) &#123;</span><br><span class="line">            <span class="keyword">this</span>.beanFactory = (ConfigurableListableBeanFactory) beanFactory;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerBeanDefinitions</span><span class="params">(AnnotationMetadata importingClassMetadata,</span></span></span><br><span class="line"><span class="function"><span class="params">            BeanDefinitionRegistry registry)</span> </span>&#123;</span><br><span class="line">         <span class="keyword">if</span> (<span class="keyword">this</span>.beanFactory == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">         &#125;</span><br><span class="line">         registerSyntheticBeanIfMissing(registry, <span class="string">&quot;webServerFactoryCustomizerBeanPostProcessor&quot;</span>,</span><br><span class="line">               WebServerFactoryCustomizerBeanPostProcessor.class);</span><br><span class="line">         registerSyntheticBeanIfMissing(registry, <span class="string">&quot;errorPageRegistrarBeanPostProcessor&quot;</span>,</span><br><span class="line">               ErrorPageRegistrarBeanPostProcessor.class);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">registerSyntheticBeanIfMissing</span><span class="params">(BeanDefinitionRegistry registry, String name, Class&lt;?&gt; beanClass)</span> </span>&#123;</span><br><span class="line">         <span class="keyword">if</span> (ObjectUtils.isEmpty(<span class="keyword">this</span>.beanFactory.getBeanNamesForType(beanClass, <span class="keyword">true</span>, <span class="keyword">false</span>))) &#123;</span><br><span class="line">            RootBeanDefinition beanDefinition = <span class="keyword">new</span> RootBeanDefinition(beanClass);</span><br><span class="line">            beanDefinition.setSynthetic(<span class="keyword">true</span>);</span><br><span class="line">            registry.registerBeanDefinition(name, beanDefinition);</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="2-spring-mvc的自动装配"><a href="#2-spring-mvc的自动装配" class="headerlink" title="2.spring mvc的自动装配"></a>2.spring mvc的自动装配</h5><p>mvc的自动装配分成两个类，DispatcherServletAutoConfiguration和WebMvcAutoConfiguration，DispatcherServletAutoConfiguration里主要创建了DispatcherServlet，然后拿着DispatcherServlet创建DispatcherServletRegistrationBean。DispatcherServletRegistrationBean设置了关注的url是/*，也就是说所有的请求都会交给DispatcherServlet来处理，然后网络容器一定会回调addRegistration()方法，通过这个方法把DispatcherServlet动态加到网络容器的ServletContext中。</p>
+
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/hexo/%E6%A1%86%E6%9E%B6/spring/Spring%20boot/%E6%BA%90%E7%A0%81/">spring-boot-2.源码</a></p>
+  <p><span>发布时间:</span>2021年01月19日 - 06:01</p>
+  <p><span>最后更新:</span>2023年02月15日 - 12:02</p>
+  <p><span>原始链接:</span><a href="/hexo/%E6%A1%86%E6%9E%B6/spring/Spring%20boot/%E6%BA%90%E7%A0%81/" title="spring-boot-2.源码">https://hongjie123.gitee.io/hexo/%E6%A1%86%E6%9E%B6/spring/Spring%20boot/%E6%BA%90%E7%A0%81/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://hongjie123.gitee.io/hexo/%E6%A1%86%E6%9E%B6/spring/Spring%20boot/%E6%BA%90%E7%A0%81/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/hexo/tags/spring-boot/" rel="tag"><i class="fa fa-tag"></i> spring-boot</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/hexo/%E6%A1%86%E6%9E%B6/spring/Spring%20boot/Logback/" rel="next" title="spring-boot-1.Logback">
+                <i class="fa fa-chevron-left"></i> spring-boot-1.Logback
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/hexo/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E5%88%86%E5%B8%83%E5%BC%8Fid/1.%E5%B8%B8%E8%A7%81%E6%96%B9%E6%A1%88/" rel="prev" title="1.分布式id-常见方案">
+                1.分布式id-常见方案 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/hexo/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/hexo/archives/">
+                <span class="site-state-item-count">268</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/hexo/categories/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/hexo/tags/index.html">
+                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/hexo/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%88%9D%E5%A7%8B%E5%8C%96SpringApplication%E6%BA%90%E7%A0%81%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">一、初始化SpringApplication源码：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E6%8E%A8%E6%96%AD%E5%B7%A5%E7%A8%8B%E7%B1%BB%E5%9E%8B%E5%B0%B1%E6%98%AF%E7%9C%8B%E9%A1%B9%E7%9B%AE%E9%87%8C%E6%9C%89%E6%B2%A1%E6%9C%89%E5%92%8C%E5%AF%B9%E5%BA%94%E7%B1%BB%E5%9E%8B%E5%8C%B9%E9%85%8D%E7%9A%84%E7%B1%BB%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">1.推断工程类型就是看项目里有没有和对应类型匹配的类：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E8%AE%BE%E7%BD%AEApplicationContextInitializer%E5%92%8CApplicationListener%E8%B0%83%E7%94%A8%E7%9A%84%E6%98%AFSpring%E7%9A%84SpringFactoriesLoader%E9%87%8C%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%8C%E4%BB%96%E4%BC%9A%E6%89%AB%E6%8F%8F%E5%90%84%E4%B8%AAMETA-INF-spring-factories%E6%96%87%E4%BB%B6%E9%87%8C%E7%9A%84%E9%85%8D%E7%BD%AE%E7%B1%BB%E3%80%82"><span class="nav-number">1.2.</span> <span class="nav-text">2.设置ApplicationContextInitializer和ApplicationListener调用的是Spring的SpringFactoriesLoader里的方法，他会扫描各个META-INF&#x2F;spring.factories文件里的配置类。</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-%E6%89%BE%E5%88%B0%E9%A1%B9%E7%9B%AE%E4%B8%BB%E7%B1%BB%EF%BC%9A"><span class="nav-number">1.3.</span> <span class="nav-text">3.找到项目主类：</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%8C%E3%80%81SpringApplication-run-%E6%96%B9%E6%B3%95%E6%BA%90%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">二、SpringApplication.run()方法源码</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E5%90%AF%E5%8A%A8tomcat%E6%BA%90%E7%A0%81"><span class="nav-number">2.1.</span> <span class="nav-text">1.启动tomcat源码</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%89%E3%80%81-EnableAutoConfiguration%E6%BA%90%E7%A0%81"><span class="nav-number">3.</span> <span class="nav-text">三、@EnableAutoConfiguration源码</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-web-server%E7%9A%84%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D"><span class="nav-number">3.1.</span> <span class="nav-text">1.web server的自动装配</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-spring-mvc%E7%9A%84%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D"><span class="nav-number">3.2.</span> <span class="nav-text">2.spring mvc的自动装配</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/hexo/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/hexo/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/hexo/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/hexo/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/hexo/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/hexo/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
