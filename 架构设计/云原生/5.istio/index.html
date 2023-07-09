@@ -78,7 +78,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="redis," />
+  <meta name="keywords" content="架构," />
 
 
 
@@ -96,20 +96,18 @@
 
 
 
-<meta name="description" content="SDS是redis的动态字符串类型，全称是simple dynamic string，因为redis是基于c语言实现的，c语言的字符串都是定长，并且以空字符结尾，而redis自己实现的SDS是可动态变化的string，相当于java中的int[]和ArrayList&lt;Integer&gt;，SDS由三部分组成，分别是free变量、len变量、buf[]数组，len定义的是buf数组的长度，f">
+<meta name="description" content="service mesh弥补了k8s的流量管控、服务熔断、动态路由、超时重试、链路追踪、安全保护的劣势。 Istio作为service mesh具体实现的技术栈具有以下优点：    webSocket和TCP等流量自动负载均衡；   通过路由、重试、故障转移和故障注入对(模拟故障时可以用到)流量进行细粒度控制；   支持访问控制、速率限制和配额，可插拔的策略和API；   集群内的所有流量自动记录">
 <meta property="og:type" content="article">
-<meta property="og:title" content="redis-SDS">
-<meta property="og:url" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.SDS/index.html">
+<meta property="og:title" content="云原生-5.Istio">
+<meta property="og:url" content="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E4%BA%91%E5%8E%9F%E7%94%9F/5.istio/index.html">
 <meta property="og:site_name" content="小红">
-<meta property="og:description" content="SDS是redis的动态字符串类型，全称是simple dynamic string，因为redis是基于c语言实现的，c语言的字符串都是定长，并且以空字符结尾，而redis自己实现的SDS是可动态变化的string，相当于java中的int[]和ArrayList&lt;Integer&gt;，SDS由三部分组成，分别是free变量、len变量、buf[]数组，len定义的是buf数组的长度，f">
+<meta property="og:description" content="service mesh弥补了k8s的流量管控、服务熔断、动态路由、超时重试、链路追踪、安全保护的劣势。 Istio作为service mesh具体实现的技术栈具有以下优点：    webSocket和TCP等流量自动负载均衡；   通过路由、重试、故障转移和故障注入对(模拟故障时可以用到)流量进行细粒度控制；   支持访问控制、速率限制和配额，可插拔的策略和API；   集群内的所有流量自动记录">
 <meta property="og:locale">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gdfqfsog0qj30w00oxn01.jpg">
-<meta property="article:published_time" content="2020-04-02T12:04:36.579Z">
-<meta property="article:modified_time" content="2022-04-20T13:39:59.637Z">
+<meta property="article:published_time" content="2023-06-11T22:27:35.000Z">
+<meta property="article:modified_time" content="2023-06-12T16:07:26.329Z">
 <meta property="article:author" content="小红">
-<meta property="article:tag" content="redis">
+<meta property="article:tag" content="架构">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/00831rSTly1gdfqfsog0qj30w00oxn01.jpg">
 
 
 
@@ -138,13 +136,13 @@
 
 
 
-  <link rel="canonical" href="https://wangxiaohong123.github.io/基础/数据库/redis/1.SDS/"/>
+  <link rel="canonical" href="https://wangxiaohong123.github.io/架构设计/云原生/5.istio/"/>
 
 
 
 
 
-  <title>redis-SDS | 小红</title>
+  <title>云原生-5.Istio | 小红</title>
   
 
 
@@ -311,7 +309,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.SDS/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E4%BA%91%E5%8E%9F%E7%94%9F/5.istio/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -328,7 +326,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">redis-SDS</h1>
+          <h1 class="post-title" itemprop="name headline">云原生-5.Istio</h1>
         
 
         <div class="post-meta">
@@ -340,8 +338,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-04-02T20:04:36+08:00">
-                2020-04-02
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2023-06-12T06:27:35+08:00">
+                2023-06-12
               </time>
             
 
@@ -363,8 +361,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
+                  <a href="/categories/%E4%BA%91%E5%8E%9F%E7%94%9F/" itemprop="url" rel="index">
+                    <span itemprop="name">云原生</span>
                   </a>
                 </span>
 
@@ -400,20 +398,16 @@
       
 
       
-        <p>SDS是redis的动态字符串类型，全称是simple dynamic string，因为redis是基于c语言实现的，c语言的字符串都是定长，并且以空字符结尾，而redis自己实现的SDS是可动态变化的string，相当于java中的int[]和ArrayList&lt;Integer&gt;，SDS由三部分组成，分别是free变量、len变量、buf[]数组，len定义的是buf数组的长度，free记录剩余buf数组中未使用的字节数量，buf数组是要使用的字节数组。</p>
-<h4 id="和C语言的字符串比的优势"><a href="#和C语言的字符串比的优势" class="headerlink" title="和C语言的字符串比的优势"></a>和C语言的字符串比的优势</h4><ul>
-<li>  不止能存字符串，还有其他的东西，比如图片、压缩文件等二进制数据，c语言的字符串类型无法实现，他只能保存字符串，这是因为c语言中以空(\0)字节判断一个字符串的结束，而SDS是从buf数组中读取len长度个字节；</li>
-<li>  获取长度更快，直接获取len就可以。c语言是一个一个查出来的，所以c语言读取字符串是O(n)；</li>
-<li>  没有缓冲区溢出，在c语言中，字符串拼接是要重新分配内存的，要不然很容易覆盖后面的字符串，比如一块连续的内存存储了两个字符串：redis\0mongoDB\0，这个时候如果要实现一个字符串”redis” + “cluster”就要重新分配内存，否则两个字符串就会变成rediscluster\0\0，这个就叫缓冲区的溢出。而在SDS中buf的长度是动态扩容的，也是因为动态扩容，让SDS的拼接字符串操作更快；</li>
-</ul>
-<p>SDS之所以会保留以空字符结尾是为了可以调用c语言的string库的方法。</p>
-<h4 id="SDS的空间预分配和惰性释放"><a href="#SDS的空间预分配和惰性释放" class="headerlink" title="SDS的空间预分配和惰性释放"></a>SDS的空间预分配和惰性释放</h4><p>当free的值小于要拼接的字符串长度的时候就会触发扩容，扩容的规则：</p>
-<ul>
-<li>  String小于1M时，扩容为拼接后字符串长度的两倍，比如原来是redis\0，长度为6，拼接cluster后字符串的长度是13，buf数组的长度会变成26，此时len=free=13；</li>
-<li>  String大于等于1M时，只会多分配1M；</li>
-</ul>
-<p>为什么会多分配内存，不管是拼接还是截断都需要对字节数组操作，都需要申请另一块空间，在释放当前空间，在redis中操作字符串是很频繁的，多申请空间是为了防止频繁的内存重分配导致性能问题。截取字符串的时候SDS不会去释放空间也是因为这个，这样在拼接的时候就更快，当我们要释放这块空间的时候可以手动调用SDS的API。</p>
-<h5 id="SDS的API："><a href="#SDS的API：" class="headerlink" title="SDS的API："></a>SDS的API：</h5><p><img src="https://tva1.sinaimg.cn/large/00831rSTly1gdfqfsog0qj30w00oxn01.jpg"></p>
+        <p>service mesh弥补了k8s的流量管控、服务熔断、动态路由、超时重试、链路追踪、安全保护的劣势。</p>
+<p>Istio作为service mesh具体实现的技术栈具有以下优点：</p>
+<ol>
+<li>  webSocket和TCP等流量自动负载均衡；</li>
+<li>  通过路由、重试、故障转移和故障注入对(模拟故障时可以用到)流量进行细粒度控制；</li>
+<li>  支持访问控制、速率限制和配额，可插拔的策略和API；</li>
+<li>  集群内的所有流量自动记录和追踪；</li>
+<li>  基于身份验证和授权实现的服务间安全通信；</li>
+</ol>
+<p>总的来说就是通过对流量的管控实现服务的路由、熔断、限流和链路追踪。</p>
 
       
     </div>
@@ -440,11 +434,11 @@
   <!-- JS库 sweetalert 可修改路径 -->
   <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-  <p><span>本文标题:</span><a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.SDS/">redis-SDS</a></p>
-  <p><span>发布时间:</span>2020年04月02日 - 20:04</p>
-  <p><span>最后更新:</span>2022年04月20日 - 21:04</p>
-  <p><span>原始链接:</span><a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.SDS/" title="redis-SDS">https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.SDS/</a>
-    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.SDS/"  aria-label="复制成功！"></i></span>
+  <p><span>本文标题:</span><a href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E4%BA%91%E5%8E%9F%E7%94%9F/5.istio/">云原生-5.Istio</a></p>
+  <p><span>发布时间:</span>2023年06月12日 - 06:06</p>
+  <p><span>最后更新:</span>2023年06月13日 - 00:06</p>
+  <p><span>原始链接:</span><a href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E4%BA%91%E5%8E%9F%E7%94%9F/5.istio/" title="云原生-5.Istio">https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E4%BA%91%E5%8E%9F%E7%94%9F/5.istio/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E4%BA%91%E5%8E%9F%E7%94%9F/5.istio/"  aria-label="复制成功！"></i></span>
   </p>
   <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
 </div>
@@ -475,7 +469,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/redis/" rel="tag"><i class="fa fa-tag"></i> redis</a>
+            <a href="/tags/%E6%9E%B6%E6%9E%84/" rel="tag"><i class="fa fa-tag"></i> 架构</a>
           
         </div>
       
@@ -488,8 +482,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/6.%E4%BA%8B%E5%8A%A1/" rel="next" title="MySQL-6.事务">
-                <i class="fa fa-chevron-left"></i> MySQL-6.事务
+              <a href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E4%BA%91%E5%8E%9F%E7%94%9F/3.%E5%AE%B9%E5%99%A8%E5%91%BD%E4%BB%A4/" rel="next" title="云原生-3.容器命令">
+                <i class="fa fa-chevron-left"></i> 云原生-3.容器命令
               </a>
             
           </div>
@@ -498,8 +492,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/2.%E9%93%BE%E8%A1%A8/" rel="prev" title="redis-链表">
-                redis-链表 <i class="fa fa-chevron-right"></i>
+              <a href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E4%BA%91%E5%8E%9F%E7%94%9F/4.k8s/" rel="prev" title="云原生-4.k8s">
+                云原生-4.k8s <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -552,17 +546,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
-            文章目录
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview">
-            站点概览
-          </li>
-        </ul>
-      
 
-      <section class="site-overview sidebar-panel">
+      <section class="site-overview sidebar-panel sidebar-panel-active">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/face.jpeg"
@@ -577,7 +562,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">270</span>
+                <span class="site-state-item-count">274</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -631,22 +616,6 @@
 
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%92%8CC%E8%AF%AD%E8%A8%80%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%AF%94%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="nav-number">1.</span> <span class="nav-text">和C语言的字符串比的优势</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SDS%E7%9A%84%E7%A9%BA%E9%97%B4%E9%A2%84%E5%88%86%E9%85%8D%E5%92%8C%E6%83%B0%E6%80%A7%E9%87%8A%E6%94%BE"><span class="nav-number">2.</span> <span class="nav-text">SDS的空间预分配和惰性释放</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#SDS%E7%9A%84API%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">SDS的API：</span></a></li></ol></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       

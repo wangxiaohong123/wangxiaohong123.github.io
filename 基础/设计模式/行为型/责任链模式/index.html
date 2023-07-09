@@ -103,13 +103,13 @@
 <meta property="og:site_name" content="小红">
 <meta property="og:description" content="避免发送者和请求者直接的耦合关系，将一批对象连城一条链，沿着这条链传递请求。  12345678910111213141516171819202122232425262728293031323334353637383940414243public abstract class Handler &amp;#123;    protected Handler successor;        public">
 <meta property="og:locale">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24ely1h25b4fpmpcj20x20o440b.jpg">
-<meta property="article:published_time" content="2020-05-07T13:31:32.662Z">
-<meta property="article:modified_time" content="2022-05-12T07:13:49.973Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F.png">
+<meta property="article:published_time" content="2020-05-07T13:31:32.000Z">
+<meta property="article:modified_time" content="2023-07-09T02:43:29.000Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="设计模式">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/e6c9d24ely1h25b4fpmpcj20x20o440b.jpg">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F.png">
 
 
 
@@ -401,7 +401,7 @@
 
       
         <p>避免发送者和请求者直接的耦合关系，将一批对象连城一条链，沿着这条链传递请求。</p>
-<p><img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h25b4fpmpcj20x20o440b.jpg"></p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F.png" alt="责任链模式"></p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Handler</span> </span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> Handler successor;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSuccessor</span><span class="params">(Handler successor)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.successor = successor;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">void</span> <span class="title">hendleRequest</span><span class="params">(<span class="keyword">int</span> request)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConcreteHandler1</span> <span class="keyword">extends</span> <span class="title">Handler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">hendleRequest</span><span class="params">(<span class="keyword">int</span> request)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (request &gt;= <span class="number">0</span> &amp;&amp; reqest &lt; <span class="number">10</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;ConcreteHandler1处理请求:&quot;</span> + request);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != successor) &#123;</span><br><span class="line">        	successor.hendleRequest(request);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ConcreteHandler2</span> <span class="keyword">extends</span> <span class="title">Handler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">hendleRequest</span><span class="params">(<span class="keyword">int</span> request)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (request &gt; <span class="number">20</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;ConcreteHandler2处理请求:&quot;</span> + request);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> != successor) &#123;</span><br><span class="line">        	successor.hendleRequest(request);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Handler h1 = <span class="keyword">new</span> ConcreteHandler1();</span><br><span class="line">    Handler h2 = <span class="keyword">new</span> ConcreteHandler2();</span><br><span class="line">    </span><br><span class="line">    h1.setSuccessor(h2);</span><br><span class="line">    h1.hendleRequest(<span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>通过集成一个抽象类，再把下一个要执行的功能通过构造方法传进去，这样就形成了一个链条，一个一个去执行，客户端要做的就是定义链条。</p>
 
@@ -432,7 +432,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F/">行为型-责任链模式</a></p>
   <p><span>发布时间:</span>2020年05月07日 - 21:05</p>
-  <p><span>最后更新:</span>2022年05月12日 - 15:05</p>
+  <p><span>最后更新:</span>2023年07月09日 - 10:07</p>
   <p><span>原始链接:</span><a href="/%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F/" title="行为型-责任链模式">https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/%E8%B4%A3%E4%BB%BB%E9%93%BE%E6%A8%A1%E5%BC%8F/"  aria-label="复制成功！"></i></span>
   </p>
@@ -558,7 +558,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">270</span>
+                <span class="site-state-item-count">274</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>

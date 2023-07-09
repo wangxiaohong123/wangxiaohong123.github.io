@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="redis," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.resp协议resp是redis client和server通信的序列化协议，协议的语法：    间隔符：\r\n(linux)；\n(windows)   短字符：+   长字符串：$   整数：:   数组：*   error：-  123456# SET name why# 转换成RESP格式：# 参数和参数表示符之间都需要使用\r\n分割# *3表示命令的参数有3个# $3表示后面跟着">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis-1.架构设计">
+<meta property="og:url" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/index.html">
+<meta property="og:site_name" content="小红">
+<meta property="og:description" content="1.resp协议resp是redis client和server通信的序列化协议，协议的语法：    间隔符：\r\n(linux)；\n(windows)   短字符：+   长字符串：$   整数：:   数组：*   error：-  123456# SET name why# 转换成RESP格式：# 参数和参数表示符之间都需要使用\r\n分割# *3表示命令的参数有3个# $3表示后面跟着">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/redis%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/redis%E5%91%BD%E4%BB%A4%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/aof%E5%88%B7%E7%9B%98%E6%B5%81%E7%A8%8B.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/aof%E9%87%8D%E5%86%99%E6%B5%81%E7%A8%8B1.png">
+<meta property="article:published_time" content="2023-06-14T00:06:58.000Z">
+<meta property="article:modified_time" content="2023-06-25T00:55:46.000Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/redis%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://wangxiaohong123.github.io/基础/数据库/redis/1.架构设计/"/>
+
+
+
+
+
+  <title>redis-1.架构设计 | 小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">redis-1.架构设计</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2023-06-14T08:06:58+08:00">
+                2023-06-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="1-resp协议"><a href="#1-resp协议" class="headerlink" title="1.resp协议"></a>1.resp协议</h4><p>resp是redis client和server通信的序列化协议，协议的语法：</p>
+<ul>
+<li>  间隔符：\r\n(linux)；\n(windows)</li>
+<li>  短字符：+</li>
+<li>  长字符串：$</li>
+<li>  整数：:</li>
+<li>  数组：*</li>
+<li>  error：-</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> SET name why</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 转换成RESP格式：</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 参数和参数表示符之间都需要使用\r\n分割</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> *3表示命令的参数有3个</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="variable">$3</span>表示后面跟着长度是3的参数</span></span><br><span class="line">*3\r\n$3\r\nSET\r\n$4\r\nname\r\n$3\r\nwhy\r\n</span><br></pre></td></tr></table></figure>
+<h5 id="1-1-redis中的请求响应模式："><a href="#1-1-redis中的请求响应模式：" class="headerlink" title="1.1 redis中的请求响应模式："></a>1.1 redis中的请求响应模式：</h5><ol>
+<li>  串行模式：一次请求一次响应。</li>
+<li>  双工模式：TCP本身就是双工的，redis中的双工就是批量处理，pipeline。</li>
+<li>  原子化的批量模式：把多个请求放进一个命令队列。</li>
+<li>  发布订阅模式：类似消息队列。</li>
+<li>  校本化的批量模式：处理lua脚本。</li>
+</ol>
+<h4 id="2-启动流程"><a href="#2-启动流程" class="headerlink" title="2.启动流程"></a>2.启动流程</h4><p>redis服务端的启动类是server.c，客户端的启动类是redis-cli.c(cli不是client的缩写，是command line interface的缩写)，这两个文件都在src目录下。redis-cli.c的代码还有一部分在deps/hiredis/hiredis.c文件里。</p>
+<p>redis启动的时候server.c会先初始化配置，然后初始化服务器，然后加载持久化文件到内存，最后启动事件处理器:</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/redis%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B.png" alt="redis启动流程"></p>
+<h4 id="3-命令处理流程"><a href="#3-命令处理流程" class="headerlink" title="3.命令处理流程"></a>3.命令处理流程</h4><p>redis的命令都存储在RedisCommandTable里，存储的结构体叫redisCommand，这个结构体定义在server.h文件中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">redisCommand</span> &#123;</span></span><br><span class="line">    <span class="comment">// 命令名</span></span><br><span class="line">    <span class="keyword">char</span> *name;</span><br><span class="line">    <span class="comment">// 命令处理函数</span></span><br><span class="line">    redisCommandProc *proc;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 用来校验的</span></span><br><span class="line"><span class="comment">     *参数数量 &gt; 0时，arity表示参数数量，参数数量 &lt;= 0时，arity &gt; 参数数量</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">int</span> arity;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 命令标识，用来区分是什么命令</span></span><br><span class="line"><span class="comment">     * 比如w：写命令；r：读命令；F：记录超时的命令；m：如果内存不足就不执行</span></span><br><span class="line"><span class="comment">     * 命令标识可以组合，比如rF：执行读命令，并且记录超时</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">char</span> *sflags; <span class="comment">/* Flags as string representation, one char per flag. */</span></span><br><span class="line">    <span class="comment">// sflags的二进制标识</span></span><br><span class="line">    <span class="keyword">int</span> flags;    <span class="comment">/* The actual flags, obtained from the &#x27;sflags&#x27; field. */</span></span><br><span class="line">    <span class="comment">/* Use a function to determine keys arguments in a command line.</span></span><br><span class="line"><span class="comment">     * Used for Redis Cluster redirect. */</span></span><br><span class="line">    redisGetKeysProc *getkeys_proc;</span><br><span class="line">    <span class="comment">/* What keys should be loaded in background when calling this command? */</span></span><br><span class="line">    <span class="keyword">int</span> firstkey; <span class="comment">/* The first argument that&#x27;s a key (0 = no keys) */</span></span><br><span class="line">    <span class="keyword">int</span> lastkey;  <span class="comment">/* The last argument that&#x27;s a key */</span></span><br><span class="line">    <span class="keyword">int</span> keystep;  <span class="comment">/* The step between first and last key */</span></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 从服务器启动到现在命令的执行时间和次数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">long</span> <span class="keyword">long</span> microseconds, calls;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>RedisCommandTable里维护了所有合法的命令，他是一个数组，查找是O(n)，要优化这个就需要把命令放到字典中，key就是命令名，value是redisCommand，字典形式存储命令的方法叫populateCommandTable。</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/redis%E5%91%BD%E4%BB%A4%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B.png" alt="redis命令处理流程"></p>
+<h5 id="3-1-resp的返回"><a href="#3-1-resp的返回" class="headerlink" title="3.1 resp的返回"></a>3.1 resp的返回</h5><p>返回类型有5种：</p>
+<ol>
+<li>  +ok : 成功 </li>
+<li>  -Err :失败</li>
+<li>  : 数字 </li>
+<li>  $6 foobar</li>
+<li>  *3 数组</li>
+</ol>
+<p>返回结果有2步：将数据写入缓冲区或者输出链表(输出链表存在于磁盘)-&gt;把缓冲区的数据发送给客户端。<strong>当返回响应的数据过大时，buf无法存储response就会使用replay进行存储，beforeSleep()方法优先遍历buf，也就是说涉及到大数据量的请求可能并不是处理满，而是server优先返回小数据，当buf为空的时候才会去处理replay里的response</strong></p>
+<h4 id="4-底层数据结构"><a href="#4-底层数据结构" class="headerlink" title="4.底层数据结构"></a>4.底层数据结构</h4><p>redis中每个db都是redisDb结构体，里面存储的是kv键值对，v使用redisObject结构体封装，redisObject中有个type变量标记具体的类型，在redis5之后基本数据类型有6个：</p>
+<ol>
+<li>  String：SDS实现，SDS有3种实现，int、embstr和raw；</li>
+<li>  List：quickList实现；</li>
+<li>  Set：dict或者intSet实现；</li>
+<li>  SortSet：skipList或者zipList实现；</li>
+<li>  Hash：dict或者zipList实现；</li>
+<li>  Stream：listPack(紧凑列表)或者RaxTree(基数树)实现，主要是用来实现消息队列用法;</li>
+</ol>
+<h4 id="5-持久化"><a href="#5-持久化" class="headerlink" title="5.持久化"></a>5.持久化</h4><p>redis的持久化不是为了保证数据的完整性，主要是为了做数据恢复。RDB的配置是n秒发生m条数据变化就持久化，这样意外宕机数据肯定是不全的，AOF有3个配置：aof_async_always、aof_async_no和aof_async_EVERSEC，第一个性能太差，后两个会丢数据。</p>
+<p>redis的意义是为了提高查询速度，如果配置了aof_async_always会降低性能，只要保证大部分的数据在redis中，冷起之后不会造成缓存穿透等问题就可以。</p>
+<h5 id="5-1-RDB"><a href="#5-1-RDB" class="headerlink" title="5.1 RDB"></a>5.1 RDB</h5><p>linux的fork会复制代码和数据，而redis的数据都在内存里，所以如果redis的RDB也这么做会阻塞很久而且内存可能都不够。</p>
+<p>redis中把数据进行分段，每段中包含了若干个数据，在fork子进程的时候会根据内存中的数据地址创建一个新的虚拟地址，使用自己的地址进行备份，如果数据发生改变会由linux内核把改变的数据所在的段同步给子进程。</p>
+<p>RDB的文件结构：</p>
+<table>
+<thead>
+<tr>
+<th>REDIS</th>
+<th>RDB_VERSION</th>
+<th>AUX_FILED_KEY_VALUE_PAIRS</th>
+<th>DB_NUM</th>
+<th>DB_DICT_SIZE</th>
+<th>EXPIRE_DICT_SIZE</th>
+<th>KEY_VALUE_PAIRS</th>
+<th>EOF</th>
+<th>CHECK_SUM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>固定值</td>
+<td>当前文件编号</td>
+<td>一些附加信息，比如redis的版本、是不是aof和rdb的混合文件等等</td>
+<td>属于哪个db</td>
+<td>db里的dict的size</td>
+<td>过期的dict的key的数量</td>
+<td>真正的数据</td>
+<td>结束标志</td>
+<td>校验数，用来判断文件是否完整</td>
+</tr>
+</tbody></table>
+<p>RDB对应的源码是rdb.c，在他的头文件rdb.h中定义了一个<strong>opcodes</strong>，用来存放一些固定配置，比如EOF是255等：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_OPCODE_MODULE_AUX 247   <span class="comment">/* Module auxiliary data. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_OPCODE_IDLE       248   <span class="comment">/* LRU idle time. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_OPCODE_FREQ       249   <span class="comment">/* LFU frequency. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_OPCODE_AUX        250   <span class="comment">/* RDB aux field. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_OPCODE_RESIZEDB   251   <span class="comment">/* Hash table resize hint. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_OPCODE_EXPIRETIME_MS 252    <span class="comment">/* Expire time in milliseconds. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_OPCODE_EXPIRETIME 253       <span class="comment">/* Old expire time in seconds. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_OPCODE_SELECTDB   254   <span class="comment">/* DB number of the following keys. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_OPCODE_EOF        255   <span class="comment">/* End of the RDB file. */</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Module serialized values sub opcodes */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_MODULE_OPCODE_EOF   0   <span class="comment">/* End of module value. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_MODULE_OPCODE_SINT  1   <span class="comment">/* Signed integer. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_MODULE_OPCODE_UINT  2   <span class="comment">/* Unsigned integer. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_MODULE_OPCODE_FLOAT 3   <span class="comment">/* Float. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_MODULE_OPCODE_DOUBLE 4  <span class="comment">/* Double. */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> RDB_MODULE_OPCODE_STRING 5  <span class="comment">/* String. */</span></span></span><br></pre></td></tr></table></figure>
+<p>RDB的触发方式有两种：</p>
+<ul>
+<li>  配置触发：通过配置的n秒发生m条数据变化就持久化，通过ServerCron函数调用rdbSaveBackground函数；</li>
+<li>  命令触发：执行命令进行rdb会调用bgSaveCommand函数，他也会去调用rdbSaveBackground函数；</li>
+</ul>
+<p>rob.c下的rdbSaveBackground函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">rdbSaveBackground</span><span class="params">(<span class="keyword">char</span> *filename, rdbSaveInfo *rsi)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">pid_t</span> childpid;</span><br><span class="line">    <span class="keyword">long</span> <span class="keyword">long</span> start;</span><br><span class="line">    <span class="comment">// 判断是否有aof或者rdb的子进程在执行</span></span><br><span class="line">    <span class="comment">// 如果正在备份就直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (server.aof_child_pid != <span class="number">-1</span> || server.rdb_child_pid != <span class="number">-1</span>) <span class="keyword">return</span> C_ERR;</span><br><span class="line"></span><br><span class="line">    server.dirty_before_bgsave = server.dirty;</span><br><span class="line">    server.lastbgsave_try = time(<span class="literal">NULL</span>);</span><br><span class="line">    openChildInfoPipe();</span><br><span class="line"></span><br><span class="line">    start = ustime();</span><br><span class="line">    <span class="comment">// 调用os fork一个子进程</span></span><br><span class="line">    <span class="keyword">if</span> ((childpid = fork()) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果创建子进程成功进入到这个逻辑</span></span><br><span class="line">        <span class="keyword">int</span> retval;</span><br><span class="line">        <span class="comment">/* Child */</span></span><br><span class="line">        closeListeningSockets(<span class="number">0</span>);</span><br><span class="line">        redisSetProcTitle(<span class="string">&quot;redis-rdb-bgsave&quot;</span>);</span><br><span class="line">        <span class="comment">// save rdb文件，这里会创建临时文件，写数据，然后替换原来的RDB文件</span></span><br><span class="line">        retval = rdbSave(filename,rsi);</span><br><span class="line">        <span class="keyword">if</span> (retval == C_OK) &#123;</span><br><span class="line">            <span class="keyword">size_t</span> private_dirty = zmalloc_get_private_dirty(<span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (private_dirty) &#123;</span><br><span class="line">                serverLog(LL_NOTICE,</span><br><span class="line">                    <span class="string">&quot;RDB: %zu MB of memory used by copy-on-write&quot;</span>,</span><br><span class="line">                    private_dirty/(<span class="number">1024</span>*<span class="number">1024</span>));</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            server.child_info_data.cow_size = private_dirty;</span><br><span class="line">            sendChildInfo(CHILD_INFO_TYPE_RDB);</span><br><span class="line">        &#125;</span><br><span class="line">        exitFromChild((retval == C_OK) ? <span class="number">0</span> : <span class="number">1</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* Parent ……*/</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> C_OK; <span class="comment">/* unreached */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="5-2-AOF"><a href="#5-2-AOF" class="headerlink" title="5.2 AOF"></a>5.2 AOF</h5><p>AOF文件存储的是RESP格式的指令，他有3种save方式：</p>
+<ul>
+<li>  aof_fsync_no：不保存，但是redis停止、aof停止、内存满了都会保存；</li>
+<li>  aof_fsync_eversec：每秒保存；</li>
+<li>  aof_fsync_always：每次数据变更都会触发aof写；</li>
+</ul>
+<p>AOF过程分两步：</p>
+<ul>
+<li>  write：在执行名的call函数里调用propagate函数-&gt;feedAppendOnlyFile函数，通过这个函数把命令写到aof_buf</li>
+<li>save：真正的保存，4个地方可以触发真正保存操作：<ul>
+<li>  serverCron函数中调用flushAppendOnlyFile(0)函数(serverCron看起来像redis中所有定时任务的包装)；</li>
+<li>  beforeSleep函数中调用flushAppendOnlyFile(0)函数；</li>
+<li>  prepareForShutDown函数中调用flushAppendOnlyFile(1)函数；</li>
+<li>  stopAppendOnly函数中调用flushAppendOnlyFile(1)函数；</li>
+</ul>
+</li>
+</ul>
+<p>其实核心就两个方法：feedAppendOnlyFile()和flushAppendOnlyFile()，flushAppendOnlyFile()如果收到的是1表示强制执行。</p>
+<h6 id="5-2-1-feedAppendOnlyFile函数的代码："><a href="#5-2-1-feedAppendOnlyFile函数的代码：" class="headerlink" title="5.2.1 feedAppendOnlyFile函数的代码："></a>5.2.1 feedAppendOnlyFile函数的代码：</h6><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">feedAppendOnlyFile</span><span class="params">(struct redisCommand *cmd, <span class="keyword">int</span> dictid, robj **argv, <span class="keyword">int</span> argc)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 定义空字符串</span></span><br><span class="line">    sds buf = sdsempty();</span><br><span class="line">    robj *tmpargv[<span class="number">3</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这里会判断aof的是不是当前db，如果不是就发送select命令，选择目标db</span></span><br><span class="line">    <span class="keyword">if</span> (dictid != server.aof_selected_db) &#123;</span><br><span class="line">        <span class="keyword">char</span> seldb[<span class="number">64</span>];</span><br><span class="line"></span><br><span class="line">        <span class="built_in">snprintf</span>(seldb,<span class="keyword">sizeof</span>(seldb),<span class="string">&quot;%d&quot;</span>,dictid);</span><br><span class="line">        buf = sdscatprintf(buf,<span class="string">&quot;*2\r\n$6\r\nSELECT\r\n$%lu\r\n%s\r\n&quot;</span>,</span><br><span class="line">            (<span class="keyword">unsigned</span> <span class="keyword">long</span>)<span class="built_in">strlen</span>(seldb),seldb);</span><br><span class="line">        server.aof_selected_db = dictid;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 把命令转成resp格式，就是把过期时间和正常命令分开转换</span></span><br><span class="line">    <span class="keyword">if</span> (cmd-&gt;proc == expireCommand || cmd-&gt;proc == pexpireCommand ||</span><br><span class="line">        cmd-&gt;proc == expireatCommand) &#123;</span><br><span class="line">        <span class="comment">// 过期时间相关命令</span></span><br><span class="line">        <span class="comment">/* Translate EXPIRE/PEXPIRE/EXPIREAT into PEXPIREAT */</span></span><br><span class="line">        buf = catAppendOnlyExpireAtCommand(buf,cmd,argv[<span class="number">1</span>],argv[<span class="number">2</span>]);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cmd-&gt;proc == setexCommand || cmd-&gt;proc == psetexCommand) &#123;</span><br><span class="line">        <span class="comment">// pset命令处理</span></span><br><span class="line">        <span class="comment">/* Translate SETEX/PSETEX to SET and PEXPIREAT */</span></span><br><span class="line">        tmpargv[<span class="number">0</span>] = createStringObject(<span class="string">&quot;SET&quot;</span>,<span class="number">3</span>);</span><br><span class="line">        tmpargv[<span class="number">1</span>] = argv[<span class="number">1</span>];</span><br><span class="line">        tmpargv[<span class="number">2</span>] = argv[<span class="number">3</span>];</span><br><span class="line">        buf = catAppendOnlyGenericCommand(buf,<span class="number">3</span>,tmpargv);</span><br><span class="line">        decrRefCount(tmpargv[<span class="number">0</span>]);</span><br><span class="line">        buf = catAppendOnlyExpireAtCommand(buf,cmd,argv[<span class="number">1</span>],argv[<span class="number">2</span>]);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cmd-&gt;proc == setCommand &amp;&amp; argc &gt; <span class="number">3</span>) &#123;</span><br><span class="line">        <span class="comment">// 带过期时间的set命令处理</span></span><br><span class="line">        <span class="keyword">int</span> i;</span><br><span class="line">        robj *exarg = <span class="literal">NULL</span>, *pxarg = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="comment">/* Translate SET [EX seconds][PX milliseconds] to SET and PEXPIREAT */</span></span><br><span class="line">        buf = catAppendOnlyGenericCommand(buf,<span class="number">3</span>,argv);</span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">3</span>; i &lt; argc; i ++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!strcasecmp(argv[i]-&gt;ptr, <span class="string">&quot;ex&quot;</span>)) exarg = argv[i+<span class="number">1</span>];</span><br><span class="line">            <span class="keyword">if</span> (!strcasecmp(argv[i]-&gt;ptr, <span class="string">&quot;px&quot;</span>)) pxarg = argv[i+<span class="number">1</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        serverAssert(!(exarg &amp;&amp; pxarg));</span><br><span class="line">        <span class="keyword">if</span> (exarg)</span><br><span class="line">            buf = catAppendOnlyExpireAtCommand(buf,server.expireCommand,argv[<span class="number">1</span>],</span><br><span class="line">                                               exarg);</span><br><span class="line">        <span class="keyword">if</span> (pxarg)</span><br><span class="line">            buf = catAppendOnlyExpireAtCommand(buf,server.pexpireCommand,argv[<span class="number">1</span>],</span><br><span class="line">                                               pxarg);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 其他命令处理</span></span><br><span class="line">        buf = catAppendOnlyGenericCommand(buf,argc,argv);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (server.aof_state == AOF_ON)</span><br><span class="line">        <span class="comment">// 把拼好的buf写入到aof_buf</span></span><br><span class="line">        server.aof_buf = sdscatlen(server.aof_buf,buf,sdslen(buf));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 判断aof重写，重写由子进程执行</span></span><br><span class="line">    <span class="keyword">if</span> (server.aof_child_pid != <span class="number">-1</span>)</span><br><span class="line">        <span class="comment">// 把格式化后的buf写进rewriteBuf，rewriteBuf是个链表</span></span><br><span class="line">        aofRewriteBufferAppend((<span class="keyword">unsigned</span> <span class="keyword">char</span>*)buf,sdslen(buf));</span><br><span class="line">    <span class="comment">// 释放变量</span></span><br><span class="line">    sdsfree(buf);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="5-2-2-flushAppendOnlyFile函数流程："><a href="#5-2-2-flushAppendOnlyFile函数流程：" class="headerlink" title="5.2.2 flushAppendOnlyFile函数流程："></a>5.2.2 flushAppendOnlyFile函数流程：</h6><p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/aof%E5%88%B7%E7%9B%98%E6%B5%81%E7%A8%8B.png" alt="aof刷盘流程"></p>
+<h6 id="5-2-3-AOF重写"><a href="#5-2-3-AOF重写" class="headerlink" title="5.2.3 AOF重写"></a>5.2.3 AOF重写</h6><p>重写的方法在aof.c文件的<strong>rewriteAppendOnlyFileBackground</strong>函数，时机有4个：</p>
+<ol>
+<li>  bgrewriteaof命令显式调用，在aof.c的bgrewriteaofCommand函数中调用；</li>
+<li>  开启AOF，比如启动时AOF是打开的，关闭在开启就会执行重写，还有一种情况是如果从节点开启了AOF，在主从复制时会关闭AOF，复制完成后重新打开AOF。在aof.c的startAppendOnly函数中调用；</li>
+<li>  AOF的重写被设置成调度执行，对应aof_rewrite_scheduled配置，在server.c的serverCron函数中被调用；</li>
+<li>  AOF文件的大小超过阈值，也在server.c的serverCron函数中被调用；</li>
+</ol>
+<p>重写AOF时父进程会把新的写命令放进重写缓冲块中，缓冲块的结构体在aof.c中定义：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * AOF重写缓冲块</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">aofrwblock</span> &#123;</span></span><br><span class="line">    <span class="comment">// 已使用和剩余大小</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> used, <span class="built_in">free</span>;</span><br><span class="line">    <span class="comment">// 缓冲块数组，默认10M</span></span><br><span class="line">    <span class="keyword">char</span> buf[AOF_RW_BUF_BLOCK_SIZE];</span><br><span class="line">&#125; aofrwblock;</span><br></pre></td></tr></table></figure>
+<p>如果一个缓冲块写满了会追加一个新的缓冲块，多个缓冲块构成了aof_rewrite_buf_blocks，他是个list。子进程需要读取父进程的aof_rewrite_buf_blocks追加到新的aof文件从，同时也要通知父进程aof已经结束，不需要维护aof_rewrite_buf_blocks，这里父子进程的通信使用了管道：</p>
+<ul>
+<li>  数据管道：用来传输aof_rewrite_buf_blocks；</li>
+<li>  通信管道：子进程通知父进程不需要写aof_rewrite_buf_blocks了，父进程通知子进程已经不写了，子进程在管道中读取到’!’时就停止；</li>
+</ul>
+<p>创建管道的代码也在aof.c文件中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">aofCreatePipes</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> fds[<span class="number">6</span>] = &#123;<span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span>, <span class="number">-1</span>&#125;;</span><br><span class="line">    <span class="keyword">int</span> j;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 父进程向子进程写数据的管道</span></span><br><span class="line">    <span class="keyword">if</span> (pipe(fds) == <span class="number">-1</span>) <span class="keyword">goto</span> error; <span class="comment">/* parent -&gt; children data. */</span></span><br><span class="line">    <span class="comment">// 子进程通知父进程停止传输的管道</span></span><br><span class="line">    <span class="keyword">if</span> (pipe(fds+<span class="number">2</span>) == <span class="number">-1</span>) <span class="keyword">goto</span> error; <span class="comment">/* children -&gt; parent ack. */</span></span><br><span class="line">    <span class="comment">// 父进程向子进程回复停止传输的管道</span></span><br><span class="line">    <span class="keyword">if</span> (pipe(fds+<span class="number">4</span>) == <span class="number">-1</span>) <span class="keyword">goto</span> error; <span class="comment">/* parent -&gt; children ack. */</span></span><br><span class="line">    <span class="comment">/* Parent -&gt; children data is non blocking. */</span></span><br><span class="line">    <span class="keyword">if</span> (anetNonBlock(<span class="literal">NULL</span>,fds[<span class="number">0</span>]) != ANET_OK) <span class="keyword">goto</span> error;</span><br><span class="line">    <span class="keyword">if</span> (anetNonBlock(<span class="literal">NULL</span>,fds[<span class="number">1</span>]) != ANET_OK) <span class="keyword">goto</span> error;</span><br><span class="line">    <span class="comment">// 注册fds[2]事件，fds[2]对应的是aof_pipe_read_ack_from_child，还传入了一个函数aofChildPipeReadable</span></span><br><span class="line">    <span class="comment">// aofChildPipeReadable函数就是用来处理读取子进程的停止通知</span></span><br><span class="line">    <span class="keyword">if</span> (aeCreateFileEvent(server.el, fds[<span class="number">2</span>], AE_READABLE, aofChildPipeReadable, <span class="literal">NULL</span>) == AE_ERR) <span class="keyword">goto</span> error;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 父进程向子进程写数据的fd</span></span><br><span class="line">    server.aof_pipe_write_data_to_child = fds[<span class="number">1</span>];</span><br><span class="line">    <span class="comment">// 子进程读父进程写数据的fd</span></span><br><span class="line">    server.aof_pipe_read_data_from_parent = fds[<span class="number">0</span>];</span><br><span class="line">    <span class="comment">// 子进程写父进程通知的fd</span></span><br><span class="line">    server.aof_pipe_write_ack_to_parent = fds[<span class="number">3</span>];</span><br><span class="line">    <span class="comment">// 父进程读子进程通知的fd</span></span><br><span class="line">    server.aof_pipe_read_ack_from_child = fds[<span class="number">2</span>];</span><br><span class="line">    <span class="comment">// 父进程写子进程通知的fd</span></span><br><span class="line">    server.aof_pipe_write_ack_to_child = fds[<span class="number">5</span>];</span><br><span class="line">    <span class="comment">// 子进程读父进程通知的fd</span></span><br><span class="line">    server.aof_pipe_read_ack_from_parent = fds[<span class="number">4</span>];</span><br><span class="line">    server.aof_stop_sending_diff = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">return</span> C_OK;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/aof%E9%87%8D%E5%86%99%E6%B5%81%E7%A8%8B1.png" alt="aof重写流程1"></p>
+<h5 id="5-3-混合持久化"><a href="#5-3-混合持久化" class="headerlink" title="5.3 混合持久化"></a>5.3 混合持久化</h5><p>4.0之后新增了混合持久化，这个持久化发生在aof重写的时候，其实就是aof重写的第一步，把数据库里的数据以rdb格式写进aof文件而不是转成resp格式。判断的代码就在rewriteAppendOnlyFile()函数里：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (server.aof_use_rdb_preamble) &#123;</span><br><span class="line">    <span class="keyword">int</span> error;</span><br><span class="line">    <span class="comment">// 开启混合持久化当前数据使用rdb重写</span></span><br><span class="line">    <span class="keyword">if</span> (rdbSaveRio(&amp;aof,&amp;error,RDB_SAVE_AOF_PREAMBLE,<span class="literal">NULL</span>) == C_ERR) &#123;</span><br><span class="line">        errno = error;</span><br><span class="line">        <span class="keyword">goto</span> werr;</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 使用aof重写</span></span><br><span class="line">    <span class="keyword">if</span> (rewriteAppendOnlyFileRio(&amp;aof) == C_ERR) <span class="keyword">goto</span> werr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/">redis-1.架构设计</a></p>
+  <p><span>发布时间:</span>2023年06月14日 - 08:06</p>
+  <p><span>最后更新:</span>2023年06月25日 - 08:06</p>
+  <p><span>原始链接:</span><a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" title="redis-1.架构设计">https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/redis/" rel="tag"><i class="fa fa-tag"></i> redis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E4%BA%91%E5%8E%9F%E7%94%9F/4.k8s/" rel="next" title="云原生-4.k8s">
+                <i class="fa fa-chevron-left"></i> 云原生-4.k8s
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/DeepSpeed%E7%AC%94%E8%AE%B0/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">274</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-resp%E5%8D%8F%E8%AE%AE"><span class="nav-number">1.</span> <span class="nav-text">1.resp协议</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-1-redis%E4%B8%AD%E7%9A%84%E8%AF%B7%E6%B1%82%E5%93%8D%E5%BA%94%E6%A8%A1%E5%BC%8F%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 redis中的请求响应模式：</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">2.启动流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%91%BD%E4%BB%A4%E5%A4%84%E7%90%86%E6%B5%81%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">3.命令处理流程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#3-1-resp%E7%9A%84%E8%BF%94%E5%9B%9E"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 resp的返回</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">4.</span> <span class="nav-text">4.底层数据结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-number">5.</span> <span class="nav-text">5.持久化</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#5-1-RDB"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 RDB</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-2-AOF"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 AOF</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#5-2-1-feedAppendOnlyFile%E5%87%BD%E6%95%B0%E7%9A%84%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="nav-number">5.2.1.</span> <span class="nav-text">5.2.1 feedAppendOnlyFile函数的代码：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#5-2-2-flushAppendOnlyFile%E5%87%BD%E6%95%B0%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="nav-number">5.2.2.</span> <span class="nav-text">5.2.2 flushAppendOnlyFile函数流程：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#5-2-3-AOF%E9%87%8D%E5%86%99"><span class="nav-number">5.2.3.</span> <span class="nav-text">5.2.3 AOF重写</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-3-%E6%B7%B7%E5%90%88%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-number">5.3.</span> <span class="nav-text">5.3 混合持久化</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
