@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="JVM," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="1.定位他的定位是监控、排查故障以及性能优化。 2.用法a.启动启动方式有两种，第一种下载jar包[https:&#x2F;&#x2F;arthas.aliyun.com&#x2F;arthas-boot.jar]，下载完直接使用jar包的方式启动： 1234# telnet-port 指定arthas监听的telnet端口，用来和arthas shell通信# -1表示不监听，0表示随机# 相关配置在arthas.prope">
+<meta property="og:type" content="article">
+<meta property="og:title" content="jvm-9.arthas">
+<meta property="og:url" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/jvm/9.arthas/index.html">
+<meta property="og:site_name" content="小红">
+<meta property="og:description" content="1.定位他的定位是监控、排查故障以及性能优化。 2.用法a.启动启动方式有两种，第一种下载jar包[https:&#x2F;&#x2F;arthas.aliyun.com&#x2F;arthas-boot.jar]，下载完直接使用jar包的方式启动： 1234# telnet-port 指定arthas监听的telnet端口，用来和arthas shell通信# -1表示不监听，0表示随机# 相关配置在arthas.prope">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/arthas%E5%90%AF%E5%8A%A8%E6%88%90%E5%8A%9F.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-07-27_08-54-03.png">
+<meta property="article:published_time" content="2023-07-10T00:26:03.000Z">
+<meta property="article:modified_time" content="2023-08-06T00:56:15.000Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/arthas%E5%90%AF%E5%8A%A8%E6%88%90%E5%8A%9F.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://wangxiaohong123.github.io/基础/jvm/9.arthas/"/>
+
+
+
+
+
+  <title>jvm-9.arthas | 小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/jvm/9.arthas/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">jvm-9.arthas</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2023-07-10T08:26:03+08:00">
+                2023-07-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
+                    <span itemprop="name">基础</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h5 id="1-定位"><a href="#1-定位" class="headerlink" title="1.定位"></a>1.定位</h5><p>他的定位是监控、排查故障以及性能优化。</p>
+<h5 id="2-用法"><a href="#2-用法" class="headerlink" title="2.用法"></a>2.用法</h5><h6 id="a-启动"><a href="#a-启动" class="headerlink" title="a.启动"></a>a.启动</h6><p>启动方式有两种，第一种下载jar包[<a target="_blank" rel="noopener" href="https://arthas.aliyun.com/arthas-boot.jar]%EF%BC%8C%E4%B8%8B%E8%BD%BD%E5%AE%8C%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8jar%E5%8C%85%E7%9A%84%E6%96%B9%E5%BC%8F%E5%90%AF%E5%8A%A8%EF%BC%9A">https://arthas.aliyun.com/arthas-boot.jar]，下载完直接使用jar包的方式启动：</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> telnet-port 指定arthas监听的telnet端口，用来和arthas shell通信</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> -1表示不监听，0表示随机</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 相关配置在arthas.properties里</span></span><br><span class="line">java -jar arthas-boot.jar --telnet-port 4659 &lt;pid&gt;</span><br></pre></td></tr></table></figure>
+<p>启动之后可以看到监听端口</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/arthas%E5%90%AF%E5%8A%A8%E6%88%90%E5%8A%9F.png" alt="arthas启动成功"></p>
+<p>第二种下载arthas远程客户端(启动远程客户端需要先安装telnet)</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">curl -L https://arthas.aliyun.com/install.sh | sh</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 启动并指定监听进程的ip和端口，这里设置的是Web Console页面的ip和端口</span></span><br><span class="line">./as.sh --target-ip 127.0.0.1 --target-port 8888 &lt;pid&gt;</span><br></pre></td></tr></table></figure>
+<p>不管哪种方式启动，如果启动时没有指定进程id，会列出所有java进程：</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-07-27_08-54-03.png" alt="Xnip2023-07-27_08-54-03"></p>
+<p>只要选择前面的序号就可以选择对应的java进程，如果觉得每次重启java进程之后pid都会发生变化可以使用select指定进程名：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar arthas-boot.jar --select com.example.Main</span><br></pre></td></tr></table></figure>
+<p>启动之后可以使用指定的target-ip+target-port在浏览器中访问。</p>
+<h6 id="b-基本命令"><a href="#b-基本命令" class="headerlink" title="b.基本命令"></a>b.基本命令</h6><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+<th>命令</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>dashboard</td>
+<td>实时系统数据面板，可以看到线程、内存信息</td>
+<td>getstatic</td>
+<td>查看类的静态属性，可以背ognl替代</td>
+</tr>
+<tr>
+<td>heapdump</td>
+<td>导出内存快照</td>
+<td>jvm</td>
+<td>查看jvm信息</td>
+</tr>
+<tr>
+<td>logger</td>
+<td>查看 logger 信息，更新 logger level</td>
+<td>mbean</td>
+<td>查看mbean信息</td>
+</tr>
+<tr>
+<td>memory</td>
+<td>查看内存信息</td>
+<td>ognl</td>
+<td>执行ognl表达式(之前的groovy可能内存泄漏)</td>
+</tr>
+<tr>
+<td>perfcounter</td>
+<td>查看当前JVM的Performance Counter(性能技术器)信息</td>
+<td>sysenv</td>
+<td>查看系统变量</td>
+</tr>
+<tr>
+<td>sysprop</td>
+<td>查看系统属性</td>
+<td>thread</td>
+<td>查看线程堆栈信息</td>
+</tr>
+<tr>
+<td>vmoption</td>
+<td>查看或更新vm诊断参数</td>
+<td>vmtool</td>
+<td>利用jvmti接口查询内存对象或者强制GC</td>
+</tr>
+<tr>
+<td>classloader</td>
+<td>查看或使用类加载器</td>
+<td>dump</td>
+<td>把加载完的字节码文件dump到指定目录</td>
+</tr>
+<tr>
+<td>jad</td>
+<td>反编译已加载的类的源码</td>
+<td>mc</td>
+<td>编译java文件成class文件</td>
+</tr>
+<tr>
+<td>readfine</td>
+<td>动态修改已经加载的类(不能修改类的结构和正在运行的函数)</td>
+<td>retransform</td>
+<td>和readfine功能相同，更灵活</td>
+</tr>
+<tr>
+<td>sc</td>
+<td>打印已加载的类信息</td>
+<td>sm</td>
+<td>打印已加载类的方法信息</td>
+</tr>
+<tr>
+<td>monitor</td>
+<td>方法执行监控</td>
+<td>stack</td>
+<td>查看方法的被调用堆栈信息</td>
+</tr>
+<tr>
+<td>trace</td>
+<td>输出方法内部节点路径上的节点耗时</td>
+<td>tt</td>
+<td>打印方法的入参、出参和耗时</td>
+</tr>
+<tr>
+<td>watch</td>
+<td>和tt类似，更灵活，但是使用更复杂</td>
+<td>profiler</td>
+<td>针对cpu、对向分配、锁等信息生成火焰图</td>
+</tr>
+<tr>
+<td>jfr</td>
+<td>使用jfr诊断工具</td>
+<td>auth</td>
+<td>开启或关闭会话验证</td>
+</tr>
+<tr>
+<td>options</td>
+<td>全局设置</td>
+<td>base64</td>
+<td>进行base64编解码</td>
+</tr>
+<tr>
+<td>cat</td>
+<td>打印文件内容</td>
+<td>cls</td>
+<td>清空屏幕</td>
+</tr>
+<tr>
+<td>echo</td>
+<td>打印命令或者文本</td>
+<td>grep</td>
+<td></td>
+</tr>
+<tr>
+<td>help</td>
+<td></td>
+<td>history</td>
+<td></td>
+</tr>
+<tr>
+<td>keymap</td>
+<td>输出命令的快捷键映射表</td>
+<td>pwd</td>
+<td></td>
+</tr>
+<tr>
+<td>quit</td>
+<td>退出客户端</td>
+<td>reset</td>
+<td>重制被arthas增强的类</td>
+</tr>
+<tr>
+<td>session</td>
+<td>显示会话信息</td>
+<td>stop</td>
+<td>关闭arthas服务端</td>
+</tr>
+<tr>
+<td>tee</td>
+<td></td>
+<td>version</td>
+<td></td>
+</tr>
+</tbody></table>
+<h6 id="c-利用Arthas进行性能分析"><a href="#c-利用Arthas进行性能分析" class="headerlink" title="c. 利用Arthas进行性能分析"></a>c. 利用Arthas进行性能分析</h6><ul>
+<li><p>分析消耗CPU的代码</p>
+<p>  首先开启profiler：</p>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 默认采样cpu，支持采样cpu, alloc(对象分配), lock(锁竞争), cache-misses(cpu缓存未命中信息)</span></span><br><span class="line">profiler start -e cpu</span><br></pre></td></tr></table></figure>
+<p>  然后执行方法：</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">hCPU</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">        fib(i);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">fib</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (n &lt;= <span class="number">1</span>) <span class="keyword">return</span> n;</span><br><span class="line">    <span class="keyword">return</span> fib(n-<span class="number">1</span>) + fib(n-<span class="number">2</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>  方法执行完后停止profiler：</p>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 如果是生成html的文件可以直接在浏览器中访问，默认是html格式</span></span><br><span class="line">profiler stop --format html</span><br></pre></td></tr></table></figure>
+<p>  生成完火焰图可以直接打开或者访问<a target="_blank" rel="noopener" href="http://127.0.0.1:8563/arthas-output/%E6%9F%A5%E7%9C%8B%E7%94%9F%E6%88%90%E7%9A%84%E7%81%AB%E7%84%B0%E5%9B%BE%EF%BC%8C%E6%89%BE%E5%88%B0%E4%BA%86%E5%8D%A0%E7%94%A8CPU%E6%9C%80%E9%AB%98%E7%9A%84%E6%96%B9%E6%B3%95fib()%EF%BC%8C%E4%B9%8B%E5%90%8E%E5%B0%B1%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8trace%E5%91%BD%E4%BB%A4%E6%9F%A5%E7%9C%8B%E6%96%B9%E6%B3%95%E7%9A%84%E5%86%85%E9%83%A8%E8%B0%83%E7%94%A8%E8%B7%AF%E5%BE%84%EF%BC%8C%E6%9F%A5%E7%9C%8B%E6%96%B9%E6%B3%95%E5%86%85%E9%83%A8%E8%8A%82%E7%82%B9%E8%80%97%E6%97%B6%EF%BC%9A">http://127.0.0.1:8563/arthas-output/查看生成的火焰图，找到了占用CPU最高的方法fib()，之后就可以使用trace命令查看方法的内部调用路径，查看方法内部节点耗时：</a></p>
+  <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">trace com.example.DemoService fib</span><br></pre></td></tr></table></figure></li>
+<li><p>  排查内存泄漏问题</p>
+</li>
+</ul>
+<ul>
+<li><p>  排查内存溢出</p>
+</li>
+<li><p>  进行代码热替换</p>
+</li>
+</ul>
+<h3 id="IV-Arthas工作原理"><a href="#IV-Arthas工作原理" class="headerlink" title="IV. Arthas工作原理"></a>IV. Arthas工作原理</h3><p>A. 类加载和字节码增强</p>
+<ol>
+<li> Java类加载的基本原理</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/%E5%9F%BA%E7%A1%80/jvm/9.arthas/">jvm-9.arthas</a></p>
+  <p><span>发布时间:</span>2023年07月10日 - 08:07</p>
+  <p><span>最后更新:</span>2023年08月06日 - 08:08</p>
+  <p><span>原始链接:</span><a href="/%E5%9F%BA%E7%A1%80/jvm/9.arthas/" title="jvm-9.arthas">https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/jvm/9.arthas/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/jvm/9.arthas/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JVM/" rel="tag"><i class="fa fa-tag"></i> JVM</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/5.%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88/" rel="next" title="redis-5.整数集合">
+                <i class="fa fa-chevron-left"></i> redis-5.整数集合
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98/2.ApplicationListener%E8%8C%83%E5%9E%8B%E9%97%AE%E9%A2%98/" rel="prev" title="2.ApplicationListener没有写范型导致的两个问题">
+                2.ApplicationListener没有写范型导致的两个问题 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">284</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">48</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E5%AE%9A%E4%BD%8D"><span class="nav-number">1.</span> <span class="nav-text">1.定位</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E7%94%A8%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">2.用法</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#a-%E5%90%AF%E5%8A%A8"><span class="nav-number">2.1.</span> <span class="nav-text">a.启动</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#b-%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="nav-number">2.2.</span> <span class="nav-text">b.基本命令</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#c-%E5%88%A9%E7%94%A8Arthas%E8%BF%9B%E8%A1%8C%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="nav-number">2.3.</span> <span class="nav-text">c. 利用Arthas进行性能分析</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IV-Arthas%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number"></span> <span class="nav-text">IV. Arthas工作原理</span></a></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

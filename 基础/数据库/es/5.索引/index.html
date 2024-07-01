@@ -96,15 +96,15 @@
 
 
 
-<meta name="description" content="mapping有的时候查询的结果和我们想的不一样，可能会多查或者少查，这是因为添加document的时候es会自动帮我们创建type对应的mapping(dynamic mapping)，mapping中有分词规则、field类型等等，使用**GET &#x2F;{index}&#x2F;_mapping&#x2F;**查看index下的type对应的mapping。 1.核心的数据类型   keyword&#x2F;text   by">
+<meta name="description" content="mapping有的时候查询的结果和我们想的不一样，可能会多查或者少查，这是因为添加document的时候es会自动帮我们创建type对应的mapping(dynamic mapping)，mapping中有分词规则、field类型等等，使用**GET &#x2F;{index}&#x2F;_mapping&#x2F;**查看index下的type对应的mapping。 1.核心的数据类型   keyword、text   by">
 <meta property="og:type" content="article">
 <meta property="og:title" content="5.索引">
 <meta property="og:url" content="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/5.%E7%B4%A2%E5%BC%95/index.html">
 <meta property="og:site_name" content="小红">
-<meta property="og:description" content="mapping有的时候查询的结果和我们想的不一样，可能会多查或者少查，这是因为添加document的时候es会自动帮我们创建type对应的mapping(dynamic mapping)，mapping中有分词规则、field类型等等，使用**GET &#x2F;{index}&#x2F;_mapping&#x2F;**查看index下的type对应的mapping。 1.核心的数据类型   keyword&#x2F;text   by">
+<meta property="og:description" content="mapping有的时候查询的结果和我们想的不一样，可能会多查或者少查，这是因为添加document的时候es会自动帮我们创建type对应的mapping(dynamic mapping)，mapping中有分词规则、field类型等等，使用**GET &#x2F;{index}&#x2F;_mapping&#x2F;**查看index下的type对应的mapping。 1.核心的数据类型   keyword、text   by">
 <meta property="og:locale">
-<meta property="article:published_time" content="2022-03-17T08:42:41.657Z">
-<meta property="article:modified_time" content="2022-04-18T00:22:39.153Z">
+<meta property="article:published_time" content="2022-03-17T08:42:41.000Z">
+<meta property="article:modified_time" content="2023-07-26T00:43:06.000Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="elasticsearch">
 <meta name="twitter:card" content="summary">
@@ -400,7 +400,7 @@
       
         <h5 id="mapping"><a href="#mapping" class="headerlink" title="mapping"></a>mapping</h5><p>有的时候查询的结果和我们想的不一样，可能会多查或者少查，这是因为添加document的时候es会自动帮我们创建type对应的mapping(dynamic mapping)，mapping中有分词规则、field类型等等，使用**GET /{index}/_mapping/**查看index下的type对应的mapping。</p>
 <h6 id="1-核心的数据类型"><a href="#1-核心的数据类型" class="headerlink" title="1.核心的数据类型"></a>1.核心的数据类型</h6><ul>
-<li>  keyword/text</li>
+<li>  keyword、text</li>
 <li>  byte、short、integer、long</li>
 <li>  float、double</li>
 <li>  date</li>
@@ -409,8 +409,8 @@
 <li>  empty：null,[],[null]这种</li>
 <li>  object：jsonObject</li>
 </ul>
-<p>string、multivalue field会触发分词操作，可以指定分词器或者设置不分词，在旧版本中设置index: not_analyzer表示不分词，新版本中只需要把type设置成keyword就表示不分词。<br>手动建立mapping，不能修改已存在的field的mapping，下面的语句是创建index时指定mapping：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">PUT /website</span><br><span class="line">&#123;</span><br><span class="line">  &quot;settings&quot; : &#123;</span><br><span class="line">    // 1个primary shard</span><br><span class="line">    &quot;number_of_shards&quot;: 1,</span><br><span class="line">    // 每个primary shard有0个replica shard</span><br><span class="line">    &quot;number_of_replicas&quot;: 0</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;mappings&quot;: &#123;</span><br><span class="line">    &quot;properties&quot;: &#123;</span><br><span class="line">      &quot;content&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;text&quot;,</span><br><span class="line">        &quot;analyzer&quot;: &quot;english&quot; // 指定特殊语言分词</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;post_date&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;date&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;title&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;text&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;publisher_id&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;keyword&quot;, // 不分词的的field</span><br><span class="line">        &quot;index&quot;: false</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>text、multivalue field会触发分词操作，可以指定分词器或者设置不分词，在旧版本中设置index: not_analyzer表示不分词，新版本中只需要把type设置成keyword就表示不分词。<br>手动建立mapping，不能修改已存在的field的mapping，下面的语句是创建index时指定mapping：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">PUT /website</span><br><span class="line">&#123;</span><br><span class="line">  &quot;settings&quot; : &#123;</span><br><span class="line">    // 1个primary shard</span><br><span class="line">    &quot;number_of_shards&quot;: 1,</span><br><span class="line">    // 每个primary shard有0个replica shard</span><br><span class="line">    &quot;number_of_replicas&quot;: 0</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;mappings&quot;: &#123;</span><br><span class="line">    &quot;properties&quot;: &#123;</span><br><span class="line">      &quot;content&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;text&quot;,</span><br><span class="line">        &quot;analyzer&quot;: &quot;english&quot; // 指定特殊语言分词</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;post_date&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;date&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;title&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;text&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;publisher_id&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;keyword&quot;, // 不分词的的field</span><br><span class="line">        &quot;index&quot;: false // false表示这个字段不能被当作搜索条件</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>如果想要新增field的mapping执行<code>PUT /&#123;index&#125;/_mapping</code>命令：</p>
 <figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">PUT /website/_mapping</span><br><span class="line">&#123;</span><br><span class="line">  &quot;properties&quot;: &#123;</span><br><span class="line">    &quot;tags&quot;: &#123;</span><br><span class="line">      &quot;type&quot;: &quot;text&quot;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h6 id="2-root-object"><a href="#2-root-object" class="headerlink" title="2.root object"></a>2.root object</h6><p>root object就是index对应的mapping json，里面包含properties、metadata(_id、_source)、settings。</p>
@@ -451,7 +451,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/5.%E7%B4%A2%E5%BC%95/">5.索引</a></p>
   <p><span>发布时间:</span>2022年03月17日 - 16:03</p>
-  <p><span>最后更新:</span>2022年04月18日 - 08:04</p>
+  <p><span>最后更新:</span>2023年07月26日 - 08:07</p>
   <p><span>原始链接:</span><a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/5.%E7%B4%A2%E5%BC%95/" title="5.索引">https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/5.%E7%B4%A2%E5%BC%95/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/es/5.%E7%B4%A2%E5%BC%95/"  aria-label="复制成功！"></i></span>
   </p>
@@ -586,7 +586,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">274</span>
+                <span class="site-state-item-count">284</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -597,7 +597,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-count">26</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -608,7 +608,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-count">48</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -674,7 +674,7 @@
 <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

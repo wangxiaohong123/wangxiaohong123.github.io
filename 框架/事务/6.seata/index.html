@@ -104,8 +104,8 @@
 <meta property="og:description" content="seata原理AT模式原理首先有一个Seata Server负责控制事务的提交和回滚，每个服务里需要引入seata client负责监听sql，并生成对应的undo_log，undo_log存储在表里，并且操作本地数据和插入undo_log在同一本地事务中，当服务完成本地事务后需要告诉Seata Server分支事务提交成功，所有分支事务都完成后(那个角色提交？)向Seata Server提交事务">
 <meta property="og:locale">
 <meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNly1gxzsr3pj0gj31cq0u00vm.jpg">
-<meta property="article:published_time" content="2021-12-19T06:54:43.760Z">
-<meta property="article:modified_time" content="2023-02-22T02:19:02.537Z">
+<meta property="article:published_time" content="2021-12-19T06:54:43.000Z">
+<meta property="article:modified_time" content="2023-08-11T00:20:15.000Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="事务">
 <meta name="twitter:card" content="summary">
@@ -401,10 +401,10 @@
 
       
         <h3 id="seata原理"><a href="#seata原理" class="headerlink" title="seata原理"></a>seata原理</h3><h4 id="AT模式原理"><a href="#AT模式原理" class="headerlink" title="AT模式原理"></a>AT模式原理</h4><p>首先有一个Seata Server负责控制事务的提交和回滚，每个服务里需要引入seata client负责监听sql，并生成对应的undo_log，undo_log存储在表里，并且操作本地数据和插入undo_log在同一本地事务中，当服务完成本地事务后需要告诉Seata Server分支事务提交成功，所有分支事务都完成后(<strong>那个角色提交？</strong>)向Seata Server提交事务并释放全局锁，如果存在某个服务发生异常，此时Seata Server会向提交分支事务成功的服务发送执行回滚日志消息，再由seata client执行对应的undo_log。</p>
-<p>![](../images/seata AT模式.png)</p>
+<p>![seataAT模式](<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/seata">https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/seata</a> AT模式.png)</p>
 <h4 id="读写隔离原理"><a href="#读写隔离原理" class="headerlink" title="读写隔离原理"></a>读写隔离原理</h4><p>seata的隔离级别是读未提交，未提交指的是分布式事务没有提交，并不是本地事务。</p>
 <p>首先完整的流程如下图，在提交本地事务前必须要通过Seata Server获取全局锁，其他分布式事务在没有拿到全局锁前不能提交本地事务，如果没有全局锁会导致多个分布式事务同时操作一条数据，发生回滚时数据错乱的问题，但是引入的全局锁会让性能下降的严重，所以AT模式的分布式事务只用在跟钱相关的操作里，其他时候如果需要用到分布式事务可以使用mq的软事务。</p>
-<p>![](../images/seata AT模式读写隔离原理.png)</p>
+<p>![seataAT模式读写隔离原理](<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/seata">https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/seata</a> AT模式读写隔离原理.png)</p>
 <h4 id="死锁问题"><a href="#死锁问题" class="headerlink" title="死锁问题"></a>死锁问题</h4><p>比如上图两个事务操作同一条数据，事务1中服务A的操作执行完成并且提交了本地事务，此时事务2开始执行服务A的操作，此时全局锁在事务1上，所以事务2的服务A没法提交本地事务，他会等待拿到全局锁，但是这个时候他是持有11001的本地锁的，事务1在执行服务B操作的时候发生异常需要回滚，服务A收到回滚消息需要拿到11001的本地锁，出现了事务1持有事务2需要的全局锁，事务2持有事务1需要的本地锁，循环等待了，seata为了解决这个死锁问题在获取全局锁的时候加了个超时机制，如果超时会回滚数据并释放锁。</p>
 <h4 id="使用seata"><a href="#使用seata" class="headerlink" title="使用seata"></a>使用seata</h4><p>前提：Seata Server启动好，每个服务对应的库创建好undo_log表。</p>
 <p>pom中添加依赖：</p>
@@ -468,7 +468,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/6.seata/">事务-6.seata</a></p>
   <p><span>发布时间:</span>2021年12月19日 - 14:12</p>
-  <p><span>最后更新:</span>2023年02月22日 - 10:02</p>
+  <p><span>最后更新:</span>2023年08月11日 - 08:08</p>
   <p><span>原始链接:</span><a href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/6.seata/" title="事务-6.seata">https://wangxiaohong123.github.io/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/6.seata/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/6.seata/"  aria-label="复制成功！"></i></span>
   </p>
@@ -524,8 +524,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/5.%E5%8E%8B%E6%B5%8B/" rel="prev" title="5.压测">
-                5.压测 <i class="fa fa-chevron-right"></i>
+              <a href="/%E6%A1%86%E6%9E%B6/spring/cloud%20alibaba/Cloud-alibaba%20demo%E4%B9%8B%E8%AE%A2%E5%8D%95/6.%E9%99%90%E6%B5%81%E7%86%94%E6%96%AD/" rel="prev" title="6.限流熔断">
+                6.限流熔断 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -603,7 +603,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">274</span>
+                <span class="site-state-item-count">284</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -614,7 +614,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-count">26</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -625,7 +625,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-count">48</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -691,7 +691,7 @@
 <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

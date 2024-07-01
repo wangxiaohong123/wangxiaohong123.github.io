@@ -103,14 +103,14 @@
 <meta property="og:site_name" content="小红">
 <meta property="og:description" content="一 认证授权1.没有cookie的话session还能用吗cookie的主要作用是保存sessionId，如果没有cookie比如浏览器禁用cookie可以把sessionId保存到别的地方，通过url拼接或者其他参数传过来，如果不想暴露sessionId可以加个密。 2.分布式session方案1.使用spring session + redis。2.jwt。 3.什么是jwtjwt是基于tok">
 <meta property="og:locale">
-<meta property="og:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/6.%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/images/dubbo%E4%B8%BB%E8%A6%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png">
-<meta property="og:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/6.%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/images/dubbo%E7%BD%91%E7%BB%9C%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84.png">
-<meta property="article:published_time" content="2020-06-28T03:53:16.467Z">
-<meta property="article:modified_time" content="2023-04-08T05:07:19.447Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/dubbo%E4%B8%BB%E8%A6%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/dubbo%E7%BD%91%E7%BB%9C%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84.png">
+<meta property="article:published_time" content="2020-06-28T03:53:16.000Z">
+<meta property="article:modified_time" content="2024-03-09T03:57:45.849Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="面试专题">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/6.%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/images/dubbo%E4%B8%BB%E8%A6%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/dubbo%E4%B8%BB%E8%A6%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png">
 
 
 
@@ -426,7 +426,7 @@
 <li>  可靠消息最终一致性：根据本地消息表改的，只使用mq，去掉了本地消息表，RocketMQ天然支持。可靠消息说得是提交时可靠和rocketmq的高可用，最终一致性说的是失败不会回滚，只会不断重试，A系统首先会提交一条prepared消息到rocketmq里去，在处理完业务后提交一个confirm消息，如果rocketmq长时间没收到confirm消息会去回调A系统，A系统可以选择重新发送或者回滚prepared消息，B系统收到消息后首先要保证幂等，如果消费失败可以回调A系统让他重发或者不提交offect，在重试一定次数还是失败需要标记或者持久化等待人工补偿。</li>
 <li>  最大努力送达方案：在mq后面可能有一个通知服务，甚至都不需要这个服务，消费的服务只要尝试最大次数就可以了，对一致性要求不严格的话可以使用；</li>
 </ul>
-<h6 id="4-核心链路的事务"><a href="#4-核心链路的事务" class="headerlink" title="4.核心链路的事务"></a>4.核心链路的事务</h6><p>针对用户可能在公众号充值和在app消费的情况，使用seata的XA事务(画图)，发送漂流瓶同步到动态使用自研的最终一致性框架(画图)。</p>
+<h6 id="4-核心链路的事务"><a href="#4-核心链路的事务" class="headerlink" title="4.核心链路的事务"></a>4.核心链路的事务</h6><p>针对用户可能在公众号充值和在app消费的情况，使用seata的AT事务(画图)，发送漂流瓶同步到动态使用自研的最终一致性框架(画图)。</p>
 <h6 id="5-seata的空悬挂、空回滚问题"><a href="#5-seata的空悬挂、空回滚问题" class="headerlink" title="5.seata的空悬挂、空回滚问题"></a>5.seata的空悬挂、空回滚问题</h6><p>在seata的tcc事务里，空悬挂说的是try方法的空悬挂，空回滚说的是cancel方法的空回滚，比如在执行try方法时突然卡柱，seata server拿到try方法超时通知执行cancel方法，cancel方法并没有要回滚的数据，出现空回滚，cancel执行完try方法继续执行，此时出现空悬挂产生脏数据的问题。</p>
 <p>这个时候可以记录try方法的执行状态，如果没执行完就执行cancel方法就在数据库里插入一条空数据，当try方法操作数据库前发现这条空数据就表示这次事务已经失败，删掉这条空数据结束方法就可以了，同时当confirm或者cancel方法超时的时候seata server会不断发起调用，这个时候需要做好幂等处理。</p>
 <h6 id="6-分布式id"><a href="#6-分布式id" class="headerlink" title="6.分布式id"></a>6.分布式id</h6><p>分布式方案主要有以下几种：</p>
@@ -452,7 +452,7 @@
 <h6 id="9-接口幂等性怎么保证？"><a href="#9-接口幂等性怎么保证？" class="headerlink" title="9.接口幂等性怎么保证？"></a>9.接口幂等性怎么保证？</h6><p>出现重试有可能重复下单，首先插入逻辑最好有唯一索引保证，比如扣款记录中的订单id，这样能保证不重复扣款，如果要做统一幂等可以写一个接口执行结束后的拦截器，把post和put请求的所有参数都拼在一起当成一个key，去redis中查找，如果有结果就是重复访问，但是这样实现会有问题，解决不了超时重试的重复问题，而且我项目里并不是所有接口都要做幂等，所以我是在具体的接口中单独耦合的幂等，进入接口的时候redis中set数据，如果失败了就删除redis中的数据然后回滚，成功了就不管。</p>
 <h6 id="8-分布式系统中的接口调用如何保证顺序性？"><a href="#8-分布式系统中的接口调用如何保证顺序性？" class="headerlink" title="8.分布式系统中的接口调用如何保证顺序性？"></a>8.分布式系统中的接口调用如何保证顺序性？</h6><p>可以在被调用接口之前加一个接入服务，这个服务负责分发，把需要顺序执行的请求分到同一机器上。</p>
 <h6 id="9-分布式锁"><a href="#9-分布式锁" class="headerlink" title="9.分布式锁"></a>9.分布式锁</h6><p>Redis：项目中用户钱包金额的查询和扣减都是用了分布式锁，因为在下单时，选择钱包抵扣是需要判断钱包余额的，支付失败的回调接口是反向扣减余额，redis分布式锁原理是通过setNx+过期时间实现，业务中使用try with resources封装的redisson，并且不指定持有锁时间，因为不指定时间redisson可以实现锁的自动续期。redis集群挂掉对分布式锁是有影响的，因为主从同步是异步的，很有可能还没同步数据，master就挂了，这时候别的线程也可以加锁了，官方推荐的是redLock，给集群中独立的redis进行setNx，超过半数成功就算成功，这种方式性能不好。</p>
-<p>zk：使用zk加锁一般都用curator创建临时顺序节点加锁。zk和客户端出现网或问题或者脑裂还是会可能出现重复加锁问题。</p>
+<p>zk：使用zk加锁一般都用curator创建临时顺序节点加锁。zk和客户端出现网络问题或者脑裂还是会可能出现重复加锁问题。</p>
 <p>如果想要抗高并发可以使用kv存储，不加锁，像redis、mongodb比如说库存，直接扣，如果扣完发现小于0就把数据加回去，然后返回库存不足。</p>
 <h6 id="11-服务注册中心进行过技术调研吗？如何选型"><a href="#11-服务注册中心进行过技术调研吗？如何选型" class="headerlink" title="11.服务注册中心进行过技术调研吗？如何选型"></a>11.服务注册中心进行过技术调研吗？如何选型</h6><p>zk只有leader能写，每个服务都监听zk上的服务列表，当服务列表有变化的时候zk会通知其他服务服务列表变更。eureka是一种peer to peer模式，每个节点都可以读写，zk是leader和follower这种。</p>
 <p>一致性保障：zk选择了cp，保证强一致性和分区容错性，当leader挂了的时候，服务是不能访问的。eureka选择的ap，任何一个eureka挂掉了是不影响其他服务访问的，但是经过一段时间的心跳、注册、拉取注册表会达到最终一致性。</p>
@@ -461,13 +461,13 @@
 <h6 id="12-nacos协议"><a href="#12-nacos协议" class="headerlink" title="12.nacos协议"></a>12.nacos协议</h6><p>nacos支持distro(ap+最终一致性)协议和raft(弱cp)协议</p>
 <ul>
 <li>  distro协议：注册的时候随机选择nacos节点，由转发节点根据ip+port计算目标nacos节点并转发，目标nacos节点把服务信息保存到内存然后通过转发节点返回结果，然后目标nacos节点再把刚才收到的服务信息发送给所有nacos节点；所有nacos节点都会定时向其他节点发送心跳和自己保存的服务信息，当其他节点发现两个服务信息不一致的时候会全量拉取；所以distro协议是最终一致性的，订阅节点信息时也是随机选择一个nacos节点，如果这个nacos节点发现没有这个服务实例信息回添加一个回调，等到实例信息同步完成回调订阅这个实例的服务。</li>
-<li>  raft协议：选出主节点，只能在主节点上写，写的时候回去同步到从节点，当超过半数从节点同步成功就算成功，所以他是弱一致性，这个性能没有distro好。</li>
+<li>  raft协议：选出主节点，只能在主节点上写，写的时候会同步到从节点，当超过半数从节点同步成功就算成功，所以他是弱一致性，这个性能没有distro好。</li>
 </ul>
 <h6 id="13-http和rpc的区别"><a href="#13-http和rpc的区别" class="headerlink" title="13.http和rpc的区别"></a>13.http和rpc的区别</h6><p>首先他俩都是基于应用层的协议，rpc更倾向于调用方式而不是协议，他的协议可以定制，定制出来的header要比http小很多，序列化的方式也要比http好，http应该只支持json序列化，而且rpc不需要考虑那么多的状态码，一般用于系统内部的服务调用。</p>
-<h5 id="三-dubbo"><a href="#三-dubbo" class="headerlink" title="三 dubbo"></a>三 dubbo</h5><h5 id="1-dubbo工作原理"><a href="#1-dubbo工作原理" class="headerlink" title="1.dubbo工作原理"></a>1.dubbo工作原理</h5><p><img src="images/dubbo%E4%B8%BB%E8%A6%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png"></p>
+<h5 id="三-dubbo"><a href="#三-dubbo" class="headerlink" title="三 dubbo"></a>三 dubbo</h5><h5 id="1-dubbo工作原理"><a href="#1-dubbo工作原理" class="headerlink" title="1.dubbo工作原理"></a>1.dubbo工作原理</h5><p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/dubbo%E4%B8%BB%E8%A6%81%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B.png" alt="dubbo主要工作流程"></p>
 <h6 id="2-dubbo支持哪些通信协议和序列化协议？"><a href="#2-dubbo支持哪些通信协议和序列化协议？" class="headerlink" title="2.dubbo支持哪些通信协议和序列化协议？"></a>2.dubbo支持哪些通信协议和序列化协议？</h6><p>dubbo3.0之后应该只剩下hession2和jdk了。之前还有protobuf、json这些。</p>
 <p>通信协议有dubbo、triple、grpc。</p>
-<h6 id="3-dubbo底层的网络通信原理"><a href="#3-dubbo底层的网络通信原理" class="headerlink" title="3.dubbo底层的网络通信原理"></a>3.dubbo底层的网络通信原理</h6><p><img src="images/dubbo%E7%BD%91%E7%BB%9C%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84.png"></p>
+<h6 id="3-dubbo底层的网络通信原理"><a href="#3-dubbo底层的网络通信原理" class="headerlink" title="3.dubbo底层的网络通信原理"></a>3.dubbo底层的网络通信原理</h6><p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/dubbo%E7%BD%91%E7%BB%9C%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84.png" alt="dubbo网络服务架构"></p>
 <h5 id="4-dubbo怎么保证组件的扩展性"><a href="#4-dubbo怎么保证组件的扩展性" class="headerlink" title="4.dubbo怎么保证组件的扩展性"></a>4.dubbo怎么保证组件的扩展性</h5><p>内部组件和组件之间的调用，通过ScopeModel统一管理，必须全部是依托于接口，根据SPI动态查找配置或者默认的实现类。</p>
 <h6 id="5-SPI是啥，dubbo的SPI机制是怎么玩的？"><a href="#5-SPI是啥，dubbo的SPI机制是怎么玩的？" class="headerlink" title="5.SPI是啥，dubbo的SPI机制是怎么玩的？"></a>5.SPI是啥，dubbo的SPI机制是怎么玩的？</h6><p>SPI是服务提供者接口，java内置的SPI的实现会把所有实现类全部加载返回一个集合，dubbo自己实现的SPI可以实现按需加载，还有IOC功能。</p>
 <h6 id="6-dubbo支持哪些负载均衡、高可用以及动态代理策略？"><a href="#6-dubbo支持哪些负载均衡、高可用以及动态代理策略？" class="headerlink" title="6.dubbo支持哪些负载均衡、高可用以及动态代理策略？"></a>6.dubbo支持哪些负载均衡、高可用以及动态代理策略？</h6><p>负载均衡策略：默认的带权重随机；轮询策略；自动感知性能不好的机器就减少分发；一致性hash，把参数相同的请求分配到同一台机器；</p>
@@ -535,7 +535,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/%E9%9D%A2%E8%AF%95/6.%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">面试-6.分布式系统</a></p>
   <p><span>发布时间:</span>2020年06月28日 - 11:06</p>
-  <p><span>最后更新:</span>2023年04月08日 - 13:04</p>
+  <p><span>最后更新:</span>2024年03月09日 - 11:03</p>
   <p><span>原始链接:</span><a href="/%E9%9D%A2%E8%AF%95/6.%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="面试-6.分布式系统">https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/6.%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/6.%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/"  aria-label="复制成功！"></i></span>
   </p>
@@ -670,7 +670,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">274</span>
+                <span class="site-state-item-count">284</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -681,7 +681,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-count">26</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -692,7 +692,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-count">48</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -758,7 +758,7 @@
 <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

@@ -103,15 +103,15 @@
 <meta property="og:site_name" content="小红">
 <meta property="og:description" content="java基础1.java中是值传递还是引用传递java中都是值传递，基本数据类型是复制的具体值进行传递，引用类型复制的是对象的内存地址进行传递，所以就算是值传递，在方法中修改引用参数的属性会导致外部对象也发生改变。怎么证明引用对象也是值传递？ 12345678910111213141516171819202122232425public class Person &amp;#123;    private">
 <meta property="og:locale">
-<meta property="og:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/2.java/images/%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81.png">
-<meta property="og:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/2.java/images/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86.png">
-<meta property="og:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/2.java/images/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.png">
-<meta property="article:published_time" content="2019-12-29T00:21:10.480Z">
-<meta property="article:modified_time" content="2023-04-08T03:14:13.588Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.png">
+<meta property="article:published_time" content="2019-12-29T00:21:10.000Z">
+<meta property="article:modified_time" content="2024-03-07T02:33:03.868Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="面试专题">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/2.java/images/%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81.png">
 
 
 
@@ -409,7 +409,7 @@
 <h6 id="2-2-为什么不推荐使用java自带的序列化"><a href="#2-2-为什么不推荐使用java自带的序列化" class="headerlink" title="2.2 为什么不推荐使用java自带的序列化"></a>2.2 为什么不推荐使用java自带的序列化</h6><p>第一它不支持跨语言；第二他的性能和序列化对数据的压缩都比其他框架差；反序列化的数据可以被随意构造，当执行被构造的恶意代码时会存在安全问题。</p>
 <p>和他相比的ProtoBuf支持跨语言，使用时自己定义传输数据对应的IDL文件，然后生成对应的序列化代码，这样没有序列化漏洞，性能也挺好。</p>
 <p>dubbo里还支持二次开发的Hessian2序列化框架。</p>
-<h5 id="3-Unsafe类"><a href="#3-Unsafe类" class="headerlink" title="3.Unsafe类"></a>3.Unsafe类</h5><p>Unsafe类可以用来访问操作系统的内存资源、操作内存屏障、线程调度，它里面也是使用类似指针的东西操作内存，很容易发生指针问题。所以当类加载器不是BootStrapClassLoader的时候，是不能够获取Unsafe类的实力的，来防止Unsafe类在不可控的代码中被使用。</p>
+<h5 id="3-Unsafe类"><a href="#3-Unsafe类" class="headerlink" title="3.Unsafe类"></a>3.Unsafe类</h5><p>Unsafe类可以用来访问操作系统的内存资源、操作内存屏障、线程调度，它里面也是使用类似指针的东西操作内存，很容易发生指针问题。所以当类加载器不是BootStrapClassLoader的时候，是不能够获取Unsafe类的实例的，来防止Unsafe类在不可控的代码中被使用。</p>
 <p>如果要使用Unsafe类可以使用反射拿到theUnsafe变量或者修改使用Unsafe类的类加载器。</p>
 <h5 id="4-switch只支持基本数据类型，那他怎么实现对String的支持？"><a href="#4-switch只支持基本数据类型，那他怎么实现对String的支持？" class="headerlink" title="4.switch只支持基本数据类型，那他怎么实现对String的支持？"></a>4.switch只支持基本数据类型，那他怎么实现对String的支持？</h5><p>switch其实只支持int类型的比较，如果是String类型会先比较字符串的hash码，如果hash码相同在使用equals进行字符串比较：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span> (str) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;world&quot;</span>:</span><br><span class="line">        System.out.println(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 编译后类似这样</span></span><br><span class="line"><span class="keyword">switch</span> ((s = str).hashCode()) &#123;</span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">113318802</span>:</span><br><span class="line">        <span class="keyword">if</span>(s.equals(<span class="string">&quot;world&quot;</span>))</span><br><span class="line">            System.out.println(<span class="string">&quot;world&quot;</span>);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -429,7 +429,8 @@
 <h5 id="2-CAS"><a href="#2-CAS" class="headerlink" title="2.CAS"></a>2.CAS</h5><p>compare and set：比较并赋值，CAS的操作是原子性的，保证同一时间只有一个线程执行赋值操作，在赋值操作前需要比较持有的旧值是否和当前变量的值相同，如果相同就修改，不同就不断的获取对象的新值然后在比较，知道自己持有的值和对象值形同在执行set操作。</p>
 <p>ABA问题：比如一个对象被两个线程操作，A线程将对象加一在减一，B对象进行CAS加一操作的时候发现和自己持有的1相同，直接修改，如果是单纯的数字是没问题的，但是对象是个bean，A修改了某些属性，B比较的属性没有改变于是就对对象进行修改，解决办法是保证对象每次被修改就有一个值递增，每次CAS比较这个递增的属性就可以了。</p>
 <h5 id="3-AQS"><a href="#3-AQS" class="headerlink" title="3.AQS"></a>3.AQS</h5><p>AbstractQueuedSynchronizer, 队列同步器，源码中定义了一个state变量、thread变量、FIFO队列，多个线程访问共享变量时，使用CAS比较thread变量然后对state执行加一操作，当state不是0的时候，说明有线程持有锁，这时会将当前线程存到FIFO队列中，如果state等于0，则state加一，然后thread赋值当前线程，当线程释放锁时，将state减一，如果state等于0，thread赋值null，和synchronized很像，不过AQS的实现类更灵活，比如reentrantLock获取锁可以设置超时和使用condition，并且可以实现公平锁，缺点就是需要手动释放锁。</p>
-<h5 id="4-线程"><a href="#4-线程" class="headerlink" title="4.线程"></a>4.线程</h5><h6 id="4-1-线程状态"><a href="#4-1-线程状态" class="headerlink" title="4.1 线程状态"></a>4.1 线程状态</h6><p><img src="images/%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81.png" alt="线程状态"></p>
+<h5 id="4-线程"><a href="#4-线程" class="headerlink" title="4.线程"></a>4.线程</h5><h6 id="4-1-线程状态"><a href="#4-1-线程状态" class="headerlink" title="4.1 线程状态"></a>4.1 线程状态</h6><p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/%E7%BA%BF%E7%A8%8B%E7%8A%B6%E6%80%81.png" alt="线程状态"></p>
+<p>waiting和timed_waiting属于一类，他俩和blocked不一样，比如说tomcat和dubbo在收到请求之后会调用对应的方法，调用完会处于两个waiting状态，等待方法执行完唤醒自己，处于这个状态说明对应的业务时正常运行的，而blocked说明获取锁失败需要等待唤醒之后再去拿锁，业务是没开始的状态。</p>
 <h6 id="4-2-线程切换"><a href="#4-2-线程切换" class="headerlink" title="4.2 线程切换"></a>4.2 线程切换</h6><p>每个线程会被CPU分配时间片，到时间或者主动让出CPU(比如wait()方法)就会发生切换。</p>
 <h5 id="4-3-wait-和sleep-的区别"><a href="#4-3-wait-和sleep-的区别" class="headerlink" title="4.3 wait()和sleep()的区别"></a>4.3 wait()和sleep()的区别</h5><p>他俩都可以让线程暂停执行，wait()释放资源，或者说wait()释放的是当前对象的对象锁，所以wait()方法在Object类中，sleep()让当前线程暂停，不涉及到当前对象，所以sleep()定义在Thread类中。</p>
 <h6 id="4-4-为什么不能直接调用Thread的run-方法"><a href="#4-4-为什么不能直接调用Thread的run-方法" class="headerlink" title="4.4 为什么不能直接调用Thread的run()方法"></a>4.4 为什么不能直接调用Thread的run()方法</h6><p>调用start()方法线程会进入RUNNABLE状态，此时会执行线程的准备工作，之后等到被分配了时间片就开始执行run()方法的内容，如果直接调用Thread的run()方法只会被当成一个普通方法被执行。</p>
@@ -454,10 +455,10 @@
 </li>
 </ul>
 <p>当线程空闲一段时间会判断当前线程数是否大于核心线程数，如果大于就会销毁空闲的线程，最多保留核心线程数个线程。</p>
-<p><img src="images/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86.png" alt="线程池原理"></p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86.png" alt="线程池原理"></p>
 <h6 id="5-6-无界队列的线程池，远程服务异常的情况下导致内存飙升"><a href="#5-6-无界队列的线程池，远程服务异常的情况下导致内存飙升" class="headerlink" title="5.6 无界队列的线程池，远程服务异常的情况下导致内存飙升"></a>5.6 无界队列的线程池，远程服务异常的情况下导致内存飙升</h6><p>使用无界队列如果遇到高峰或者突发大流量打进来的时候队列中一直积压任务会导致内存飙升，然后说一下远程服务异常也肯能会导致线程中的线程异常，崩溃。每次有worker挂掉，就会被移出线程池，如果线程池中的线程小于corePoolSize就会马上创建一个线程，这样就会导致远程服务异常，线程池会频繁的创建线程。</p>
 <h6 id="5-7-线程池怎么关闭"><a href="#5-7-线程池怎么关闭" class="headerlink" title="5.7 线程池怎么关闭"></a>5.7 线程池怎么关闭</h6><p>调用shutdown()方法后不允许提交新任务，等到池子里的任务执行完之后会关闭线程池。<br>调用shutdownNow()会返回还没执行的task列表，停止正在执行的task，关闭线程池。</p>
-<h5 id="6-内存模型"><a href="#6-内存模型" class="headerlink" title="6.内存模型"></a>6.内存模型</h5><p><img src="images/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.png"></p>
+<h5 id="6-内存模型"><a href="#6-内存模型" class="headerlink" title="6.内存模型"></a>6.内存模型</h5><p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B.png" alt="java内存模型"></p>
 <h5 id="7-原子性、有序性、可见性"><a href="#7-原子性、有序性、可见性" class="headerlink" title="7.原子性、有序性、可见性"></a>7.原子性、有序性、可见性</h5><p>java规范里说变量（包括引用类型）的赋值是原子性的，除了基础的赋值，其他的操作都保证不了原子性。但是在32位系统上，long和double的赋值并不保证是原子性的，因为32位系统只有32位，而long和double有64位，所以需要分成高32位和低32位分开赋值，在多线程中，可能出现两个线程，一个赋值高32位，一个赋值低32位，就出错了。</p>
 <h6 id="7-1-可见性"><a href="#7-1-可见性" class="headerlink" title="7.1 可见性"></a>7.1 可见性</h6><p>可见性问题就是一个CPU修改主内存中的变量，其他CPU不知道，这是因为CPU有很多组件来存储数据，比如寄存器、写缓冲器、高速缓存，线程处理数据的时候如果这些地方都没有就会去主内存把数据读到CPU的这些组件中，在修改了数据之后，就回去刷新读取数据的那个组件，如果实在寄存器或者写缓冲器里面，那么即使刷新，其他CPU也不知道你修改了，还有一种情况是刷新到高速缓存，或者刷新到高速缓存然后在刷新到主内存（这个是硬件决定的），如果是刷新到主内存，其他CPU的高速缓存中有这个数据的快照，也是不回去主内存中读取的，这就导致队列可见性问题。这时候MESI协议就出来了。</p>
 <p><strong>保证可见性</strong>就是用MESI协议和内存屏障（flush和refresh），当共享变量被修改的时候根据硬件不同可能会有两种操作：</p>
@@ -582,7 +583,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/%E9%9D%A2%E8%AF%95/2.java/">面试专题-2.java</a></p>
   <p><span>发布时间:</span>2019年12月29日 - 08:12</p>
-  <p><span>最后更新:</span>2023年04月08日 - 11:04</p>
+  <p><span>最后更新:</span>2024年03月07日 - 10:03</p>
   <p><span>原始链接:</span><a href="/%E9%9D%A2%E8%AF%95/2.java/" title="面试专题-2.java">https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/2.java/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/2.java/"  aria-label="复制成功！"></i></span>
   </p>
@@ -628,8 +629,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E7%BC%93%E5%AD%98%E6%9E%B6%E6%9E%84/12.Nginx+lua+kafka+storm%E7%83%AD%E6%95%B0%E6%8D%AE%E7%BB%9F%E8%AE%A1/" rel="next" title="">
-                <i class="fa fa-chevron-left"></i> 
+              <a href="/%E6%A1%86%E6%9E%B6/mq/RocketMQ/1.%E9%9B%86%E7%BE%A4%E5%8E%9F%E7%90%86%E5%92%8C%E4%B8%BB%E5%A4%87%E5%88%87%E6%8D%A2/" rel="next" title="1.集群原理和主备切换">
+                <i class="fa fa-chevron-left"></i> 1.集群原理和主备切换
               </a>
             
           </div>
@@ -638,8 +639,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/%E5%9F%BA%E7%A1%80/%E7%BD%91%E7%BB%9C/1.%E5%9F%BA%E7%A1%80/" rel="prev" title="1.网络-基础">
-                1.网络-基础 <i class="fa fa-chevron-right"></i>
+              <a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/5.RDB%E5%92%8CAOF/" rel="prev" title="持久化">
+                持久化 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -717,7 +718,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">274</span>
+                <span class="site-state-item-count">284</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -728,7 +729,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-count">26</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -739,7 +740,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-count">48</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -805,7 +806,7 @@
 <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

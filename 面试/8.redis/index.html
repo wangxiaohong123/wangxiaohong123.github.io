@@ -103,13 +103,13 @@
 <meta property="og:site_name" content="小红">
 <meta property="og:description" content="1.项目里怎么使用缓存，为什么用缓存用缓存的地方比较多，比如一些读多写少的场景，动态、用户信息、存漂流瓶的池子等等；分布式锁；我还见过推荐系统的用户画像也存到redis里的。 使用redis可以减少数据库的压力(高并发)，还能减少接口的响应时间(高性能)。 2.redis使用不当会有什么问题2.1.双写不一致问题比如说获取用户信息的流程是先读缓存，缓存中没有就去数据库中查，然后在写缓存，修改数据库">
 <meta property="og:locale">
-<meta property="og:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/8.redis/images/redis%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B.png">
-<meta property="article:published_time" content="2020-08-04T12:25:11.235Z">
-<meta property="article:modified_time" content="2023-04-08T05:39:23.384Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/redis%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B.png">
+<meta property="article:published_time" content="2020-08-04T12:25:11.000Z">
+<meta property="article:modified_time" content="2024-03-15T03:57:49.116Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="面试专题">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/8.redis/images/redis%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/redis%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B.png">
 
 
 
@@ -410,11 +410,11 @@
 <h5 id="2-3并发冲突问题"><a href="#2-3并发冲突问题" class="headerlink" title="2.3并发冲突问题"></a>2.3并发冲突问题</h5><p>可能会出现连续两个修改同一个信息的请求分发给了两个服务，这两个服务执行顺序错乱导致脏数据问题，如果顺序不对就是并发冲突。</p>
 <p>解决：使用分布式锁来解决，修改的时候需要先比较时间，如果redis中的时间旧，才更新。</p>
 <h5 id="3-为什么单线程的还这么快"><a href="#3-为什么单线程的还这么快" class="headerlink" title="3.为什么单线程的还这么快"></a>3.为什么单线程的还这么快</h5><p>redis线程模型：</p>
-<p><img src="images/redis%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B.png"></p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/redis%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B.png" alt="redis线程模型"></p>
 <p>redis和客户端是通过socket通信的，所以首先要有个socket server，在接收到连接请求后，会生成一个AE_READABLE事件，然后还有一个组件叫做IO多路复用程序，他负责轮询所有socket，当他发现socket产生了事件之后就会把事件压到队列中，还有个组件叫做文件事件分派器，文件事件分派器拿到队列的事件会分配给对应的事件处理器，这时候会把事件交给链接应答处理器，连接应答处理器会创建一个socket和客户端链接，然后把AE_READABLE事件和命令请求处理器关联，当下次收到AE_READABLE事件的时候会发现已经建立连接了，就会把事件分给命令请求处理器，命令请求处理器处理redis操作，然后把这个socket连接的AE_WRITEABLE事件和命令回复处理器关联，然后客户端说我准备好接收结果了，socket连接会产生一个AE_WRITEABLE事件，文件时间分派器会把AE_WRITEABLE交给命令回复处理器，命令回复处理器通过socket返回操作结果，然后取消事件绑定。</p>
 <p>整个模型都在文件事件处理器中，文件事件处理器是单线程，之所以快因为两点：</p>
 <ol>
-<li> 异步非阻塞，每个组件都有自己的任务，并且干完就会去干下一个，比如多路复用器，只把socket数据放到队列中就回去轮询下一个socket，事件处理器只负责自己的，应答处理器处理结束后就回去处理下一个应答，命令处理器处理完就回去处理下一个命令；</li>
+<li> 异步非阻塞，每个组件都有自己的任务，并且干完就会去干下一个，比如多路复用器，只把socket数据放到队列中就回去轮询下一个socket，事件处理器只负责自己的，应答处理器处理结束后就会去处理下一个应答，命令处理器处理完就回去处理下一个命令；</li>
 <li> 三个处理器都是基于纯内存操作，可能一个操作只需要几微妙；</li>
 </ol>
 <h5 id="4-数据类型"><a href="#4-数据类型" class="headerlink" title="4.数据类型"></a>4.数据类型</h5><p>String：数据结构式SDS，分布式锁；</p>
@@ -439,7 +439,7 @@
 <li>  redis replication：一个主节点负责写，多个salve负责读取操作，主节点会把数据同步到slave上，如果并发量更高的话直接添加slave就可以了。但是这个复制是异步的，或者脑裂这两种情况可能导致数据丢失，这两种情况的数据丢失可以通过参数控制。master必须要做持久化，因为如果没有持久化master宕机之后重启是没有数据的，然后他在把空数据同步到slave上，整个redis就都空了。主从读写分离的高可用主要是通过哨兵的主备切换和master检测实现的。</li>
 <li>  cluster：主从读写分离能存储的数量有限，如果数据量很大的话要使用集群，集群就是多master，当内存不够的时候就可以横向扩容。redis cluster使用的hash slot算法存储数据。</li>
 </ul>
-<h6 id="6-1主从及原理："><a href="#6-1主从及原理：" class="headerlink" title="6.1主从及原理："></a>6.1主从及原理：</h6><p>slave node启动时保存配置文件中的master信息，然后启动一个定时任务，每秒检查是否有新的master是否有变化和每秒上报offect，如果master配置了口令认证，就去认证，master会存储一个backlog，这个是断点续传用的，master和slave都有一份replic offect，用来记录数据同步到哪，slave会发送psync请求到master节点，master会根据传过来的master的run id，判断是否需要全量复制，因为根据ip加端口很不靠谱，可能master重启做了一些操作，这时候slave需要重新同步一下数据，根据ip加端口是判断不出来的，如果需要全量复制，master会执行full resynchronization的操作，生成全量的rdb快照（如果是无磁盘化就在内存中生成），这时候会在内存中记录最新的数据，把rdb文件发给slave，然后slave把rdb文件保存到磁盘上去，在加载到内存中（如果slave开启了aof会马上执行rewrite操作），然后master再把内存中最新的数据同步给slave。如果是重启的slave，master会把这之间的数据同步给slave。正常情况下master收到写请求就会异步给slave。slave不会过期key，只能是master发送del命令。master每10s向slave发送一次心跳，slave每1s向master发送一次心跳。</p>
+<h6 id="6-1主从及原理："><a href="#6-1主从及原理：" class="headerlink" title="6.1主从及原理："></a>6.1主从及原理：</h6><p>slave node启动时保存配置文件中的master信息，然后启动一个定时任务，每秒检查master是否有变化和每秒上报offect，如果master配置了口令认证，就去认证，master会存储一个backlog，这个是断点续传用的，master和slave都有一份replic offect，用来记录数据同步到哪，slave会发送psync请求到master节点，master会根据传过来的master的run id，判断是否需要全量复制，因为根据ip加端口很不靠谱，可能master重启做了一些操作，这时候slave需要重新同步一下数据，根据ip加端口是判断不出来的，如果需要全量复制，master会执行full resynchronization的操作，生成全量的rdb快照（如果是无磁盘化就在内存中生成），这时候会在内存中记录最新的数据，把rdb文件发给slave，然后slave把rdb文件保存到磁盘上去，在加载到内存中（如果slave开启了aof会马上执行rewrite操作），然后master再把内存中最新的数据同步给slave。如果是重启的slave，master会把这之间的数据同步给slave。正常情况下master收到写请求就会异步给slave。slave不会过期key，只能是master发送del命令。master每10s向slave发送一次心跳，slave每1s向master发送一次心跳。</p>
 <p><strong>主备切换的过程：</strong></p>
 <p>首先先找到和master断开时间超过down-after-millionseconds * 10 + master宕机时间的slave，这些slave不参加选举，然后根据slave的优先级排序，找到第一个，存在相同优先级的就在找offset，找offset最大的，如果offset还相同就根据run id排序，取第一个。</p>
 <p><strong>相关配置：</strong></p>
@@ -499,7 +499,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/%E9%9D%A2%E8%AF%95/8.redis/">面试-8.redis</a></p>
   <p><span>发布时间:</span>2020年08月04日 - 20:08</p>
-  <p><span>最后更新:</span>2023年04月08日 - 13:04</p>
+  <p><span>最后更新:</span>2024年03月15日 - 11:03</p>
   <p><span>原始链接:</span><a href="/%E9%9D%A2%E8%AF%95/8.redis/" title="面试-8.redis">https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/8.redis/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/8.redis/"  aria-label="复制成功！"></i></span>
   </p>
@@ -634,7 +634,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">274</span>
+                <span class="site-state-item-count">284</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -645,7 +645,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-count">26</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -656,7 +656,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-count">48</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -722,7 +722,7 @@
 <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

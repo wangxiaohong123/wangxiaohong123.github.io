@@ -104,7 +104,7 @@
 <meta property="og:description" content="redo logWAL机制：预写日志机制，这是一种日志先行机制，意思是刷新数据的时候，先把数据对应的log刷新到磁盘上的对应的log file中，然后再根据log file刷新数据。针对redo log的WAL机制就是先将内存中的redo log buffer刷新到磁盘上的redo log file里，然后再根据redo log file刷新磁盘上的数据。这样有个好处是如果直接修改磁盘数据是随机写">
 <meta property="og:locale">
 <meta property="article:published_time" content="2020-03-19T13:15:05.017Z">
-<meta property="article:modified_time" content="2023-04-11T01:02:56.833Z">
+<meta property="article:modified_time" content="2024-03-07T05:52:27.439Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="MySQL">
 <meta name="twitter:card" content="summary">
@@ -450,14 +450,14 @@
 <ol>
 <li>  DB_ROW_ID：当建表时没有指定主键或者唯一索引的字段会生成一个DB_ROW_ID。</li>
 <li>  DB_TRX_ID：事务id。</li>
-<li>  DB_ROLL_PTR：回滚指针，指向undo log增删改数据的时候这个指针会指向刚刚创建的undo log。</li>
+<li>  DB_ROLL_PTR：回滚指针，指向undo log，增删改数据的时候这个指针会指向刚刚创建的undo log。</li>
 <li>  next_record：指向上一条数据的指针，所以表中的数据是从后到前方向的单链表。</li>
 </ol>
 <h3 id="binlog"><a href="#binlog" class="headerlink" title="binlog"></a>binlog</h3><p>他是一个二进制日志，用来记录用户对数据库的增删改操作，他是所有引擎公用的，不限制大小，他记录的是一条SQL的原始逻辑。</p>
 <p>常用于主从复制和数据恢复(通过mysqlBinlog工具或者其他数据同步工具)</p>
 <h5 id="1）三种模式"><a href="#1）三种模式" class="headerlink" title="1）三种模式"></a>1）三种模式</h5><ol>
 <li>  row：日志会记录每一行记录被修改的情况，主从的时候最好使用这个，缺点就是批量操作的时候会产生大量的日志。</li>
-<li>  statement：记录每一条修改数据的SQL，比如一个批量修改10条数据的SQL，这个模式下binlog中只有1条SQL，二row模式下会产生10条SQL。可能会导致主从数据不一致。</li>
+<li>  statement：记录每一条修改数据的SQL，比如一个批量修改10条数据的SQL，这个模式下binlog中只有1条SQL，row模式下会产生10条SQL。可能会导致主从数据不一致。</li>
 <li>  mixed：上面两个模式的混合，根据场景进行模式切换。</li>
 </ol>
 <h5 id="2）写入机制"><a href="#2）写入机制" class="headerlink" title="2）写入机制"></a>2）写入机制</h5><p>内存中有一块区域是binlog cache，首先会在binlog cache中记录binlog然后写到os cache在fsync到磁盘。</p>
@@ -501,7 +501,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/5.%E4%B8%89%E4%B8%AAlog/">MySQL-5.三个log</a></p>
   <p><span>发布时间:</span>2020年03月19日 - 21:03</p>
-  <p><span>最后更新:</span>2023年04月11日 - 09:04</p>
+  <p><span>最后更新:</span>2024年03月07日 - 13:03</p>
   <p><span>原始链接:</span><a href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/5.%E4%B8%89%E4%B8%AAlog/" title="MySQL-5.三个log">https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/5.%E4%B8%89%E4%B8%AAlog/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/5.%E4%B8%89%E4%B8%AAlog/"  aria-label="复制成功！"></i></span>
   </p>
@@ -636,7 +636,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">274</span>
+                <span class="site-state-item-count">284</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -647,7 +647,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-count">26</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -658,7 +658,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-count">48</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -724,7 +724,7 @@
 <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

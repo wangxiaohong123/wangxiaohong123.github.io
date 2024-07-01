@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="爬虫," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="任何语言都可以进行爬虫，但是python最方便，所以一般人都用python进行爬虫。 爬虫的时候只要不破坏网站、不侵犯用户隐私时不犯法的。 robots协议(君子协议):一般网站的主url后拼接robots.txt输出的内容为不允许爬的，爬的时候需要遵守。 一 爬虫用到的模块有的时候我们拿到的资源是部分url，需要自己拼域名，不过部分url前面会出现有斜线’&#x2F;‘和没斜线的情况，有斜线的拼主域名就可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="爬虫-1.入门">
+<meta property="og:url" content="https://wangxiaohong123.github.io/%E5%85%B6%E4%BB%96/%E7%88%AC%E8%99%AB/%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="小红">
+<meta property="og:description" content="任何语言都可以进行爬虫，但是python最方便，所以一般人都用python进行爬虫。 爬虫的时候只要不破坏网站、不侵犯用户隐私时不犯法的。 robots协议(君子协议):一般网站的主url后拼接robots.txt输出的内容为不允许爬的，爬的时候需要遵守。 一 爬虫用到的模块有的时候我们拿到的资源是部分url，需要自己拼域名，不过部分url前面会出现有斜线’&#x2F;‘和没斜线的情况，有斜线的拼主域名就可">
+<meta property="og:locale">
+<meta property="article:published_time" content="2023-09-12T00:22:12.000Z">
+<meta property="article:modified_time" content="2023-12-22T06:14:10.452Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="爬虫">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://wangxiaohong123.github.io/其他/爬虫/入门/"/>
+
+
+
+
+
+  <title>爬虫-1.入门 | 小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%85%B6%E4%BB%96/%E7%88%AC%E8%99%AB/%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">爬虫-1.入门</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2023-09-12T08:22:12+08:00">
+                2023-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96/" itemprop="url" rel="index">
+                    <span itemprop="name">其他</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>任何语言都可以进行爬虫，但是python最方便，所以一般人都用python进行爬虫。</p>
+<p>爬虫的时候只要不破坏网站、不侵犯用户隐私时不犯法的。</p>
+<p>robots协议(君子协议):一般网站的主url后拼接robots.txt输出的内容为不允许爬的，爬的时候需要遵守。</p>
+<h3 id="一-爬虫用到的模块"><a href="#一-爬虫用到的模块" class="headerlink" title="一 爬虫用到的模块"></a>一 爬虫用到的模块</h3><p>有的时候我们拿到的资源是部分url，需要自己拼域名，不过部分url前面会出现有斜线’/‘和没斜线的情况，有斜线的拼主域名就可以，没有斜线的是相对路径，需要把当前路的访问url取然后在拼接，非常麻烦，使用urllib就很简单：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> urllib.parse <span class="keyword">import</span> urljoin</span><br><span class="line"></span><br><span class="line">herf = urljoin(<span class="string">&quot;当前访问url&quot;</span>, <span class="string">&quot;要拼接的url&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h6 id="a-time模块"><a href="#a-time模块" class="headerlink" title="a.time模块"></a>a.time模块</h6><p>time模块常用的两个功能：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取当前的秒级时间戳</span></span><br><span class="line">t = time.time()</span><br><span class="line"><span class="comment"># 毫秒时间戳</span></span><br><span class="line">t = <span class="built_in">int</span>(time.time() * <span class="number">1000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 让线程休眠5s</span></span><br><span class="line">time.sleep(<span class="number">5</span>)</span><br></pre></td></tr></table></figure>
+<h6 id="b-os模块"><a href="#b-os模块" class="headerlink" title="b.os模块"></a>b.os模块</h6><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建目录</span></span><br><span class="line">os.makedirs(<span class="string">&quot;/url/subUrl&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 该url是否是已存在路径</span></span><br><span class="line">os.path.isDir(<span class="string">&quot;url&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h6 id="c-json模块"><a href="#c-json模块" class="headerlink" title="c.json模块"></a>c.json模块</h6><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将json字符串转换成字典</span></span><br><span class="line">d = json.loads(s)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把字典转成json字符串</span></span><br><span class="line">s = json.dumps(dic)</span><br></pre></td></tr></table></figure>
+<h6 id="d-random模块"><a href="#d-random模块" class="headerlink" title="d.random模块"></a>d.random模块</h6><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> random</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成10到20的随机数</span></span><br><span class="line">i = random.randint(<span class="number">10</span>, <span class="number">20</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成1到3的随机小数</span></span><br><span class="line">f = random.uniform(<span class="number">1</span>, <span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+<h6 id="e-requests模块-需要安装"><a href="#e-requests模块-需要安装" class="headerlink" title="e .requests模块(需要安装)"></a>e .requests模块(需要安装)</h6><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"><span class="comment"># 请求头伪装，有的网站会根据请求头判断是否是爬虫，我们就是要尽可能装成浏览器</span></span><br><span class="line">header = &#123;</span><br><span class="line">    <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># get请求</span></span><br><span class="line">url = <span class="string">&quot;https://www.sogou.com/web&quot;</span></span><br><span class="line">param = &#123;</span><br><span class="line">    <span class="string">&quot;query&quot;</span>: <span class="string">&quot;周杰伦&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">resp = requests.get(url, headers=header, params=param)</span><br><span class="line"></span><br><span class="line"><span class="comment"># post请求</span></span><br><span class="line">url = <span class="string">&quot;https://fanyi.baidu.com/sug&quot;</span></span><br><span class="line">data = &#123;</span><br><span class="line">    <span class="string">&quot;kw&quot;</span>:<span class="string">&quot;hello&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">resp = requests.post(url, data=data)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 文本格式获取响应</span></span><br><span class="line">print(resp.text)</span><br><span class="line"><span class="comment"># json格式获取响应</span></span><br><span class="line">print(resp.json())</span><br><span class="line"><span class="comment"># 获取字节内容，可以用这种方式获取媒体然后输出到图片</span></span><br></pre></td></tr></table></figure>
+<h5 id="f-多线程和协程"><a href="#f-多线程和协程" class="headerlink" title="f.多线程和协程"></a>f.多线程和协程</h5><p>进程是资源单位，线程是执行单位，爬虫中多线程用处不大，很多网站会限流而且线程过多容易把网站搞挂。</p>
+<p>创建进程代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> multiprocessing <span class="keyword">import</span> Process</span><br><span class="line"><span class="keyword">from</span> concurrent.futures <span class="keyword">import</span> ProcessPoolExecutor</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">work</span>(<span class="params">name</span>):</span></span><br><span class="line">    print(<span class="number">123456</span>, name)</span><br><span class="line">    </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="comment"># 创建进程</span></span><br><span class="line">    <span class="comment"># target制定方法名，args指定参数，必须是元祖，只有一个参数时结尾必须有逗号</span></span><br><span class="line">    p = Process(target=work, args=(<span class="string">&quot;进程1&quot;</span>,))</span><br><span class="line">    <span class="comment"># 启动进程</span></span><br><span class="line">    p.start()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建进程池</span></span><br><span class="line">    <span class="keyword">with</span> ProcessPoolExecutor(<span class="number">8</span>) <span class="keyword">as</span> pp:</span><br><span class="line">        pp.submit(work, <span class="string">&quot;进程1&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>创建线程代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line"><span class="keyword">from</span> concurrent.futures <span class="keyword">import</span> ThreadPoolExecutor</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">work</span>(<span class="params">name</span>):</span></span><br><span class="line">    print(<span class="number">123456</span>, name)</span><br><span class="line">    </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="comment"># 创建线程</span></span><br><span class="line">    <span class="comment"># target制定方法名，args指定参数，必须是元祖，只有一个参数时结尾必须有逗号</span></span><br><span class="line">    t = Thread(target=work, args=(<span class="string">&quot;线程1&quot;</span>,))</span><br><span class="line">    <span class="comment"># 启动线程</span></span><br><span class="line">    t.start()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建线程池</span></span><br><span class="line">    <span class="comment"># with表示等待线程池中的任务执行完成，执行完会关闭线程池</span></span><br><span class="line">    <span class="keyword">with</span> ThreadPoolExecutor(<span class="number">8</span>) <span class="keyword">as</span> t :</span><br><span class="line">        t.submit(work, <span class="string">&quot;线程1&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>多线程是在同一进程中，协程针对同一个线程，可以理解为一个线程内有多个任务，当一个任务发生阻塞比如IO的时候切换到其他任务执行。协程中有一个事件循环，他负责判断当前任务是否阻塞，是否应该切换其他任务。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">func1</span>():</span></span><br><span class="line">    print(<span class="string">&quot;func1开始&quot;</span>)</span><br><span class="line">    <span class="comment"># time.sleep()不能在协程中使用</span></span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">1</span>)</span><br><span class="line">    print(<span class="string">&quot;func1结束&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">func2</span>():</span></span><br><span class="line">    print(<span class="string">&quot;func2开始&quot;</span>)</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">2</span>)</span><br><span class="line">    print(<span class="string">&quot;func2结束&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">func3</span>():</span></span><br><span class="line">    print(<span class="string">&quot;func3开始&quot;</span>)</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">1</span>)</span><br><span class="line">    print(<span class="string">&quot;func3结束&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">main</span>():</span></span><br><span class="line">    t1 = asyncio.create_task(func1())</span><br><span class="line">    t2 = asyncio.create_task(func2())</span><br><span class="line">    t3 = asyncio.create_task(func3())</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 把所有任务放进列表</span></span><br><span class="line">    <span class="comment"># 然后挂起，等待所有任务执行结束</span></span><br><span class="line">    res, pending = <span class="keyword">await</span> asyncio.wait([t1, t2, t3])</span><br><span class="line">    <span class="keyword">for</span> re <span class="keyword">in</span> res:</span><br><span class="line">        print(re.result())</span><br><span class="line">    print(<span class="string">&quot;任务执行结束&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="comment"># 创建协程对象</span></span><br><span class="line">    f = main()</span><br><span class="line">    <span class="comment"># 第一种方式直接run</span></span><br><span class="line">    <span class="comment"># asyncio.run(f)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 第二种方式使用事件轮训执行</span></span><br><span class="line">    <span class="comment"># 创建事件轮训对象</span></span><br><span class="line">    event_loop = asyncio.get_event_loop()</span><br><span class="line">    <span class="comment"># 运行协程对象，直到执行结束</span></span><br><span class="line">    event_loop.run_until_complete(f)</span><br></pre></td></tr></table></figure>
+<p>官方给出执行协程有两种写法，第一种直接run，第二种创建事件轮训对象，其中run里会自动创建事件轮训对象，其实两种写法差不多，但是run中执行完对象会关闭event_loop对象，一般的写法是一个总协程任务中封装所有的协程任务，然后run总协程任务。</p>
+<p>协程中很多包不能用，因为他是异步的，所以爬虫的包需要更换，常用的是http模块和file相关的模块：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pip install aiohttp</span><br><span class="line">pip install aiofiles</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> aiohttp</span><br><span class="line"><span class="keyword">import</span> aiofiles</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">func1</span>(<span class="params">url</span>):</span></span><br><span class="line">    print(<span class="string">&quot;func1开始&quot;</span>)</span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> aiohttp.ClientSession() <span class="keyword">as</span> session:</span><br><span class="line">        <span class="comment"># 其他参数headers、cookie什么的大部分跟requests差不多</span></span><br><span class="line">        <span class="keyword">async</span> <span class="keyword">with</span> session.get(url) <span class="keyword">as</span> resp:</span><br><span class="line">            <span class="comment"># 等待请求结果</span></span><br><span class="line">            content = <span class="keyword">await</span> resp.content.read()</span><br><span class="line">            </span><br><span class="line">            <span class="comment"># 下载文件</span></span><br><span class="line">            <span class="keyword">async</span> <span class="keyword">with</span> aiofiles.<span class="built_in">open</span>(<span class="string">&quot;filename&quot;</span>, mode=<span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">                <span class="keyword">await</span> f.write(content)</span><br><span class="line">    print(<span class="string">&quot;func1结束&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>协程可以使用信号量控制被挂起任务的数量。</strong></p>
+<h3 id="二-数据解析"><a href="#二-数据解析" class="headerlink" title="二 数据解析"></a>二 数据解析</h3><h5 id="1-re解析"><a href="#1-re解析" class="headerlink" title="1.re解析"></a>1.re解析</h5><p>用正则表达式解析出来我们想要的数据，用chatGPT生成正则表达式就可以。一般常用的就是<code>.*(贪婪匹配)</code>和<code>.*?(惰性匹配)</code>，一个尽可能多的匹配结果，一个尽可能少的匹配结果，如果要提取的标签中的内容，一般都是多个div标签嵌套，我们只需要最里面的div中的内容，所以惰性匹配更好用。不过一般网页内容不通过正则提取，正则一般是提取js中的url之类的，比如<code>url:&quot;.*?&quot;</code></p>
+<p>python中正则使用re模块：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="comment"># 返回的是个列表</span></span><br><span class="line"><span class="comment"># r&quot;&quot;表示字符串里的内容不转译</span></span><br><span class="line">res = re.findall(<span class="string">r&quot;\d+&quot;</span>, <span class="string">&quot;我有10000000，我捐1块&quot;</span>)</span><br><span class="line">print(res)</span><br><span class="line"></span><br><span class="line"><span class="comment"># finditer返回一个迭代器，里面是match对象，不是字符串，需要调用group()获取内容</span></span><br><span class="line"><span class="comment"># ()包起来的东西叫分组，使用?P&lt;分组名&gt;定义，获取分组匹配的内容在group()制定分组名</span></span><br><span class="line">res = re.finditer(<span class="string">r&quot;(?P&lt;number&gt;\d+)&quot;</span>, <span class="string">&quot;我有10000000，我捐1块&quot;</span>)</span><br><span class="line"><span class="keyword">for</span> re <span class="keyword">in</span> res:</span><br><span class="line">    print(re.group(<span class="string">&quot;number&quot;</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 搜索，返回第一个匹配的结果</span></span><br><span class="line">res = re.search(<span class="string">r&quot;(?P&lt;number&gt;\d+)&quot;</span>, <span class="string">&quot;我有10000000，我捐1块&quot;</span>)</span><br><span class="line">print(res.group(<span class="string">&quot;number&quot;</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 先声明正则，再去搜索，可以在循环中使用</span></span><br><span class="line"><span class="comment"># re.S表示 .也匹配\n</span></span><br><span class="line">obj = re.<span class="built_in">compile</span>(<span class="string">r&quot;(?P&lt;number&gt;\d+)&quot;</span>, re.S)</span><br><span class="line">res = obj.search(<span class="string">&quot;我有10000000，我捐1块&quot;</span>)</span><br><span class="line">print(res.group(<span class="string">&quot;number&quot;</span>))</span><br></pre></td></tr></table></figure>
+<h5 id="2-bs4解析"><a href="#2-bs4解析" class="headerlink" title="2.bs4解析"></a>2.bs4解析</h5><p>bs4是用来把文本解析成想要的格式，然后通过api获取标签内容：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># bs4需要安装</span></span><br><span class="line"><span class="comment"># pip install bs4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> bs4 <span class="keyword">import</span> BeautifulSoup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 以html格式解析字符串，html.parser可以换成lxml(需要安装)</span></span><br><span class="line">main_page = BeautifulSoup(<span class="string">&quot;假设这里是我们拿到的页面源代码&quot;</span>, <span class="string">&quot;html.parser&quot;</span>)</span><br><span class="line"><span class="comment"># 根据标签定位到我们想要提取内容的标签</span></span><br><span class="line">a_list = main_page.find(<span class="string">&quot;ul&quot;</span>, attrs=&#123;<span class="string">&quot;class&quot;</span>:<span class="string">&quot;ul-class&quot;</span>&#125;).find_all(<span class="string">&quot;a&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 遍历拿到的标签</span></span><br><span class="line"><span class="keyword">for</span> a <span class="keyword">in</span> a_list:</span><br><span class="line">    <span class="comment"># 获取标签的属性值</span></span><br><span class="line">    print(a.get(<span class="string">&quot;href&quot;</span>))</span><br><span class="line">    <span class="comment"># 获取标签间的文本</span></span><br><span class="line">    print(a.text)</span><br></pre></td></tr></table></figure>
+<h5 id="3-xpath解析"><a href="#3-xpath解析" class="headerlink" title="3.xpath解析"></a>3.xpath解析</h5><p>xpath需要安装lxml模块：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install lxml</span><br></pre></td></tr></table></figure>
+<p>使用的时候xpath比bs4灵活很多：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> lxml <span class="keyword">import</span> etree</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把字符串按html格式解析</span></span><br><span class="line"><span class="comment"># 后面的type是为了让pycharm知道解析出来的结果是什么对象，这样写为了调用main_page的时候有提示</span></span><br><span class="line">page = etree.HTML(<span class="string">&quot;h5源码&quot;</span>) <span class="comment"># type: etree._Element</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拿到根节点，xpath()返回的是列表</span></span><br><span class="line">root = page.xpath(<span class="string">&quot;/html&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 拿到html节点下的body节点下的div节点下的p节点中的文本</span></span><br><span class="line">texts = page.xpath(<span class="string">&quot;/html/body/div/p/text()&quot;</span>)</span><br><span class="line"><span class="comment"># 如果是两个斜线//，表示查找所有子节点，不管p节点中有多少子节点</span></span><br><span class="line"><span class="comment"># texts = page.xpath(&quot;/html/body/div/p//text()&quot;)</span></span><br><span class="line"><span class="keyword">for</span> text <span class="keyword">in</span> texts:</span><br><span class="line">    print(text)</span><br><span class="line"></span><br><span class="line"><span class="comment"># xpath里索引从1开始，如果想去最后一个可以写成p[last()]</span></span><br><span class="line"><span class="comment"># 查找页面所有&lt;div&gt;&lt;p&gt;xxxxxxxxx&lt;/p&gt;&lt;/div&gt;里第一个p节点中的文本</span></span><br><span class="line">texts = page.xpath(<span class="string">&quot;//div/p[1]/text()&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># @表示选择属性的全值匹配</span></span><br><span class="line"><span class="comment"># 查找页面中的任意节点，并且节点的id是someId的文本</span></span><br><span class="line">texts = page.xpath(<span class="string">&quot;//*[@id=&#x27;someId&#x27;]/text()&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="三-请求头和代理"><a href="#三-请求头和代理" class="headerlink" title="三 请求头和代理"></a>三 请求头和代理</h3><h5 id="1-User-Agent"><a href="#1-User-Agent" class="headerlink" title="1.User-Agent"></a>1.User-Agent</h5><p>User-Agent是标识当前发起请求的设备信息，如果代码发起的请求失败第一反应是带上这个信息。</p>
+<h5 id="2-cookie"><a href="#2-cookie" class="headerlink" title="2.cookie"></a>2.cookie</h5><p>网页相关的使用的多，app使用的一般是jwt，里面放的是一些用户信息，服务端用来确认用户已经登录和拿到一些用户信息。</p>
+<p>cookie有点特殊，早些年cookie里面有sessionId，由服务端返回，现在的cookie有一部分是js生成的，可能没有什么有效信息，纯校验用的。这种cookie由非对称加密生成，为了反爬可能每次请求客户端都会通过cookie传一个加密的字符串，这个加密的字符串可能是客户端生成，也可能服务端生成。</p>
+<p>使用requests模块的session可以自动处理cookie。</p>
+<h5 id="3-referer"><a href="#3-referer" class="headerlink" title="3.referer"></a>3.referer</h5><p>有些网站要求请求带上referer字段来标记当前请求的上一个请求是什么，作用可能是防盗链，为的是溯源和防止爬虫，所以抓包的时候需要注意这个字段，如果发现这个字段需要在requests发送请求时的header中带上referer字段。</p>
+<h5 id="4-代理"><a href="#4-代理" class="headerlink" title="4.代理"></a>4.代理</h5><p>有些时候防止请求频繁被封ip可以使用ip代理，通过代理的服务器转发请求，这样爬虫的目标服务器拿到的就是代理服务器的ip，然后在请求时加上proxies：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">dic = &#123;</span><br><span class="line">    <span class="string">&quot;http&quot;</span> : <span class="string">&quot;http://223.96.90.216:8885&quot;</span>,</span><br><span class="line">    <span class="string">&quot;https&quot;</span> : <span class="string">&quot;https://223.96.90.216:8885&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">resp = requests.get(url, headers=header, proxies=dic)</span><br></pre></td></tr></table></figure>
+<p>其实免费的代理服务器并不好找。还有一种隧道代理，可用性比这个ip代理高。</p>
+
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/%E5%85%B6%E4%BB%96/%E7%88%AC%E8%99%AB/%E5%85%A5%E9%97%A8/">爬虫-1.入门</a></p>
+  <p><span>发布时间:</span>2023年09月12日 - 08:09</p>
+  <p><span>最后更新:</span>2023年12月22日 - 14:12</p>
+  <p><span>原始链接:</span><a href="/%E5%85%B6%E4%BB%96/%E7%88%AC%E8%99%AB/%E5%85%A5%E9%97%A8/" title="爬虫-1.入门">https://wangxiaohong123.github.io/%E5%85%B6%E4%BB%96/%E7%88%AC%E8%99%AB/%E5%85%A5%E9%97%A8/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E5%85%B6%E4%BB%96/%E7%88%AC%E8%99%AB/%E5%85%A5%E9%97%A8/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E7%88%AC%E8%99%AB/" rel="tag"><i class="fa fa-tag"></i> 爬虫</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/%E5%85%B6%E4%BB%96/stable-diffusion/" rel="next" title="stable-diffusion">
+                <i class="fa fa-chevron-left"></i> stable-diffusion
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98/3.redisson%E5%B0%81%E8%A3%85%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" rel="prev" title="2.Redisson封装遇到的问题">
+                2.Redisson封装遇到的问题 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">284</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">48</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80-%E7%88%AC%E8%99%AB%E7%94%A8%E5%88%B0%E7%9A%84%E6%A8%A1%E5%9D%97"><span class="nav-number">1.</span> <span class="nav-text">一 爬虫用到的模块</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#a-time%E6%A8%A1%E5%9D%97"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">a.time模块</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#b-os%E6%A8%A1%E5%9D%97"><span class="nav-number">1.0.0.2.</span> <span class="nav-text">b.os模块</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#c-json%E6%A8%A1%E5%9D%97"><span class="nav-number">1.0.0.3.</span> <span class="nav-text">c.json模块</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#d-random%E6%A8%A1%E5%9D%97"><span class="nav-number">1.0.0.4.</span> <span class="nav-text">d.random模块</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#e-requests%E6%A8%A1%E5%9D%97-%E9%9C%80%E8%A6%81%E5%AE%89%E8%A3%85"><span class="nav-number">1.0.0.5.</span> <span class="nav-text">e .requests模块(需要安装)</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#f-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%92%8C%E5%8D%8F%E7%A8%8B"><span class="nav-number">1.0.1.</span> <span class="nav-text">f.多线程和协程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C-%E6%95%B0%E6%8D%AE%E8%A7%A3%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">二 数据解析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-re%E8%A7%A3%E6%9E%90"><span class="nav-number">2.0.1.</span> <span class="nav-text">1.re解析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-bs4%E8%A7%A3%E6%9E%90"><span class="nav-number">2.0.2.</span> <span class="nav-text">2.bs4解析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-xpath%E8%A7%A3%E6%9E%90"><span class="nav-number">2.0.3.</span> <span class="nav-text">3.xpath解析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89-%E8%AF%B7%E6%B1%82%E5%A4%B4%E5%92%8C%E4%BB%A3%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">三 请求头和代理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-User-Agent"><span class="nav-number">3.0.1.</span> <span class="nav-text">1.User-Agent</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-cookie"><span class="nav-number">3.0.2.</span> <span class="nav-text">2.cookie</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-referer"><span class="nav-number">3.0.3.</span> <span class="nav-text">3.referer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-%E4%BB%A3%E7%90%86"><span class="nav-number">3.0.4.</span> <span class="nav-text">4.代理</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

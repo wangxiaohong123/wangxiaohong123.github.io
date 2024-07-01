@@ -306,7 +306,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/5.LinkedHashMap/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/8.ConcurrentHashMap/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -325,7 +325,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/5.LinkedHashMap/" itemprop="url">LinkedHashMap</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/8.ConcurrentHashMap/" itemprop="url">ConcurrentHashMap</a></h1>
         
 
         <div class="post-meta">
@@ -337,8 +337,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-27T22:06:06+08:00">
-                2020-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-04T09:24:51+08:00">
+                2020-09-04
               </time>
             
 
@@ -399,12 +399,13 @@
       
         
           
-          LinkedHashMap就是有序的。他是HashMap的子类，正常的LinkedHashMap操作都会走到HashMap中去，LinkedHashMap重写了newNode的方法：
-1234567Node&lt;K,V&gt; newNode(int hash, K key, V value, Node&lt;K,V&gt; e) &#123;    LinkedHashMap.Entry&lt;K,V&gt; p =        new LinkedHashMap.Entry&lt;K,V
+          1.8中使用了分段加锁，刚开始是CAS，hash冲突在使用synchronized
+put
+123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566// 计算hash值int hash = spread(key.hashCode());for (Node&lt;K,V&gt;[] tab = table;;)
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/5.LinkedHashMap/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/8.ConcurrentHashMap/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -463,7 +464,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/4.HashMap/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/7.%E9%94%81%E4%BC%98%E5%8C%96/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -482,7 +483,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/4.HashMap/" itemprop="url">HashMap</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/7.%E9%94%81%E4%BC%98%E5%8C%96/" itemprop="url">锁优化</a></h1>
         
 
         <div class="post-meta">
@@ -494,8 +495,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-27T17:35:17+08:00">
-                2020-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-02T09:33:52+08:00">
+                2020-09-02
               </time>
             
 
@@ -556,13 +557,16 @@
       
         
           
-          HashMap是采用数组存储元素，计算key的hash值，用hash值对数组长度取模，在对应的索引放入元素，如果存在hash冲突，就会使用单向链表，如果链表的长度超过8，链表可能会变成红黑树，为什么是可能，因为在转红黑树的时候会先判断数组的长度是不是小于64，如果是就进行扩容不转红黑树。红黑树的查询复杂度是O(lg^n^)。
-HashMap的元素属性：
-12345678910111213static class Node&lt;K,V&gt; implements Map.Entry&lt;K,
+          如果只是修改标志位，一些线程读，尽量使用volatile。
+如果大家都要写，就要判断一下，是不是只是数值的累加，如果是，使用Atomic类。
+不需要多线程共享的数据，使用ThreadLocal。
+读多写少的情况使用读写锁。
+尽可能减少线程占用锁的时间，比如使用分段锁，在加锁的代码块里使用磁盘IO、网络IO。
+还可以使用多级缓存减少读写锁的冲突。比如eureka的两级缓存readOnlyMap和readWriteMap，两级缓存是因为一级缓存的话和不加这个缓存没有区别，无法降低读写锁的冲突，两级缓
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/4.HashMap/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/7.%E9%94%81%E4%BC%98%E5%8C%96/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -621,7 +625,7 @@ HashMap的元素属性：
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/3.Vector%E5%92%8CStack/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/6.ThreadLocal/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -640,7 +644,7 @@ HashMap的元素属性：
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/3.Vector%E5%92%8CStack/" itemprop="url">Vector和stack</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/6.ThreadLocal/" itemprop="url">Threadlocal</a></h1>
         
 
         <div class="post-meta">
@@ -652,8 +656,8 @@ HashMap的元素属性：
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-27T15:50:22+08:00">
-                2020-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-02T08:31:49+08:00">
+                2020-09-02
               </time>
             
 
@@ -714,14 +718,13 @@ HashMap的元素属性：
       
         
           
-          Vector也是基于数组来实现的。Stack继承了Vector。
-push操作就是往数组中添加元素
-1234567public synchronized void addElement(E obj) &#123;    modCount++;    // 扩容相关，调用的是Vector的方法    ensureCapacityHelper(elementCount + 1);    // 添加元素    elementData[elementCount++] = obj;&#125;
-pop()
+          线程变量的副本。每个Thread内部有一个ThreadLocalMap，这个map是一个Entry数组，只能是线程自己内部使用，因为他就是内部的变量嘛，Entry中有两个变量，一个是k（ThreadLocal类型），一个是value（自己定义类型）
+set
+1234567891011public void set(T value) &#123;    Thread t = Thread.currentThread();    // 获取线程内部的ThreadLocalMap    ThreadL
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/3.Vector%E5%92%8CStack/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/6.ThreadLocal/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -780,7 +783,7 @@ pop()
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/2.LinkedList/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.AQS/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -799,7 +802,7 @@ pop()
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/2.LinkedList/" itemprop="url">LinkedList</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.AQS/" itemprop="url">AQS</a></h1>
         
 
         <div class="post-meta">
@@ -811,8 +814,8 @@ pop()
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-27T13:46:08+08:00">
-                2020-08-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-01T14:13:11+08:00">
+                2020-09-01
               </time>
             
 
@@ -873,12 +876,15 @@ pop()
       
         
           
-          核心node，基于前后指针的双向链表：
-1234567891011private static class Node&lt;E&gt; &#123;    E item;    Node&lt;E&gt; next;    Node&lt;E&gt; prev;    Node(Node&lt;E&gt; prev, E element, Node&lt;E&gt; next) &#123;        this.item = element;        this.next = next;
+          谈谈对AQS的理解
+
+
+ReentrantLock全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的
+123456789101112131415161718//
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/2.LinkedList/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.AQS/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -937,7 +943,7 @@ pop()
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/1.ArrayList/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/4.Atomic/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -956,7 +962,7 @@ pop()
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/1.ArrayList/" itemprop="url">ArrayList</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/4.Atomic/" itemprop="url">atomic</a></h1>
         
 
         <div class="post-meta">
@@ -968,8 +974,8 @@ pop()
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-26T20:57:46+08:00">
-                2020-08-26
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-30T19:46:14+08:00">
+                2020-08-30
               </time>
             
 
@@ -1030,13 +1036,16 @@ pop()
       
         
           
-          使用默认的构造函数，ArrayList会把数组的长度设置为10（DEFAULT_CAPACITY）。
-插入数据很简单，首先判断是否需要扩容**ensureCapacityInternal()**，如果添加完元素的长度大于现在的长度就扩容成1.5倍。然后把数组赋值。
-12345public boolean add(E e) &#123;    ensureCapacityInternal(size + 1);  // Increments modCount!!    elementData[siz
+          底层基于jdk内部使用UnSafe类，这个类只能在jdk内部用，他把构造函数私有了，并且验证类加载器，如果是应用程序加载器就报错，在类中使用offect记录当前值，自增时调用CompareAndSwap操作，并且是在while循环中。
+CPU可以保证在一个线程执行UnSafe的CAS时，其他线程不能执行。
+缺点：
+
+  ABA问题：可以使用AtomicStampedReference解决，我记着这个类是通过增加时间戳比较来解决的。
+  无限循环问题：会让CPU负载过高，可以使用jdk1.8的Lo
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/1.ArrayList/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/4.Atomic/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1095,7 +1104,7 @@ pop()
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/5.%E5%8F%AF%E9%9D%A0%E6%B6%88%E6%81%AF%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/3.Synchronized/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -1114,7 +1123,7 @@ pop()
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/5.%E5%8F%AF%E9%9D%A0%E6%B6%88%E6%81%AF%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7/" itemprop="url">事务-可靠消息最终一致性事务</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/3.Synchronized/" itemprop="url">线程</a></h1>
         
 
         <div class="post-meta">
@@ -1126,8 +1135,8 @@ pop()
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-25T18:21:36+08:00">
-                2020-08-25
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-29T14:30:29+08:00">
+                2020-08-29
               </time>
             
 
@@ -1149,8 +1158,8 @@ pop()
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
-                    <span itemprop="name">框架</span>
+                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
+                    <span itemprop="name">基础</span>
                   </a>
                 </span>
 
@@ -1188,21 +1197,16 @@ pop()
       
         
           
-          一些耗时的操作可以使用这个。
+          Synchronized原理
 
-步骤5.1失败了：
+Mark Word结构
 
- 可靠消息服务更新状态为已发送：一直会有一条状态时待确认的消息；
- 可靠消息服务删除消息失败：一直会有一条状态是待确认的消息；
-
-不管是那种情况操作失败了，都是比较尴尬的。
-步骤7失败：可靠消息服务一直有一条状态是已发送的消息；
-可以看出来出现尴尬问题的点都在可靠消息服务上。
-解决步骤5.1失败：回调机制，可靠消息服务后台线程定时扫描超时的待确认消息，然后回调上游服务，上游服务返回这条消息对应的业务处理结果是成功还是失败，如果失败就删掉这条消
+Synchronized修饰普通方法，锁的是实例对象，修饰的是静态方法的时候锁的是类，class对象。
+每个对象都有monitor对象，monitor中有一个计数器，编译的时候碰到了Synchronized时候会生成MonitorEnter和对应的MonitorExit，线程执行到Synchronized修饰的代码块或者方法的时候，先看看monitor对象中的计数器是不是0，如果不是0就根据owner判断持有锁的对象是不是自己，如果不是就
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/5.%E5%8F%AF%E9%9D%A0%E6%B6%88%E6%81%AF%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/3.Synchronized/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1261,7 +1265,7 @@ pop()
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/4.saga%EF%BC%88%E9%9D%9E%E9%87%8D%E7%82%B9%EF%BC%89/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/2.Volatile/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -1280,7 +1284,7 @@ pop()
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/4.saga%EF%BC%88%E9%9D%9E%E9%87%8D%E7%82%B9%EF%BC%89/" itemprop="url">saga事务</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/2.Volatile/" itemprop="url">volatile</a></h1>
         
 
         <div class="post-meta">
@@ -1292,8 +1296,8 @@ pop()
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-25T09:39:01+08:00">
-                2020-08-25
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-28T20:56:43+08:00">
+                2020-08-28
               </time>
             
 
@@ -1315,8 +1319,8 @@ pop()
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
-                    <span itemprop="name">框架</span>
+                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
+                    <span itemprop="name">基础</span>
                   </a>
                 </span>
 
@@ -1354,16 +1358,13 @@ pop()
       
         
           
-          saga和tcc很像，tcc是把接口拆成三个，try、confirm、cancel，saga就是两个，try和confirm合并为一个。
-两种思想
-  编排模式：事件驱动模式，服务之间的调用时通过发布事件，监听时间来驱动，比如借助mq，回滚也是一样的，通过事件来驱动。编排模式很有去中心化的思想，而且是异步调用，缺点就是异步发生异常不好排查问题，而且需要依赖mq。
-  命令模式：类似tcc，有一个saga分布式事务管理器，同步调用。优点和缺点和编排模式相反。
-
-AxonFrameworkAxonF
+          volatile是为了解决修改数据后，其他线程可以立即感知到数据的变化。
+因为CPU读写主内存的速度比较低，所以数据的处理都是在CPU缓存中。CPU会读写的自己缓存，缓存在刷新到主内存或者别的地方，提高性能。但是这样的话就会导致别的线程修改了数据，不会马上写回主内存，就算写回主内存，有些线程可能也不会去主内存读，还是读取自己的缓存中的数据。
+被volatile修饰后就符合MESI协议，当数据被修改之后也就是assign步骤结束后，会强制执行store和write操作，同时所有CPU会嗅探到数据过
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/4.saga%EF%BC%88%E9%9D%9E%E9%87%8D%E7%82%B9%EF%BC%89/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/2.Volatile/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1422,7 +1423,7 @@ AxonFrameworkAxonF
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/3.TCC%E5%8F%8A%E5%8F%98%E7%A7%8D%E6%96%B9%E6%A1%88/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/1.%E7%BA%BF%E7%A8%8B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -1441,7 +1442,7 @@ AxonFrameworkAxonF
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/3.TCC%E5%8F%8A%E5%8F%98%E7%A7%8D%E6%96%B9%E6%A1%88/" itemprop="url">事务-3.TCC事务</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/1.%E7%BA%BF%E7%A8%8B/" itemprop="url">线程</a></h1>
         
 
         <div class="post-meta">
@@ -1453,8 +1454,8 @@ AxonFrameworkAxonF
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-22T22:32:58+08:00">
-                2020-08-22
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-28T11:52:00+08:00">
+                2020-08-28
               </time>
             
 
@@ -1476,8 +1477,8 @@ AxonFrameworkAxonF
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
-                    <span itemprop="name">框架</span>
+                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
+                    <span itemprop="name">基础</span>
                   </a>
                 </span>
 
@@ -1516,17 +1517,12 @@ AxonFrameworkAxonF
         
           
           
-主业务服务就是调用其他服务的接口，比如说下订单的接口，在这个接口中需要冻结用户钱包金额，主业务服务就是订单服务，从业务服务就是钱包服务，钱包服务需要提供三个接口：try接口、confirm接口、cancel接口。
-业务活动管理器就是管理分布式事务状态的，他会去触发从业务服务的confirm和cancel接口。
-try阶段：会锁定资源，没有资源锁定的操作，try接口就可以留空。
-confirm：执行具体的逻辑；
-cancel：对之前的变动回滚；
-TCC的两个变种
-  异步型TCC方案：从业务服务
+  工作线程：main方法就是一个线程，在main线程中在启动一个线程，线程中是一个死循环，比如定时发送心跳，这时候就算main执行完成，jvm也不会退出，因为有一个非后台的工作线程在一直运行。
+  daemon线程：非工作线程就是daemon线程，如果说所有的工作线程都停止了，daemon线程会跟着jvm一起退出了。使用**setDaemon(true)**将工作线程设置成daemon线程，什么时候需要设置成daemon线程呢？比如说有一个后台的监控线程，在工作线程都结束之后，后台的监控也没
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/3.TCC%E5%8F%8A%E5%8F%98%E7%A7%8D%E6%96%B9%E6%A1%88/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/1.%E7%BA%BF%E7%A8%8B/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1585,7 +1581,7 @@ TCC的两个变种
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/2.%E5%8D%95%E6%A8%A1%E5%9D%97%E5%A4%9A%E5%BA%93/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/7.fail%20fast%E6%9C%BA%E5%88%B6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -1604,7 +1600,7 @@ TCC的两个变种
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/2.%E5%8D%95%E6%A8%A1%E5%9D%97%E5%A4%9A%E5%BA%93/" itemprop="url">事务-2.XA事务</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/7.fail%20fast%E6%9C%BA%E5%88%B6/" itemprop="url">fail fast</a></h1>
         
 
         <div class="post-meta">
@@ -1616,8 +1612,8 @@ TCC的两个变种
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-21T18:56:53+08:00">
-                2020-08-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-28T09:27:37+08:00">
+                2020-08-28
               </time>
             
 
@@ -1639,8 +1635,8 @@ TCC的两个变种
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
-                    <span itemprop="name">框架</span>
+                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
+                    <span itemprop="name">基础</span>
                   </a>
                 </span>
 
@@ -1678,16 +1674,14 @@ TCC的两个变种
       
         
           
-          一般项目刚上线不久，数据量稍微有点大的时候，但是还没到分库分表的数据量，会把不同的表放到不同的数据库中，但是这个时候@transactional注解垮裤不会生效了。这时候就要用到XA规范和2PC、3PC理论。
-XA规范
-TM和RM通信的规范就是XA，TM就相当于是引入的一个组件。
-XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/rollback。
-一般的TM用的都是Atomikos
-1234&lt;dependen
+          fail fast就是说，在迭代器遍历的时候，其他线程过来修改集合，迭代器就会报错，concurrentModificationException。
+之前看的集合源码中的增删改操作都会有个操作，modCount++，在初始化迭代器的时候会把modCount赋值给迭代器的exceptedModCount。
+1int expectedModCount = ArrayList.this.modCount;
+在执行next()的时候会执行checkForComodification方法，如果不相等就抛出
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/2.%E5%8D%95%E6%A8%A1%E5%9D%97%E5%A4%9A%E5%BA%93/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/7.fail%20fast%E6%9C%BA%E5%88%B6/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1746,7 +1740,7 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/1.transactional/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/6.set/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -1765,7 +1759,7 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/1.transactional/" itemprop="url">transactional</a></h1>
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/6.set/" itemprop="url">Set</a></h1>
         
 
         <div class="post-meta">
@@ -1777,8 +1771,8 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-21T12:05:19+08:00">
-                2020-08-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-28T09:11:56+08:00">
+                2020-08-28
               </time>
             
 
@@ -1800,8 +1794,8 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%A1%86%E6%9E%B6/" itemprop="url" rel="index">
-                    <span itemprop="name">框架</span>
+                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
+                    <span itemprop="name">基础</span>
                   </a>
                 </span>
 
@@ -1839,12 +1833,13 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
       
         
           
-          在Spring中如果想使用注解声明的事务需要添加@EnableTransactionManagement注解，从这个注解进去是个ImportSelector类，然后进入ProxyTransactionManagementConfiguration，这是个全配置类，里面创建了一个Bean：TransactionInterceptor，他是AOP事务的增强逻辑。
-被transactional修饰的方法会被spring生成一个动态代理对象，controller注入的bean也是被代理过的，代理对象的方
+          HashSet因为HashMap的key是不会重复的，因为重复的key执行的是替换操作，HashSet就是基于HashMap实现的。value存成new Object()就完事了。源码里也能看到，就是声明了一个HashMap，所有操作就是去操作map。
+LinkedHashSet他继承了HashSet，初始化时调用了HashSet的构造方法，HashSet中会创建一个LinkedHashMap
+123HashSet(int initialCapacity, float loadFactor, b
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/1.transactional/#more" rel="contents">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/6.set/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1894,7 +1889,7 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/18/">&lt;</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/28/">28</a><a class="extend next" rel="next" href="/page/20/">&gt;</a>
+    <a class="extend prev" rel="prev" href="/page/18/">&lt;</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/20/">&gt;</a>
   </nav>
 
 
@@ -1940,7 +1935,7 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">274</span>
+                <span class="site-state-item-count">284</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1951,7 +1946,7 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-count">26</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -1962,7 +1957,7 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-count">48</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -2012,7 +2007,7 @@ XA规范流程：connect -&gt; closed，start -&gt; end，prepare -&gt; commit/r
 <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

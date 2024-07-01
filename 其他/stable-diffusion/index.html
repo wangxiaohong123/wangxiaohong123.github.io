@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="stable-diffusion," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="stable-diffusion原理就是逆向降噪的过程，就好比秋天的时候地上都是树叶，这个时候地上的树叶就是噪点，把树叶一点一点收起来，地面越来越清晰就是降噪的过程，所以使用stable-diffusion生成图片的时候控制台中的图片时从模糊到越来越清晰的。 那么就有两个问题，初始的图片为什么要加噪点，以及如何实现降噪？ 为什么要加噪点？加噪点是为了给图片降维，图片是由像素组成，像素是由红黄蓝三颜">
+<meta property="og:type" content="article">
+<meta property="og:title" content="stable-diffusion">
+<meta property="og:url" content="https://wangxiaohong123.github.io/%E5%85%B6%E4%BB%96/stable-diffusion/index.html">
+<meta property="og:site_name" content="小红">
+<meta property="og:description" content="stable-diffusion原理就是逆向降噪的过程，就好比秋天的时候地上都是树叶，这个时候地上的树叶就是噪点，把树叶一点一点收起来，地面越来越清晰就是降噪的过程，所以使用stable-diffusion生成图片的时候控制台中的图片时从模糊到越来越清晰的。 那么就有两个问题，初始的图片为什么要加噪点，以及如何实现降噪？ 为什么要加噪点？加噪点是为了给图片降维，图片是由像素组成，像素是由红黄蓝三颜">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-34-30.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-46-55.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-55-15.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_23-54-23.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-30_08-52-37.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/未标题-1 拷贝.png">
+<meta property="article:published_time" content="2023-08-28T14:57:35.000Z">
+<meta property="article:modified_time" content="2023-09-13T00:25:11.000Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="stable-diffusion">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-34-30.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://wangxiaohong123.github.io/其他/stable-diffusion/"/>
+
+
+
+
+
+  <title>stable-diffusion | 小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%85%B6%E4%BB%96/stable-diffusion/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">stable-diffusion</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2023-08-28T22:57:35+08:00">
+                2023-08-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E4%BB%96/" itemprop="url" rel="index">
+                    <span itemprop="name">其他</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>stable-diffusion原理就是<strong>逆向降噪</strong>的过程，就好比秋天的时候地上都是树叶，这个时候地上的树叶就是噪点，把树叶一点一点收起来，地面越来越清晰就是降噪的过程，所以使用stable-diffusion生成图片的时候控制台中的图片时从模糊到越来越清晰的。</p>
+<p>那么就有两个问题，初始的图片为什么要加噪点，以及如何实现降噪？</p>
+<h5 id="为什么要加噪点？"><a href="#为什么要加噪点？" class="headerlink" title="为什么要加噪点？"></a>为什么要加噪点？</h5><p>加噪点是为了给图片降维，图片是由像素组成，像素是由红黄蓝三颜色混合组成，拿一个512*512的图片举例，这个图片就可以转换成$512<em>512</em>3=786432$个数字组成，如果是读取的话没有任何困难，但是如果把786432个数字放到神经网络里就会变成786432维，这种算力不是普通显卡可以承受的，所以把图片上不是关键的像素变成噪点可以减少计算维度，就像地上虽然堆满了树叶，但是我们还能看出来这是一片空地，。其实不需要关心怎么给图片加上噪点，模型库中的图片自带噪点，只需要计算怎么降燥。</p>
+<h5 id="怎么去除噪点？"><a href="#怎么去除噪点？" class="headerlink" title="怎么去除噪点？"></a>怎么去除噪点？</h5><p>网上一搜这里会出现一大堆名次，VAE、UNet、CLIP巴拉巴拉看不懂，但是可以想象出来地上的树叶并不是一次全都落下来的，每次只落一点慢慢地上的树叶越来越多，清理这些树叶可能需要n次，n越大就越干净，这里就对应了stable-diffusion的<strong>采样步数</strong>，可以理解成清除噪点的次数。如何降噪对应的是<strong>采样器</strong>，比如有的采样器是用吸尘器吸树叶，有的采样器用手捡树叶。</p>
+<h5 id="stable-diffusion怎么识别prompt去画图？"><a href="#stable-diffusion怎么识别prompt去画图？" class="headerlink" title="stable-diffusion怎么识别prompt去画图？"></a>stable-diffusion怎么识别prompt去画图？</h5><p>首先需要一个足够大的图片数据库，里面存放的是降维过的(也就是说有噪点的)图片，就是<strong>模型库</strong>，其次它需要有**语意识别(trnasformer，也是chat GPT里的T)**功能，识别语意之后去模型库中找到描述相关的图片中和prompt相符合的内容，最后把他们整合。</p>
+<h3 id="安装模型"><a href="#安装模型" class="headerlink" title="安装模型"></a>安装模型</h3><p>我没有使用cola安装，很多扩展都没有，比如civitai，但是我手动装了civitai页面上页不显示，这样的话下载模型只能去c站[<a target="_blank" rel="noopener" href="https://civitai.com/]%E6%89%8B%E5%8A%A8%E4%B8%8B%E8%BD%BD%EF%BC%8C%E6%8A%8A%E4%B8%8B%E8%BD%BD%E5%AE%8C%E7%9A%84%E6%A8%A1%E5%9E%8B%E6%94%BE%E5%88%B0stable-diffusion%E7%9B%AE%E5%BD%95%E4%B8%8B%E7%9A%84models/Stable-diffusion%E8%B7%AF%E5%BE%84%E4%B8%8B%EF%BC%8C%E7%84%B6%E5%90%8E%E9%87%8D%E5%90%AFstable-diffusion%E3%80%82">https://civitai.com/]手动下载，把下载完的模型放到stable-diffusion目录下的models/Stable-diffusion路径下，然后重启stable-diffusion。</a></p>
+<h5 id="1-lora模型"><a href="#1-lora模型" class="headerlink" title="1.lora模型"></a>1.lora模型</h5><p>安装完lora模型之后点击附加网络是看不到我们刚刚下载的模型的：</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-34-30.png" alt="Xnip2023-08-29_08-34-30"></p>
+<p>但是他已经提示了需要把模型放到models/lora路径下，把刚刚下载的模型复制一份到这个路径，然后点击页面右边的刷新按钮就可以看到刚才安装的模型了。</p>
+<p>然后我们去c站找一张lora的模型示例图，把prompt复制到文生图的提示词里：</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-46-55.png" alt="Xnip2023-08-29_08-46-55"></p>
+<p>然后点击刚刚下载的模型，在上面的输入框会出现一个lora标签，shuimobysimV3就是我们刚刚下载的模型在本地的名称，最后的1表示权重，这里能看到复制过来的提示词中的lora中的模型名和我们安装的不一样， 所以需要替换模型名最后删掉刚才生成的lora标签，点击生成：</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-55-15.png" alt="Xnip2023-08-29_08-55-15"></p>
+<p>严格来说lora不像是一个模型，下载的时候就可以看出来他的体积非常小，他的原理类似一个汉堡，一个人说不够甜，厨师就把上面的面包拿掉，挤了点糖，第二次说生菜少了，厨师就把上面的面包和牛肉拿掉，下面放了几片生菜，就这样一点一点加工。他的原理就是不影响原有扩散模型的层中的内容，而是在中间插入新层影响输出内容。</p>
+<h3 id="controlNet"><a href="#controlNet" class="headerlink" title="controlNet"></a>controlNet</h3><h5 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h5><p>从网址安装扩展中输入controlnet[<a target="_blank" rel="noopener" href="https://openai.wiki/go?_=47fe78c830aHR0cHM6Ly9naXRodWIuY29tL01pa3ViaWxsL3NkLXdlYnVpLWNvbnRyb2xuZXQ=">https://github.com/Mikubill/sd-webui-controlnet</a>]的地址安装。本地自己安装的stable-diffusion在装完controlNet之后是没有模型的，需要自己去hugginface[<a target="_blank" rel="noopener" href="https://huggingface.co/lllyasviel/ControlNet-v1-1/tree/main]%E6%88%96%E8%80%85[https://huggingface.co/TencentARC/T2I-Adapter/tree/main/models]%E4%B8%8A%E4%B8%8B%E8%BD%BDpth%E5%90%8E%E7%BC%80%E7%9A%84%E6%A8%A1%E5%9E%8B%EF%BC%8C%E4%B8%8B%E8%BD%BD%E5%AE%8C%E5%90%8E%E6%94%BE%E5%88%B0stable-diffusion-webui/extensions/sd-webui-controlnet/models%E8%B7%AF%E5%BE%84%E4%B8%8B%EF%BC%8C%E6%9C%80%E5%90%8E%E9%87%8D%E5%90%AFwebUI%E3%80%82">https://huggingface.co/lllyasviel/ControlNet-v1-1/tree/main]或者[https://huggingface.co/TencentARC/T2I-Adapter/tree/main/models]上下载pth后缀的模型，下载完后放到stable-diffusion-webui/extensions/sd-webui-controlnet/models路径下，最后重启webUI。</a></p>
+<p>新版生成预览按钮在这里，妈的找半天：</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_23-54-23.png" alt="Xnip2023-08-29_23-54-23"></p>
+<h5 id="常用预处理器和模型"><a href="#常用预处理器和模型" class="headerlink" title="常用预处理器和模型"></a>常用预处理器和模型</h5><ol>
+<li>  canny：线稿检测，就是上图的效果，把图片的信息提取出线条，这样可以让SD根据提供的线条作画；</li>
+<li>  color：他会把图片变成马赛克，马赛克的颜色和图片对应，这样可以控制SD画图时的颜色；</li>
+<li>  mlsd+seg开头的预处理器：mlsd是直线检测，他会把图片中的直线选中，曲线被忽略，seg开头的是分块检测，会把图片中的每个物体用不同颜色区分，他俩一起使用可以实现室内设计相关功能；</li>
+</ol>
+<p>如果想要同时使用controlNet的多个模型时可以使用上面的control net unit选显卡，每个选项卡对应一个模型，<strong>每个选项卡都需要勾选enable</strong>：</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-30_08-52-37.png" alt="Xnip2023-08-30_08-52-37"></p>
+<h3 id="简单使用"><a href="#简单使用" class="headerlink" title="简单使用"></a>简单使用</h3><h5 id="1-提示词"><a href="#1-提示词" class="headerlink" title="1.提示词"></a>1.提示词</h5><p>大部分情况的提示次其实就一个字，抄，去c站找到目标图片查看他的提示次和模型……</p>
+<p>正向提示次：</p>
+<ul>
+<li>  普通关键词使用’,’分割，不同顺序会导致不一样的出图结果；</li>
+<li>  小括号表示赋权，比如(blue hair:1.5)表示蓝色头发权重1.5；</li>
+<li>  中括号表示关键词参与采样步数占比，比如采样步数为20时，[blue hair:0.5]和[blue hair::10]都表示关键词参与前10步的采样；</li>
+</ul>
+<h5 id="2-局部重绘"><a href="#2-局部重绘" class="headerlink" title="2.局部重绘"></a>2.局部重绘</h5><p>图生图的一个选项卡，使用这个可以把图片中我们不想要的内容替换掉。</p>
+<h5 id="3-换脸"><a href="#3-换脸" class="headerlink" title="3.换脸"></a>3.换脸</h5><p>换脸和换其他部位的思路一样，使用局部重绘功能把想要更换的位置涂掉，然后利用canny模型锁定图片整体的线条，然后用open pose模型锁定任务的骨架，open pose的作用是换脸时因为脸部被我们涂掉了，所以DF在自由发挥的时候很有可能在脸上画一只手之类的，open pose可以限制DF不要话其他的四肢，在确定参数、模型都没问题后可能换出来的脸很丑，这个时候需要提示次做最后的补充，然后开始刷图，跟抽奖一样。</p>
+<p>inpaint anything扩展也可以实现这个功能。</p>
+<h5 id="4-图片放大"><a href="#4-图片放大" class="headerlink" title="4.图片放大"></a>4.图片放大</h5><p>不考虑插件的情况SD有3个地方可以实现图片的放大：</p>
+<ol>
+<li>  字生图时选择高清修复；</li>
+<li>  图生图时在脚本处选择SD upscale，或者安装Ultimate SD upscale[<a target="_blank" rel="noopener" href="https://github.com/Coyote-A/ultimate-upscale-for-automatic1111]%E6%89%A9%E5%B1%95">https://github.com/Coyote-A/ultimate-upscale-for-automatic1111]扩展</a>;</li>
+<li>  额外功能中对图片进行缩放；</li>
+</ol>
+<p>不管使用哪种方式都要选择放大算法，常见的放大的算法：Lanczos、Nearest、LDSR、ESRGAN_4x、R-ESRGAN 4x+、R-ESRGAN 4x+ Anime6B、SwinIR_4x、ScuNET、ScuNET PSNR。</p>
+<p><strong>Lanczos、Nearest不好用，LDSR动漫和真人都可以，ESRGAN_4x和SwinIR_4x更适合真人；R-ESRGAN 4x+、R-ESRGAN 4x+ Anime6B更适合动漫；SwinIR_4x、ScuNET、ScuNET PSNR更适合降噪；</strong></p>
+<h5 id="5-图片改色和修补"><a href="#5-图片改色和修补" class="headerlink" title="5.图片改色和修补"></a>5.图片改色和修补</h5><p>图片上色使用controlnet的lineart相关模型，lineart_anime适合处理动漫的黑白照片，lineart_realistic适合处理真人的黑白照片，这个模型用来生成线稿图，canny模型也可以提取线稿，不过他生成完的图片和原图有点差异，提取完线稿图就可以填写关键词进行上色了。</p>
+<p>修补使用controlnet的inpaint相关模型，这个模型除了可以修补，还可以扩图比如把一张图片变宽，两侧需要补充图案就可以用inpaint相关模型，inpaint only + lama效果比inpaint only好，inpaint_global_harmonious会对细节做额外处理。</p>
+<h5 id="6-调光"><a href="#6-调光" class="headerlink" title="6.调光"></a>6.调光</h5><p>调光使用controlnet的Lighting based picture control controlnet模型。</p>
+<h5 id="7-二维码美化"><a href="#7-二维码美化" class="headerlink" title="7.二维码美化"></a>7.二维码美化</h5><p>二维码美化用到的大模型是ReV Animated，用到的controlnet的模型是qrcode_monster、tile和brightness。</p>
+<p>二维码根据定位点(小回字)和马眼(边上的大回字)来定位有效区域；二维码的容错率是指角度不同、部分缺失、模糊，但是只要马眼和定位点能够被识别就可以扫描出二维码的内容。</p>
+<p>步骤：</p>
+<ol>
+<li><p>去[<a target="_blank" rel="noopener" href="https://qrcode.antfu.me/]%E7%94%9F%E6%88%90%E4%B8%80%E5%BC%A0%E5%B8%A6%E5%99%AA%E7%82%B9%E7%9A%84%E4%BA%8C%E7%BB%B4%E7%A0%81(1140/*1140%E5%B7%A6%E5%8F%B3)%EF%BC%8C%E7%84%B6%E5%90%8E%E8%A3%81%E5%89%AA%E6%88%90768/*768(%E4%BA%8C%E7%BB%B4%E7%A0%81%E5%8D%A0%E4%B8%80%E4%B8%AA%E8%A7%92)%EF%BC%8C%E7%B1%BB%E4%BC%BC%E4%B8%8B%E9%9D%A2%E8%BF%99%E6%A0%B7">https://qrcode.antfu.me/]生成一张带噪点的二维码(1140\*1140左右)，然后裁剪成768\*768(二维码占一个角)，类似下面这样</a></p>
+  <img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/未标题-1 拷贝.png" alt="未标题-1拷贝" style="zoom:25%;">
+</li>
+<li><p>  上传到controlnet里，SD的大模型选择ReV Animated，controlnet的模型选择qr_code，去c站找一张稍微复杂点的图片，把他的描述词抄过来，SD的采样步数调到40，画布大小调到768*768，controlnet的控制权重调到1.5左右点击生成；</p>
+</li>
+<li><p>  运气好的话第一步就可以生成一张看不出来是二维码又很好看又能被扫出来的图片，运气不好的话继续点击图生图，识别不出来可能是qr_code权重给大了，在图生图的时候继续使用controlnet的qr_code模型重绘，调整权重，把重绘强度调大，为了防止重绘强度过高导致新图片和原图差异过大，需要另开一个controlnet窗口，上传刚才生成的二维码图片，选择tile模型，点击生成；</p>
+</li>
+<li><p>  如果重新生成还是不稳定的话需要调高qr_code的权重刷图，或者在开一个controlnet窗口，使用brightness模型，brightness模型对图片的修改比较大，需要把他的权重调到0.3，启动控制步数和结束步数在0.8到0.9之间慢慢调整；</p>
+</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/%E5%85%B6%E4%BB%96/stable-diffusion/">stable-diffusion</a></p>
+  <p><span>发布时间:</span>2023年08月28日 - 22:08</p>
+  <p><span>最后更新:</span>2023年09月13日 - 08:09</p>
+  <p><span>原始链接:</span><a href="/%E5%85%B6%E4%BB%96/stable-diffusion/" title="stable-diffusion">https://wangxiaohong123.github.io/%E5%85%B6%E4%BB%96/stable-diffusion/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E5%85%B6%E4%BB%96/stable-diffusion/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/stable-diffusion/" rel="tag"><i class="fa fa-tag"></i> stable-diffusion</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/%E5%85%B6%E4%BB%96/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="next" title="数据分析-大纲">
+                <i class="fa fa-chevron-left"></i> 数据分析-大纲
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/%E5%85%B6%E4%BB%96/%E7%88%AC%E8%99%AB/%E5%85%A5%E9%97%A8/" rel="prev" title="爬虫-1.入门">
+                爬虫-1.入门 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">284</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">48</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8A%A0%E5%99%AA%E7%82%B9%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">为什么要加噪点？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E5%8E%BB%E9%99%A4%E5%99%AA%E7%82%B9%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">怎么去除噪点？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#stable-diffusion%E6%80%8E%E4%B9%88%E8%AF%86%E5%88%ABprompt%E5%8E%BB%E7%94%BB%E5%9B%BE%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">stable-diffusion怎么识别prompt去画图？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E6%A8%A1%E5%9E%8B"><span class="nav-number"></span> <span class="nav-text">安装模型</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-lora%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">1.lora模型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#controlNet"><span class="nav-number"></span> <span class="nav-text">controlNet</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E9%A2%84%E5%A4%84%E7%90%86%E5%99%A8%E5%92%8C%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">常用预处理器和模型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8"><span class="nav-number"></span> <span class="nav-text">简单使用</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E6%8F%90%E7%A4%BA%E8%AF%8D"><span class="nav-number">1.</span> <span class="nav-text">1.提示词</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E5%B1%80%E9%83%A8%E9%87%8D%E7%BB%98"><span class="nav-number">2.</span> <span class="nav-text">2.局部重绘</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-%E6%8D%A2%E8%84%B8"><span class="nav-number">3.</span> <span class="nav-text">3.换脸</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-%E5%9B%BE%E7%89%87%E6%94%BE%E5%A4%A7"><span class="nav-number">4.</span> <span class="nav-text">4.图片放大</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-%E5%9B%BE%E7%89%87%E6%94%B9%E8%89%B2%E5%92%8C%E4%BF%AE%E8%A1%A5"><span class="nav-number">5.</span> <span class="nav-text">5.图片改色和修补</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#6-%E8%B0%83%E5%85%89"><span class="nav-number">6.</span> <span class="nav-text">6.调光</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#7-%E4%BA%8C%E7%BB%B4%E7%A0%81%E7%BE%8E%E5%8C%96"><span class="nav-number">7.</span> <span class="nav-text">7.二维码美化</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

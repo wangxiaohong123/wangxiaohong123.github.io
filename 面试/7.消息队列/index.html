@@ -103,14 +103,14 @@
 <meta property="og:site_name" content="小红">
 <meta property="og:description" content="1.用过消息队列吗？在项目里用的队列，大部分的场景是解耦和异步，比如充值完会员会发送一条消息，如果以后增加系统的币种，会员会有对币种的逻辑处理、会员积分这些东西直接消费会员的消息就可以了，不需要改接口。 我们系统里用户是有个收发瓶子次数的限制，很多场景都可以导致这个次数发生改变，比如开通会员、后台手动操作修改用户状态，这些对实时性要求不高的业务可以使用mq进行异步处理，减少接口响应时间。 如果有大">
 <meta property="og:locale">
-<meta property="og:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/7.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/images/rocketMQ%E6%B6%88%E6%81%AF%E6%8C%81%E4%B9%85%E5%8C%96.png">
-<meta property="og:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/7.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/images/RocketMQ%E4%B8%BB%E4%BB%8E%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%E5%A4%8D%E5%88%B6.png">
-<meta property="article:published_time" content="2020-06-10T12:00:28.596Z">
-<meta property="article:modified_time" content="2023-04-08T05:13:47.492Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/rocketMQ%E6%B6%88%E6%81%AF%E6%8C%81%E4%B9%85%E5%8C%96.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/RocketMQ%E4%B8%BB%E4%BB%8E%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%E5%A4%8D%E5%88%B6.png">
+<meta property="article:published_time" content="2020-06-10T12:00:28.000Z">
+<meta property="article:modified_time" content="2024-03-20T09:23:49.881Z">
 <meta property="article:author" content="小红">
 <meta property="article:tag" content="面试专题">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/7.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/images/rocketMQ%E6%B6%88%E6%81%AF%E6%8C%81%E4%B9%85%E5%8C%96.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/rocketMQ%E6%B6%88%E6%81%AF%E6%8C%81%E4%B9%85%E5%8C%96.png">
 
 
 
@@ -423,21 +423,17 @@
 <p>首先发送消息使用rocketmq的事务消息或者同步发送加重试检测，超过次数回滚业务逻辑；</p>
 <p>然后broker采用同步刷盘(flushDiskType=SYNC_FLUSH)，主从同步复制(brokerRole=SYNC_MASTER)；</p>
 <p>最后消费者同步消费业务逻辑，最后返回处理结果，需要注意重复消费问题；</p>
-<h5 id="6-顺序消费"><a href="#6-顺序消费" class="headerlink" title="6.顺序消费"></a>6.顺序消费</h5><p>一个queue对应多个消费者肯定保证不了消费顺序，可以变成多queue多消费者，每个queue对应一个消费者，然后把需要顺序消费的数据路由到同一个队列里，kafka的话把顺序的消息通过key路由到同一个partition中。</p>
-<p>如果消费者是多线程的话需要使用对线程每个都绑定单独的队列，在把需要顺序消费的消息路由到同一个队列中去。</p>
-<p>rocketmq中由于使用消息分片存储，默认是round robin，可能同一条数据的操作会分配到不同的message queue中，这时需要在发送消息时重写MessageQueueSelector的select方法，使用数据id对message queue的数量取模，保证相同数据发送到同一个message queue中，消费数据时，为了保证消费失败还要和后面的消息有顺序只能返回SUSPEND_CURRENT_QUEUE_A_MOMENT，意思就是等会在处理。</p>
-<h5 id="7-消息积压"><a href="#7-消息积压" class="headerlink" title="7.消息积压"></a>7.消息积压</h5><p>新建几十个消费者，把原来的消费者的消费逻辑改成重新发送到新partiotion中，让几十个消费者去消费，前提是数据库能承受住，消费完了在把消费者换回来。</p>
+<h5 id="6-顺序消费"><a href="#6-顺序消费" class="headerlink" title="6.顺序消费"></a>6.顺序消费</h5><h5 id="7-消息积压"><a href="#7-消息积压" class="headerlink" title="7.消息积压"></a>7.消息积压</h5><p>新建几十个消费者，把原来的消费者的消费逻辑改成重新发送到新partiotion中，让几十个消费者去消费，前提是数据库能承受住，消费完了在把消费者换回来。</p>
 <h5 id="8-设计一个消息中间件"><a href="#8-设计一个消息中间件" class="headerlink" title="8.设计一个消息中间件"></a>8.设计一个消息中间件</h5><p>首先在存储上要分片存储，队列的消息均匀分布在每个节点上，多个消费者平均的绑定n片，分片之间需要考虑主从选举、主从心跳等等。同时要实现两种刷盘方式，使用mmap顺序写磁盘，所以还需要一个队列存储consumer消费的offect，客户端和broker之间使用netty通信，客户端和broker之间也需要心跳。</p>
-<h3 id="rocketmq"><a href="#rocketmq" class="headerlink" title="rocketmq"></a>rocketmq</h3><h4 id="发送消息机制"><a href="#发送消息机制" class="headerlink" title="发送消息机制"></a>发送消息机制</h4><p>通过message queue把数据分片，均匀存储在broker上。相当于的kafka的partition。producer会定时访问nameserver获取broker信息，发送消息时，会通过负载均衡计算出应该发送到那个message queue上，然后发送请求给对应的broker，如果master宕机，在等待主备切换的时候，是无法往这个broker中发送消息的，所以要设置sendLatencyFaultEnable，设置了这个参数后，在发送超时或者失败时会回避访问这个broker一段时间。</p>
+<h3 id="rocketmq"><a href="#rocketmq" class="headerlink" title="rocketmq"></a>rocketmq</h3><h4 id="发送消息机制"><a href="#发送消息机制" class="headerlink" title="发送消息机制"></a>发送消息机制</h4><p>通过message queue把数据分片，均匀存储在broker上。相当于的kafka的partition。producer会定时访问nameserver获取broker信息，发送消息时，会通过负载均衡计算出应该发送到那个message queue上，然后发送请求给对应的broker，如果master宕机，在等待主备切换的时候，是无法往这个broker中发送消息的，结果只能是发送失败或者超时，所以要设置sendLatencyFaultEnable，设置了这个参数后，在发送超时或者失败时会回避访问这个broker一段时间，将消息发送到其他broker。</p>
 <h4 id="存储消息"><a href="#存储消息" class="headerlink" title="存储消息"></a>存储消息</h4><p>rocketmq的消息存储是在一个commit log中，每个文件最大1g，为什么是1g？因为mmap在生成文件映射的时候限制文件大小为1.5到2G之间。收到消息后会在log文件后追加消息，然后添加到OS cache中，当配置为同步刷盘时，会马上把OS cache的消息刷到consumer queue中，consumer queue中存储的是消息在log文件中的偏移量，每个message queue对应多个consumer queue，和多个commit log。一般会把brokerRole设置成SYNC_MASTER，这样会同步复制master的消息，而flushDiskType根据情况，如果是订单、金额相关的就设置成SYNC_FLUSH，允许丢数据的就设置成ASYNC_FLUSH。</p>
-<p><img src="images/rocketMQ%E6%B6%88%E6%81%AF%E6%8C%81%E4%B9%85%E5%8C%96.png"></p>
-<h4 id="选举和消息同步"><a href="#选举和消息同步" class="headerlink" title="选举和消息同步"></a>选举和消息同步</h4><p>选举和消息同步都是通过DLedger + raft协议实现的，在启动或者master宕机时，每个broker都会进行投票，但是每个broker都会给自己投票，然后把结果发送给其他broker，一个master 宕机，还有两个slave，他们刚开始都给自己投票，这是每个slave都会有一票，然后进入随机睡眠，先醒的那个会继续投票，还是给自己，第二个broker醒了之后发现broker1已经有两票了，他就会在投给broker1，只要有一半 + 1个broker投票给同一个broker就会选出来新的master。</p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/rocketMQ%E6%B6%88%E6%81%AF%E6%8C%81%E4%B9%85%E5%8C%96.png" alt="rocketMQ消息持久化"></p>
+<h4 id="选举和消息同步"><a href="#选举和消息同步" class="headerlink" title="选举和消息同步"></a>选举和消息同步</h4><p>选举和消息同步都是通过DLedger + raft协议实现的，在启动或者master宕机时，每个broker都会进行投票，但是每个broker都会给自己投票，然后把结果发送给其他broker，一个master 宕机，还有两个slave，他们刚开始都给自己投票，这时每个slave都会有一票，然后进入随机睡眠，先醒的那个会继续投票，还是给自己，其他broker醒了之后收到选举消息会比对日志，谁的日志新就投给谁，只要有一半 + 1个broker投票给同一个broker就会选出来新的master。</p>
 <p>消息同步也是基于raft协议实现的：</p>
-<p><img src="images/RocketMQ%E4%B8%BB%E4%BB%8E%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%E5%A4%8D%E5%88%B6.png"></p>
+<p><img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/RocketMQ%E4%B8%BB%E4%BB%8E%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%E5%A4%8D%E5%88%B6.png" alt="RocketMQ主从数据同步复制"></p>
 <h4 id="消费数据"><a href="#消费数据" class="headerlink" title="消费数据"></a>消费数据</h4><p>消费数据有两种模式，pull和push，但是这两种模式都是consumer主动去拉取，push模式下，发送请求给对应的broker，然后broker从consumer queue中拿到上次消费消息的偏移量，去commit log中获取对应的消息，如果没有新消息，请求线程会睡眠15，后台线程一直检查commit log，有新消息后唤醒睡眠的线程，返回消息。拉取数据时是可以从master上拉取，也可以从slave上拉取，其实commitLog和consumer queue都是经过OS cache去刷盘的，commitLog使用OS cache来提高写速度，而consumer queue使用OS cache提高读写速度，因为他很小，所以几乎所有的consumer queue都是在缓存中，这样读写都是缓存级的，很快，而commitLog文件比较大，不可能全部加载到缓存中，缓存中只是刚刚收到的消息还没刷盘的，所以除非消费速度很发消息速度差不多，否则拉取消息只能读取磁盘数据了，这个会比读取磁盘慢很多，而且当master感知到读取的速度落后很多，就会认为是自己负载过高，会让消费者下次去slave broker中拉取数据。</p>
 <p>当consumer宕机或者新加机器后会重新分配message queue，这个过程叫rebalance。</p>
-<h4 id="事务消息"><a href="#事务消息" class="headerlink" title="事务消息"></a>事务消息</h4><p>先说一下事务消息的流程，然后说一下rocketmq的事务消息实现原理。</p>
-<p>首先上游服务会发送一条half消息到rocketmq，rocketmq把half消息写入commitLog和RMQ_SYS_TRANS_HALF_TOPIC中，上游业务处理完业务逻辑后会发送commit消息或者rollback消息给rocketmq，rocketmq把对应的操作写入OP_TOPIC中，如果是commit消息，还会把这条消息写入真正的topic对应的message queue下的consumer queue中，这样下游服务就能消费到消息了，broker定时扫描RMQ_SYS_TRANS_HALF_TOPIC，如果OP_TOPIC中没有这条消息的状态就会回调上游服务，最多回调15次，最终失败就把消息状态改成rollback。</p>
+<h4 id="事务消息"><a href="#事务消息" class="headerlink" title="事务消息"></a>事务消息</h4><p>首先上游服务会发送一条half消息到rocketmq，rocketmq把half消息写入commitLog和RMQ_SYS_TRANS_HALF_TOPIC中，上游业务处理完业务逻辑后会发送commit消息或者rollback消息给rocketmq，rocketmq把对应的操作写入OP_TOPIC中，如果是commit消息，还会把这条消息写入真正的topic对应的message queue下的consumer queue中，这样下游服务就能消费到消息了，broker定时扫描RMQ_SYS_TRANS_HALF_TOPIC，如果OP_TOPIC中没有这条消息的状态就会回调上游服务，最多回调15次，最终失败就把消息状态改成rollback。</p>
 <h5 id="自定义延迟消息级别"><a href="#自定义延迟消息级别" class="headerlink" title="自定义延迟消息级别"></a>自定义延迟消息级别</h5><p>在发送消息的时候可以指定delay_time_level来设置延迟级别，通过控制台或者直接修改broker配置文件的messageDelayLevel属性可以修改延迟消息级别对应的时间。</p>
 
       
@@ -467,7 +463,7 @@
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <p><span>本文标题:</span><a href="/%E9%9D%A2%E8%AF%95/7.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a></p>
   <p><span>发布时间:</span>2020年06月10日 - 20:06</p>
-  <p><span>最后更新:</span>2023年04月08日 - 13:04</p>
+  <p><span>最后更新:</span>2024年03月20日 - 17:03</p>
   <p><span>原始链接:</span><a href="/%E9%9D%A2%E8%AF%95/7.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" title="消息队列">https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/7.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</a>
     <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/%E9%9D%A2%E8%AF%95/7.%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/"  aria-label="复制成功！"></i></span>
   </p>
@@ -602,7 +598,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">274</span>
+                <span class="site-state-item-count">284</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -613,7 +609,7 @@
             
             <div class="site-state-item site-state-categories">
               <a href="/categories/index.html">
-                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-count">26</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -624,7 +620,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">43</span>
+                <span class="site-state-item-count">48</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -690,7 +686,7 @@
 <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
