@@ -306,1445 +306,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/jvm/6.%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/jvm/6.%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/" itemprop="url">jvm-6.类文件结构</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-07-18T09:16:34+08:00">
-                2022-07-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
-                    <span itemprop="name">基础</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          编译的结果是字节码而不是机器码实现了“一次编写，到处运行”，而且语言无关性也越来越被重视，设计java的时候就是这么考虑的，所以把Java的规范拆分成《Java语言规范》和《Java虚拟机规范》，2018年graalVM公开之后基本上实现了语言无关性，目前运行在java虚拟机上的语言有Kotlin、Groovy、JRuby、JPython、Scala等等。
-实现平台、语言无关的关键就是虚拟机和编译之后的字节码(就是class文件)，比如javac把java程序编译成class文件、jrubyc把
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/jvm/6.%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/jvm/3.%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E5%B8%83%E5%B1%80/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/jvm/3.%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E5%B8%83%E5%B1%80/" itemprop="url">jvm-对象的创建和布局</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-07-06T09:14:41+08:00">
-                2022-07-06
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
-                    <span itemprop="name">基础</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          对象的创建包括new关键字、复制、反序列化等等。
-new关键字对象的创建第1步 类加载这里的new关键字不包括数组和Class对象，当虚拟机遇到一条字节码new指令时，首先会根据关键字的参数去常量池中找这个类的符号引用，然后在检查这个符号引用的类是否已经被加载、解析和初始化过，如果没有就先进行类加载。
-第2步 分配内存类加载完之后需要多大的内存就可以确定了，这个时候就要为对象分配内存，如果堆中的内存是规整的，所有用过的内存放到一边，没用过的在另一边，那么分配内存就是把指针向空闲空间方向挪动一段与
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/jvm/3.%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA%E5%92%8C%E5%B8%83%E5%B1%80/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/linux/6.shell%E8%84%9A%E6%9C%AC/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/linux/6.shell%E8%84%9A%E6%9C%AC/" itemprop="url">linux-6.shell脚本</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-06-29T19:05:06+08:00">
-                2022-06-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
-                    <span itemprop="name">基础</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          shell脚本不光是一些命令的集合，他还可以做一些简单的数据处理，比如自动化的服务器管理、日志的处理等等。
-执行脚本的方法：
-
-  直接执行xx.sh，前提是脚本必须要有可读和可执行的权限；
-  路径执行：/home/xx.sh或者./xx.sh；
-  设置变量，在PATH中增加脚本的路径，或者把脚本放到PATH配置的路径中，然后就可以直接执行脚本了；
-  以bash程序来执行：bash xx.sh或者sh xx.sh，因为/bin/sh是/bin/bash的链接文件，只要脚本有可读属性就可以使
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/linux/6.shell%E8%84%9A%E6%9C%AC/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/linux/5.bash/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/linux/5.bash/" itemprop="url">linux-5.bash</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-06-23T00:18:32+08:00">
-                2022-06-23
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
-                    <span itemprop="name">基础</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          bash是shell的一种操作系统就是一组软件，通过这组软件来管理硬件和监控，如果这组软件能被用户随意使用，那么操作系统就很容易崩溃，但是又不能不让用户使用操作系统，所以就有了操作系统之上的一层程序，通过这层程序指挥内核，然后内核再去操作硬件。现在关系变成了应用程序–&gt;内核–&gt;硬件，这样一层一层的关系，我理解的就是硬件像蛋黄，内核是蛋清，应用程序是蛋壳，所以叫shell(壳程序)。壳程序的功能是提供用户操作系统的一个界面。
-也就是说只要能操作内核程序的软件都叫壳程序，比如图形界面的软
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/linux/5.bash/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/jvm/2.%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/jvm/2.%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/" itemprop="url">jvm-内存区域</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-06-22T12:01:39+08:00">
-                2022-06-22
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
-                    <span itemprop="name">基础</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          Java虚拟机规范规定jvm运行时数据区应该包括方法区、堆、虚拟机栈、本地方法栈、程序计数器。其中程序计数器、虚拟机栈和本地方法栈是线程私有的，堆和方法区是所有线程共享的。
-内存区域1 程序计数器他是当前线程执行的字节码行号指示器，占用内存较小，字节码解释器通过改变程序计数器的值来选取下一条需要执行的字节码指令，比如分支、循环、跳转、异常都需要这个计数器来完成。在单核CPU进行多线程切换时，在切换后需要恢复到正确的执行位置也要依赖这个计数器。
-如果执行的是java方法，计数器记录的是正在执行的虚
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/jvm/2.%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/linux/4.vi/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/linux/4.vi/" itemprop="url">linux-4.vi</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-06-21T08:12:22+08:00">
-                2022-06-21
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
-                    <span itemprop="name">基础</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          比vi好用的编辑器有很多，比如nano，但是不是所有发行版都内置除vi意外的编辑器。最重要的是很多软件的编辑接口都会主动调用vi，比如crontab、visudo，所以vi是最重要的。vim是vi的升级版，他会根据文件的扩展名和文件内的开头信息显示对应的语法样式，其实感觉就是多个颜色、下划线等样式，缩进啥的还是很痛苦。
-大部分的发行版都用vim替换vi了，如果输入alias时出现**alias vi=’vim’**表示执行vi就是在执行vim，否则还是要手动执行vim。
-vi分为3中模式：
-
- 
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/linux/4.vi/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/linux/2.%E6%96%87%E4%BB%B6%E5%92%8C%E7%9B%AE%E5%BD%95%E7%AE%A1%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/linux/2.%E6%96%87%E4%BB%B6%E5%92%8C%E7%9B%AE%E5%BD%95%E7%AE%A1%E7%90%86/" itemprop="url">linux-2.文件和目录管理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-06-09T22:27:00+08:00">
-                2022-06-09
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
-                    <span itemprop="name">基础</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          用户和用户组Linux是多人多任务系统，可能同时有多人使用服务器，考虑每个人的隐私权限和每个人喜好的工作环境，这样每个用户都可以把自己的文件权限设置成自己可见，就保证了隐私。用户组主要是为了团队协同工作，这样既能保证每个人的隐私，又能实现多人共同维护服务。
-用户组就相当于一个家庭，谁都可以在客厅玩、吃饭、看书，用户相当于每个人自己的卧室，需要得到本人的允许才能进入，others就是陌生人，连进到客厅都需要得要允许。
-root用户就是天神，所有文件对于他来说都没有权限。
-所有的账号信息都在**/e
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/linux/2.%E6%96%87%E4%BB%B6%E5%92%8C%E7%9B%AE%E5%BD%95%E7%AE%A1%E7%90%86/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/jvm/1.java%E5%8E%86%E5%8F%B2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/jvm/1.java%E5%8E%86%E5%8F%B2/" itemprop="url">jvm-java历史</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-06-05T10:23:01+08:00">
-                2022-06-05
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%9F%BA%E7%A1%80/" itemprop="url" rel="index">
-                    <span itemprop="name">基础</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          从业务领域划分java，可以分成4部分：
-
-  java card：支持在小内存设备上运行的小程序；
-  java ME：支持在手机、PDA等终端上运行的移动程序，之前叫J2ME，提供部分java API；
-  java SE：在桌面运行的程序，之前叫J2SE，提供完整的java API；
-  java EE：支持多层架构的企业应用(比如ERP)，之前叫J2EE，他是在java SE的基础上做了大量的补充和一些部署支持；
-
-java SE的核心api都是以java.*开头，java EE的扩展之
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E5%9F%BA%E7%A1%80/jvm/1.java%E5%8E%86%E5%8F%B2/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/4.%E6%97%A5%E5%BF%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/face.jpeg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="小红">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/4.%E6%97%A5%E5%BF%97/" itemprop="url">服务治理-4.日志</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-05-15T20:24:29+08:00">
-                2022-05-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/" itemprop="url" rel="index">
-                    <span itemprop="name">服务治理</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          日志规范
-  接口的入口和出口需要有日志，包括controller和service，级别是info。
-  关键步骤也需要有日志。
-  抛出异常前也需要打印日志，级别视情况而定，可以是info，也可以是error。
-  catch中也要打印日志，并且要输出异常信息，级别是error。
-  遇到if else分支时尽量打印日志。
-  核心功能模块建议打印完整日志。
-
-统一系统、操作日志组件参考美团文档[如何优雅地记录操作日志？]
-系统日志和操作日志是不一样的，系统日志是各个功能运行流转过程中，打印出
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/4.%E6%97%A5%E5%BF%97/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%A1%8C%E4%B8%BA%E5%9E%8B/%E8%A7%A3%E9%87%8A%E5%99%A8%E6%A8%A1%E5%BC%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1890,11 +451,1501 @@ java SE的核心api都是以java.*开头，java EE的扩展之
 
 
     
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/6.devOps/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/6.devOps/" itemprop="url">服务治理-5.DevOps</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-05-06T07:27:19+08:00">
+                2022-05-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/" itemprop="url" rel="index">
+                    <span itemprop="name">服务治理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          持续集成和持续交付持续集成就是说每天或者说每次有人提交代码到gitlab，gitlab会通知jenkins服务器，然后jenkins把代码拉下来，使用mvn编译，打包，运行所有单元测试，如果单测没问题就说明本次提交到总代码里成功。
+持续交付的意思是每隔一段时间比如一周让jenkins拉取最新的代码然后自动化的通过设置的脚本和命令部署到测试，持续性的交付可以运行、测试的完整版本的代码出来，测试完之后就可以让jenkins自动化部署到生产了，持续交付版本。
+devOps持续集成和持续交付软件体系：g
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/6.devOps/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/5.%E5%8D%95%E6%B5%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/5.%E5%8D%95%E6%B5%8B/" itemprop="url">服务治理-4.单测</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-05-05T08:22:44+08:00">
+                2022-05-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/" itemprop="url" rel="index">
+                    <span itemprop="name">服务治理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          合格的单元测试一个优秀的单元测试应该满足5个条件：
+
+  可验证：当单侧代码运行完就可以验证业务代码是否有问题，而不是通过肉眼去看log，即使用assert来判断结果。
+  可重复：当单测写好后是可以不分环境不分时间的运行的，比如依赖MySQL，想MySQL中插入数据区测试，如果数据被删或者在测试环境都没有这个数据了，这个单测没法进行，就是说要避免对基础环境(redis、es、MySQL、mq等)和外部接口(rpc接口)的依赖。执行完单测后应该恢复现场， 把之前准备的数据和单测过程中产生的数据全
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/5.%E5%8D%95%E6%B5%8B/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/3.%E7%9B%91%E6%8E%A7%E7%B3%BB%E7%BB%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/3.%E7%9B%91%E6%8E%A7%E7%B3%BB%E7%BB%9F/" itemprop="url">服务治理-3.监控系统</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-05-04T10:48:45+08:00">
+                2022-05-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/" itemprop="url" rel="index">
+                    <span itemprop="name">服务治理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          监控系统选型prometheus、zabbis、nagios、open-falcon进行选型
+
+
+
+监控系统
+语言
+成熟度
+扩展性
+性能
+社区活跃
+容器支持
+企业使用
+
+
+
+zabbix
+c + php
+高
+高
+低
+中
+低
+高
+
+
+nagios
+c
+高
+中
+中
+低
+低
+低
+
+
+open-falcon
+go
+中
+高
+高
+中
+中
+中
+
+
+prometheus
+go
+中
+高
+高
+高
+高
+高
+
+
+zabbis和nagios的成熟度、企业使用高是因为他俩诞生的造，已经超过20年了。但是zabbix存储使用
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/3.%E7%9B%91%E6%8E%A7%E7%B3%BB%E7%BB%9F/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/3.%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/3.%E4%BD%BF%E7%94%A8/" itemprop="url">链路追踪-3.使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-05-02T16:06:58+08:00">
+                2022-05-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/" itemprop="url" rel="index">
+                    <span itemprop="name">服务治理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          agent配置信息大全
+启动脚本配置intellij启动进入edit configurations配置界面，配置vm options：
+1-javaagent:[agent目录]/agent/skywalking-agent.jar
+Environment variables添加配置：
+1SW_AGENT_COLLECTOR_BACKEND_SERVICES=ip:11800;SW_AGENT_NAME=[服务名]
+生产环境启动启动脚本中添加如下配置：
+12345# skywalking-age
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/3.%E4%BD%BF%E7%94%A8/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/2.%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/2.%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" itemprop="url">链路追踪-2.环境搭建</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-05-02T15:01:54+08:00">
+                2022-05-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/" itemprop="url" rel="index">
+                    <span itemprop="name">服务治理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          首先去官网[https://archive.apache.org/dist/skywalking/]点击8.5.0/，下载apache-skywalking-apm-es7-8.5.0.tar.gz，因为这个版本的和我们的es版本一致。下载之后解压，解压后的主要目录：
+
+  agent⽬录将来要拷⻉到各服务所在机器上⽤作探针 
+  bin⽬录是服务启动脚本
+  config⽬录是配置⽂件
+  oap-libs⽬录是oap服务运⾏所需的jar包
+  webapp⽬录是web服务运⾏所需的jar包
+
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/2.%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/1.%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/1.%E5%8E%9F%E7%90%86/" itemprop="url">链路追踪-1.原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-04-28T20:20:47+08:00">
+                2022-04-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/" itemprop="url" rel="index">
+                    <span itemprop="name">服务治理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          APM(Application Performance Monitor)应用性能监控系统，他要监控到每个请求链路调用了那些环节，那些节点，每个节点的耗时，是否有异常，整个请求链路的TPS、性能延迟，出了问题能够快速便捷的看到某一次请求的日志。
+SkyWalking模块
+  探针：在要监控的节点上通过注解的方式加上探针，这种无侵入的加探针的方式叫做插桩。
+  OAP平台：observability analysis platform，观察分析平台，需要独立部署。他会接收探针上报数据的请求。
+  存
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/1.%E5%8E%9F%E7%90%86/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/1.%E5%BC%82%E5%B8%B8%E6%B2%BB%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/1.%E5%BC%82%E5%B8%B8%E6%B2%BB%E7%90%86/" itemprop="url">服务治理-1.异常治理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-04-27T07:47:51+08:00">
+                2022-04-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/" itemprop="url" rel="index">
+                    <span itemprop="name">服务治理</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          治理就是说捕获和上抛异常、处理异常、封装和定义异常(规范化异常)。线上的而系统出现异常一般都是堆外提供的接口处，大概有4个地方：http接口：对应前端的一个功能。rpc接口：给其他系统调用的一个功能。mq消费。调度线程。
+错误码规范code总长度为6位：
+
+  前两位是微服务或者通用异常，比如客户端异常异常(缺少参数、请求类型错误)10，探索服务是11，动态服务是12。
+  中间两位是每个服务对应的模块或者域。
+  后两位递增表示具体异常。
+
+通常来说每个系统要有自己的异常类，这样看日志就知道出
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/1.%E5%BC%82%E5%B8%B8%E6%B2%BB%E7%90%86/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/TiDB/1.%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/TiDB/1.%E5%85%A5%E9%97%A8/" itemprop="url">TiDB-1.入门</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-04-05T21:36:22+08:00">
+                2022-04-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          分布式数据库是由分库分表演化过来的，分库分表需要单独部署leaf，DDL维护，整合分布式事务，扩容缩容等，麻烦的很。他有点类似es集群，开发的时候不需要关注有几台机器，高可用的问题，只需要知道连接信息，就是把之前分库分表的工作都在内部完成了。
+
+          
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/TiDB/1.%E5%85%A5%E9%97%A8/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/2.sharding-sphere/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/2.sharding-sphere/" itemprop="url">1.分库分表-sharding_sphere</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2022-04-03T06:27:35+08:00">
+                2022-04-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+          sharding-sphere仅仅是一个框架，业务引入依赖就可以使用了，通过一些配置，他就会根据指定sharding字段路由，执行SQL，[官网][https://shardingsphere.apache.org/index_zh.html]。现在sharding-sphere也有proxy server模式了，它还支持主键生成、事务(最终一致性、XA)、数据迁移、数据可视化链路追踪、扩容等，就是说基本上除了垮裤跨表的复杂查询，分库分表用到的功能他基本上都有了，最早是当当开源出来的。
+myca
+          ...
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/2.sharding-sphere/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/8/">&lt;</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="extend next" rel="next" href="/page/10/">&gt;</a>
+    <a class="extend prev" rel="prev" href="/page/8/">&lt;</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/10/">&gt;</a>
   </nav>
 
 
@@ -1940,7 +1991,7 @@ java SE的核心api都是以java.*开头，java EE的扩展之
           
             <div class="site-state-item site-state-posts">
               <a href="/archives/">
-                <span class="site-state-item-count">299</span>
+                <span class="site-state-item-count">290</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1962,7 +2013,7 @@ java SE的核心api都是以java.*开头，java EE的扩展之
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">49</span>
+                <span class="site-state-item-count">50</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
