@@ -1729,7 +1729,7 @@ crud
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%A1%86%E6%9E%B6/mq/kafka/13.%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86/">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/%E6%A1%86%E6%9E%B6/mq/kafka/14.consumer/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -1748,7 +1748,7 @@ crud
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/%E6%A1%86%E6%9E%B6/mq/kafka/13.%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86/" itemprop="url">13.kafka源码-集群管理</a></h1>
+                <a class="post-title-link" href="/%E6%A1%86%E6%9E%B6/mq/kafka/14.consumer/" itemprop="url">14.kafka源码-consumer</a></h1>
         
 
         <div class="post-meta">
@@ -1822,12 +1822,12 @@ crud
       
         
           
-          在KafkaServer中有一个组件是KafkaController，这个组件就是管理集群的核心组件，每个broker都会有一个controller，但是多个broker中只会有一个controller能够选举成功，其他broker也需要监听controller的状态，controller自己也需要自己检查健康状态，所以还有两个组件也是跟集群相关的，一个是zkUtils还有一个是KafkaHealthcheck线程。
-选举controller先看KafkaController的startup()
+          先看看consumer是怎么初始化的，进到KafkaConsumer的构造方法里，里面初始化了一堆东西，retryBackoffMs、metadata、NetworkClient这些之前都看过了，然后又实例化一个ConsumerCoordinator，最后是一个Fetcher。在我们自己的代码中使用consumer的poll方法拉取消息，所以猜测主要功能都在这个方法中实现，比如自动提交offset，进到ConsumerCoordinator的构造方法里看一下：
+12345678910111213
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/%E6%A1%86%E6%9E%B6/mq/kafka/13.%E9%9B%86%E7%BE%A4%E7%AE%A1%E7%90%86/#more" rel="contents">
+            <a class="btn" href="/%E6%A1%86%E6%9E%B6/mq/kafka/14.consumer/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
