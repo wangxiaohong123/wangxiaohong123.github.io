@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="深度学习," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="小红" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/dog01.svg?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="标准数据集GLUE：由纽约大学、华盛顿大学和google联合推出的涵盖11个子任务的NLP数据集。 一、文本预处理1 基本方法1.1 分词精确模式：把句子精确的切开，适合文本分析。 1234567import jiebacontent &#x3D; &quot;工信处女干事每月经过下属科室都要亲口交代24口交换机等技术性器件的安装工作&quot;# cut_all是False表示精确模式print(jieb">
+<meta property="og:type" content="article">
+<meta property="og:title" content="7.nlp">
+<meta property="og:url" content="https://wangxiaohong123.github.io/AI/7.nlp/index.html">
+<meta property="og:site_name" content="小红">
+<meta property="og:description" content="标准数据集GLUE：由纽约大学、华盛顿大学和google联合推出的涵盖11个子任务的NLP数据集。 一、文本预处理1 基本方法1.1 分词精确模式：把句子精确的切开，适合文本分析。 1234567import jiebacontent &#x3D; &quot;工信处女干事每月经过下属科室都要亲口交代24口交换机等技术性器件的安装工作&quot;# cut_all是False表示精确模式print(jieb">
+<meta property="og:locale">
+<meta property="article:published_time" content="2025-01-01T08:58:49.997Z">
+<meta property="article:modified_time" content="2025-01-08T14:19:59.336Z">
+<meta property="article:author" content="小红">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://wangxiaohong123.github.io/AI/7.nlp/"/>
+
+
+
+
+
+  <title>7.nlp | 小红</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">小红</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://wangxiaohong123.github.io/AI/7.nlp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/face.jpeg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小红">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">7.nlp</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2025-01-01T16:58:49+08:00">
+                2025-01-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" itemprop="url" rel="index">
+                    <span itemprop="name">人工智能</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>标准数据集GLUE：由纽约大学、华盛顿大学和google联合推出的涵盖11个子任务的NLP数据集。</p>
+<h3 id="一、文本预处理"><a href="#一、文本预处理" class="headerlink" title="一、文本预处理"></a>一、文本预处理</h3><h4 id="1-基本方法"><a href="#1-基本方法" class="headerlink" title="1 基本方法"></a>1 基本方法</h4><h5 id="1-1-分词"><a href="#1-1-分词" class="headerlink" title="1.1 分词"></a>1.1 分词</h5><p>精确模式：把句子精确的切开，适合文本分析。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jieba</span><br><span class="line"></span><br><span class="line">content = <span class="string">&quot;工信处女干事每月经过下属科室都要亲口交代24口交换机等技术性器件的安装工作&quot;</span></span><br><span class="line"><span class="comment"># cut_all是False表示精确模式</span></span><br><span class="line">print(jieba.lcut(content, cut_all=<span class="literal">False</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># [&#x27;工信处&#x27;, &#x27;女干事&#x27;, &#x27;每月&#x27;, &#x27;经过&#x27;, &#x27;下属&#x27;, &#x27;科室&#x27;, &#x27;都&#x27;, &#x27;要&#x27;, &#x27;亲口&#x27;, &#x27;交代&#x27;, &#x27;24&#x27;, &#x27;口&#x27;, &#x27;交换机&#x27;, &#x27;等&#x27;, &#x27;技术性&#x27;, &#x27;器件&#x27;, &#x27;的&#x27;, &#x27;安装&#x27;, &#x27;工作&#x27;]</span></span><br></pre></td></tr></table></figure>
+<p>全模式：把句子中所有可以成词的词语都扫出来，不能消除歧义</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jieba</span><br><span class="line"></span><br><span class="line">content = <span class="string">&quot;工信处女干事每月经过下属科室都要亲口交代24口交换机等技术性器件的安装工作&quot;</span></span><br><span class="line"><span class="comment"># cut_all是False表示精确模式</span></span><br><span class="line">print(jieba.lcut(content, cut_all=<span class="literal">True</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># [&#x27;工信处&#x27;, &#x27;处女&#x27;, &#x27;女干事&#x27;, &#x27;干事&#x27;, &#x27;每月&#x27;, &#x27;月经&#x27;, &#x27;经过&#x27;, &#x27;下属&#x27;, &#x27;科室&#x27;, &#x27;都&#x27;, &#x27;要&#x27;, &#x27;亲口&#x27;, &#x27;口交&#x27;, &#x27;交代&#x27;, &#x27;24&#x27;, &#x27;口交&#x27;, &#x27;交换&#x27;, &#x27;交换机&#x27;, &#x27;换机&#x27;, &#x27;等&#x27;, &#x27;技术&#x27;, &#x27;技术性&#x27;, &#x27;性器&#x27;, &#x27;器件&#x27;, &#x27;的&#x27;, &#x27;安装&#x27;, &#x27;安装工&#x27;, &#x27;装工&#x27;, &#x27;工作&#x27;]</span></span><br></pre></td></tr></table></figure>
+<p>搜索引擎模式：在精确模式的基础上对长词再次进行切分，提高召回率。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jieba</span><br><span class="line"></span><br><span class="line">content = <span class="string">&quot;工信处女干事每月经过下属科室都要亲口交代24口交换机等技术性器件的安装工作&quot;</span></span><br><span class="line">print(jieba.lcut_for_search(content))</span><br><span class="line"></span><br><span class="line"><span class="comment"># [&#x27;工信处&#x27;, &#x27;干事&#x27;, &#x27;女干事&#x27;, &#x27;每月&#x27;, &#x27;经过&#x27;, &#x27;下属&#x27;, &#x27;科室&#x27;, &#x27;都&#x27;, &#x27;要&#x27;, &#x27;亲口&#x27;, &#x27;交代&#x27;, &#x27;24&#x27;, &#x27;口&#x27;, &#x27;交换&#x27;, &#x27;换机&#x27;, &#x27;交换机&#x27;, &#x27;等&#x27;, &#x27;技术&#x27;, &#x27;技术性&#x27;, &#x27;器件&#x27;, &#x27;的&#x27;, &#x27;安装&#x27;, &#x27;工作&#x27;]</span></span><br></pre></td></tr></table></figure>
+<h5 id="1-2-命名实体识别-NER"><a href="#1-2-命名实体识别-NER" class="headerlink" title="1.2 命名实体识别(NER)"></a>1.2 命名实体识别(NER)</h5><p>将人名、地名、机构名等专有名词称作命名实体。</p>
+<h5 id="1-3-词性标注-POS"><a href="#1-3-词性标注-POS" class="headerlink" title="1.3 词性标注(POS)"></a>1.3 词性标注(POS)</h5><p>以语法特征为依据，对词进行划分，就是划分出名词、动词啥的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jieba.posseg <span class="keyword">as</span> pseg</span><br><span class="line"></span><br><span class="line">content = <span class="string">&quot;工信处女干事每月经过下属科室都要亲口交代24口交换机等技术性器件的安装工作&quot;</span></span><br><span class="line">print(pseg.lcut(content))</span><br><span class="line"></span><br><span class="line"><span class="comment"># [pair(&#x27;工信处&#x27;, &#x27;n&#x27;), pair(&#x27;女干事&#x27;, &#x27;n&#x27;), pair(&#x27;每月&#x27;, &#x27;r&#x27;), pair(&#x27;经过&#x27;, &#x27;p&#x27;), pair(&#x27;下属&#x27;, &#x27;v&#x27;), pair(&#x27;科室&#x27;, &#x27;n&#x27;), pair(&#x27;都&#x27;, &#x27;d&#x27;), pair(&#x27;要&#x27;, &#x27;v&#x27;), pair(&#x27;亲口&#x27;, &#x27;n&#x27;), pair(&#x27;交代&#x27;, &#x27;n&#x27;), pair(&#x27;24&#x27;, &#x27;m&#x27;), pair(&#x27;口&#x27;, &#x27;n&#x27;), pair(&#x27;交换机&#x27;, &#x27;n&#x27;), pair(&#x27;等&#x27;, &#x27;u&#x27;), pair(&#x27;技术性&#x27;, &#x27;n&#x27;), pair(&#x27;器件&#x27;, &#x27;n&#x27;), pair(&#x27;的&#x27;, &#x27;uj&#x27;), pair(&#x27;安装&#x27;, &#x27;v&#x27;), pair(&#x27;工作&#x27;, &#x27;vn&#x27;)]</span></span><br></pre></td></tr></table></figure>
+<h4 id="2-张量表示"><a href="#2-张量表示" class="headerlink" title="2 张量表示"></a>2 张量表示</h4><p>让语言类的文本可以作为计算机处理程序的输入。</p>
+<h5 id="2-1-one-hot"><a href="#2-1-one-hot" class="headerlink" title="2.1 one-hot"></a>2.1 one-hot</h5><p>独热编码，每个词都表示成有n个元素的向量，这个词向量中只有1个元素是1，其他元素都是0，n表示整个语料中不同词汇的总数。很耗内存，而且他体现不出词与词之间的联系。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> tensorflow.keras.preprocessing.text <span class="keyword">import</span> Tokenizer</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">vocab = &#123;<span class="string">&#x27;周杰伦&#x27;</span>, <span class="string">&#x27;陈奕迅&#x27;</span>, <span class="string">&#x27;王力宏&#x27;</span>, <span class="string">&#x27;李宗盛&#x27;</span>&#125;</span><br><span class="line">t = Tokenizer(num_words=<span class="literal">None</span>, char_level=<span class="literal">False</span>)</span><br><span class="line">t.fit_on_texts(vocab)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> vc <span class="keyword">in</span> vocab:</span><br><span class="line">    zero_list = [<span class="number">0</span>] * <span class="built_in">len</span>(vocab)</span><br><span class="line">    token_index = t.texts_to_sequences([vc])[<span class="number">0</span>][<span class="number">0</span>] - <span class="number">1</span></span><br><span class="line">    zero_list[token_index] = <span class="number">1</span></span><br><span class="line">    print(vc, <span class="string">&quot;的one-hot编码：&quot;</span>, zero_list)</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">王力宏 的one-hot编码： [<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]</span><br><span class="line">陈奕迅 的one-hot编码： [<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>]</span><br><span class="line">李宗盛 的one-hot编码： [<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>]</span><br><span class="line">周杰伦 的one-hot编码： [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>]</span><br></pre></td></tr></table></figure>
+<h5 id="2-2-word2vec"><a href="#2-2-word2vec" class="headerlink" title="2.2 word2vec"></a>2.2 word2vec</h5><p>使用神经网络，将网络参数作为词汇的向量表示，包含CBOW和skipGram两种训练模式：</p>
+<ul>
+<li>  CBOW：连续磁带模式</li>
+<li>  skipGram</li>
+</ul>
+<h4 id="3-数据分析"><a href="#3-数据分析" class="headerlink" title="3 数据分析"></a>3 数据分析</h4><h5 id="3-1-标签数量分布"><a href="#3-1-标签数量分布" class="headerlink" title="3.1 标签数量分布"></a>3.1 标签数量分布</h5><p>理解为数据集句子的各个分类数量是否想差过大。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> seaborn <span class="keyword">as</span> sb</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置图像风格</span></span><br><span class="line">plt.style.use(<span class="string">&#x27;fivethirtyeight&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取训练集和测试集</span></span><br><span class="line">train_data = pd.read_csv(<span class="string">&#x27;data/train.csv&#x27;</span>, sep=<span class="string">&#x27;\t&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取标签数量分布</span></span><br><span class="line">sb.countplot(<span class="string">&quot;label&quot;</span>, data=train_data)</span><br><span class="line">plt.title(<span class="string">&quot;train_data&quot;</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<h5 id="3-2-句子长度分布"><a href="#3-2-句子长度分布" class="headerlink" title="3.2 句子长度分布"></a>3.2 句子长度分布</h5><p>短文本和长文本的模型不同。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> seaborn <span class="keyword">as</span> sb</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置图像风格</span></span><br><span class="line">plt.style.use(<span class="string">&#x27;fivethirtyeight&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取训练集和测试集</span></span><br><span class="line">train_data = pd.read_csv(<span class="string">&#x27;data/train.csv&#x27;</span>, sep=<span class="string">&#x27;\t&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 增加长度列</span></span><br><span class="line">train_data[<span class="string">&quot;length&quot;</span>] = <span class="built_in">list</span>(<span class="built_in">map</span>(<span class="keyword">lambda</span> x: <span class="built_in">len</span>(x), train_data[<span class="string">&quot;sentence&quot;</span>]))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 长度数量分布</span></span><br><span class="line">sb.countplot(<span class="string">&quot;length&quot;</span>, data=train_data)</span><br><span class="line"><span class="comment"># 不展示横坐标</span></span><br><span class="line">plt.xticks([])</span><br><span class="line">plt.title(<span class="string">&quot;distribute_count&quot;</span>)</span><br><span class="line">plt.show()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 长度分布图</span></span><br><span class="line">sb.displot(train_data[<span class="string">&quot;length&quot;</span>])</span><br><span class="line">plt.xticks([])</span><br><span class="line">plt.title(<span class="string">&quot;distribute_length&quot;</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<h5 id="3-3-词频统计与关键词词云"><a href="#3-3-词频统计与关键词词云" class="headerlink" title="3.3 词频统计与关键词词云"></a>3.3 词频统计与关键词词云</h5><p>词云可以辅助评估语料质量，对违反预料标签含义的词进行修正，保证大部分的语料符合训练标准。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> jieba.posseg <span class="keyword">as</span> pseg</span><br><span class="line"><span class="keyword">from</span> wordcloud <span class="keyword">import</span> WordCloud</span><br><span class="line"><span class="keyword">from</span> itertools <span class="keyword">import</span> chain</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取形容词列表</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_abj</span>(<span class="params">text</span>):</span></span><br><span class="line">    res = []</span><br><span class="line">    <span class="keyword">for</span> g <span class="keyword">in</span> pseg.lcut(text):</span><br><span class="line">        <span class="keyword">if</span> g.flag == <span class="string">&#x27;a&#x27;</span>:</span><br><span class="line">            res.append(g.word)</span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 绘制词云</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gen_word_cloud</span>(<span class="params">word_list</span>):</span></span><br><span class="line">    <span class="comment"># 微软雅黑字体，最多展示200个词，白色背景</span></span><br><span class="line">    word_cloud = WordCloud(font_path=<span class="string">&quot;./SimHei.ttf&quot;</span>, max_words=<span class="number">200</span>, background_color=<span class="string">&#x27;white&#x27;</span>)</span><br><span class="line">    word_string = <span class="string">&quot; &quot;</span>.join(word_list)</span><br><span class="line">    word_cloud.generate(word_string)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 绘图</span></span><br><span class="line">    plt.figure()</span><br><span class="line">    plt.imshow(word_cloud, interpolation=<span class="string">&#x27;bilinear&#x27;</span>)</span><br><span class="line">    plt.axis(<span class="string">&#x27;off&#x27;</span>)</span><br><span class="line">    plt.show()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取训练集和测试集</span></span><br><span class="line">train_data = pd.read_csv(<span class="string">&#x27;data/train.csv&#x27;</span>, sep=<span class="string">&#x27;\t&#x27;</span>)</span><br><span class="line"><span class="comment"># 拿到正样本</span></span><br><span class="line">p_train_data = train_data[train_data[<span class="string">&quot;label&quot;</span>] == <span class="number">1</span>][<span class="string">&quot;sentence&quot;</span>]</span><br><span class="line"><span class="comment"># 提取形容词</span></span><br><span class="line">train_p_abj = chain(*<span class="built_in">map</span>(<span class="keyword">lambda</span> x: get_abj(x), p_train_data))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成词云</span></span><br><span class="line">gen_word_cloud(train_p_abj)</span><br></pre></td></tr></table></figure>
+<h4 id="4-文本特征处理"><a href="#4-文本特征处理" class="headerlink" title="4 文本特征处理"></a>4 文本特征处理</h4><p>增加一些普适性的特征或者对长度进行规范。</p>
+<h5 id="4-1-增加n-gram特征"><a href="#4-1-增加n-gram特征" class="headerlink" title="4.1 增加n-gram特征"></a>4.1 增加n-gram特征</h5><p>相邻的n个词或者字的共现特征，一般分为2元特征(bi-gram)和3元特征(tri-gram)。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ngram_range = <span class="number">2</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">create_ngram_set</span>(<span class="params">input_list</span>):</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">set</span>(<span class="built_in">zip</span>(*input_list[i:] <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(ngram_range)))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">input_list = [<span class="number">1</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">6</span>, <span class="number">4</span>, <span class="number">9</span>]</span><br><span class="line">res = create_ngram_set(input_list)</span><br></pre></td></tr></table></figure>
+<h5 id="4-2-文本长度规范"><a href="#4-2-文本长度规范" class="headerlink" title="4.2 文本长度规范"></a>4.2 文本长度规范</h5><p>模型的输入需要等尺寸的矩阵，因此在进入模型前需要对文本数值映射后的长度进行规范，对超长的句子进行截断，对短句子进行补齐。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> keras.preprocessing <span class="keyword">import</span> sequence</span><br><span class="line"></span><br><span class="line">x_train = sequence.pad_sequences(x_train, cutlen)</span><br></pre></td></tr></table></figure>
+<h5 id="5-文本数据增强"><a href="#5-文本数据增强" class="headerlink" title="5 文本数据增强"></a>5 文本数据增强</h5><p>一般都是将文本调用google翻译，在翻译回来，这样会产生和当前样本标签相同但是文本不同的句子，这种方法叫回译法。</p>
+<p>如果句子很短有可能经过回译法之后得到和当前样本相同的句子，这个时候可以翻译成一个语言，在翻译成一个语言，在翻译成中文。</p>
+<h3 id="二、RNN模型"><a href="#二、RNN模型" class="headerlink" title="二、RNN模型"></a>二、RNN模型</h3><p>循环神经网络是最早应用到NLP的神经网络，训练时首先将文本进行分词，每个单词会分别输入到模型中，同时本次单词的输出会作为这条文本之后的单词的训练的输入。</p>
+<h4 id="1-传统RNN"><a href="#1-传统RNN" class="headerlink" title="1 传统RNN"></a>1 传统RNN</h4><p>结构简单，<strong>短句子的训练性能和效果不错</strong>，句子过长时会出现梯度消失或者梯度爆炸。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实例化rnn对象，输入张量中特征维度是5，隐藏层张量中特征维度是6(隐藏层中神经元的个数)，隐藏层个数是1</span></span><br><span class="line"><span class="comment"># 默认的激活函数时tanh</span></span><br><span class="line">rnn = nn.RNN(<span class="number">5</span>, <span class="number">6</span>, <span class="number">1</span>)</span><br><span class="line"><span class="comment"># 设定输入的张量，输入序列的长度是1，批次的样本数是3，输入张量的维度是5</span></span><br><span class="line"><span class="built_in">input</span> = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>)</span><br><span class="line"><span class="comment"># 1是隐藏层个数 * 网络方向(单向是1，双向是2),批次的样本数是3，隐藏层中神经元个数是6</span></span><br><span class="line">h0 = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>)</span><br><span class="line">output, hidden = rnn(<span class="built_in">input</span>, h0)</span><br></pre></td></tr></table></figure>
+<h4 id="2-LSTM"><a href="#2-LSTM" class="headerlink" title="2 LSTM"></a>2 LSTM</h4><p>长短时记忆网络，由4部分组成，训练效率比RNN低，可以缓解长句子的梯度消失和梯度爆炸问题。</p>
+<ol>
+<li>  遗忘门：决定当前时刻要丢弃多少上一时刻的记忆：$ f_t = σ(W_f⋅[h_{t−1},x_t]+b_f) $。</li>
+<li>  输入门：决定当前时刻有多少新的信息需要存储到记忆单元中：$ i_t=σ(W_i⋅[h{t−1},x_t]+b_i) $。</li>
+<li>  候选记忆单元：生成新的记忆内容：$ \tilde {C_t}=tanh(W_c⋅[h_{t−1},x_t]+b_c) $。</li>
+<li>  输出门：决定当前时刻要输出多少记忆单元的内容：$ o_t=σ(W_o⋅[h{t−1},x_t]+b_o) $。</li>
+<li>  记忆单元状态更新：结合遗忘门和输入门，对记忆单元进行更新：$ C_t=f_t⋅C_{t−1}+i_t⋅\tilde C_t~ $。</li>
+<li>  隐藏状态：使用输出门控制，决定输出哪些信息:$ h_t=o_t⋅tanh(C_t) $。</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输入张量维度：5，隐藏层神经元数量：6，隐藏层数：2</span></span><br><span class="line">lstm = nn.LSTM(<span class="number">5</span>, <span class="number">6</span>, <span class="number">2</span>)</span><br><span class="line">input1 = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>)</span><br><span class="line">h0 = torch.randn(<span class="number">2</span>, <span class="number">3</span>, <span class="number">6</span>)</span><br><span class="line">c0 = torch.randn(<span class="number">2</span>, <span class="number">3</span>, <span class="number">6</span>)</span><br><span class="line">output, (hn, cn) = lstm(input1, (h0, c0))</span><br><span class="line">print(output.shape)</span><br></pre></td></tr></table></figure>
+<h4 id="3-GRU"><a href="#3-GRU" class="headerlink" title="3 GRU"></a>3 GRU</h4><p>门控循环单元，也可以缓解长句子的梯度消失和梯度爆炸问题，同时他的结构和计算要比LSTM简单。主要由两部分组成：</p>
+<ol>
+<li>  更新门：</li>
+<li>  重置门：</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"></span><br><span class="line"><span class="comment"># 输入张量维度：5，隐藏层神经元数量：6，隐藏层数：2</span></span><br><span class="line">gru = nn.GRU(<span class="number">5</span>, <span class="number">6</span>, <span class="number">2</span>)</span><br><span class="line">input1 = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>)</span><br><span class="line">h0 = torch.randn(<span class="number">2</span>, <span class="number">3</span>, <span class="number">6</span>)</span><br><span class="line">output, hn = gru(input1, h0)</span><br><span class="line">print(output.shape)</span><br></pre></td></tr></table></figure>
+<h3 id="三、Transformer"><a href="#三、Transformer" class="headerlink" title="三、Transformer"></a>三、Transformer</h3><p>他可以利用分布式GPU进行训练，同时对长文本的效果比GRU和LSTM更好。基于seq2seq的transformer可以做文本生成、机器翻译等，又可以构建预训练语言模型用于不同任务的迁移学习。</p>
+<p>transformer由1个输入层+n个编码器+n个解码器+1个输出层组成：</p>
+<h4 id="1-输入部分实现"><a href="#1-输入部分实现" class="headerlink" title="1 输入部分实现"></a>1 输入部分实现</h4><p>输入层由原文本嵌入层及其位置编码器、目标文本嵌入层及其位置编码器组成。</p>
+<p>文本嵌入层是为了将文本中词汇的数字表示转变成高维向量表示，为了在高维空间捕捉词汇间的关系。位置编码为了将词汇位置对语义的影响加入到词张量中。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 构建embedding类实现文本嵌入</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Embeddings</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, d_model, vocab</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        :param d_model: 词嵌入的维度</span></span><br><span class="line"><span class="string">        :param vocab: 此表的大小</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">super</span>(Embeddings, self).__init__()</span><br><span class="line">        self.lut = nn.Embedding(vocab, d_model)</span><br><span class="line">        self.d_model = d_model</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        :param x: 输入进模型的文本通过词汇映射后的数字张量</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> self.lut(x) * math.sqrt(self.d_model)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 构建位置编码器的类</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PositionalEncoding</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, d_model, dropout=<span class="number">0.1</span>, max_len=<span class="number">5000</span></span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        :param d_model:词嵌入的维度</span></span><br><span class="line"><span class="string">        :param dropout: dropout层的置零比率</span></span><br><span class="line"><span class="string">        :param max_len: 句子的最大长度</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">super</span>(PositionalEncoding, self).__init__()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 实例化dropout层</span></span><br><span class="line">        self.dropout = nn.Dropout(p=dropout)</span><br><span class="line">        <span class="comment"># 初始化位置编码矩阵，大小是max_len * d_model</span></span><br><span class="line">        pe = torch.zeros(max_len, d_model)</span><br><span class="line">        <span class="comment"># 初始化一个绝对位置矩阵</span></span><br><span class="line">        position = torch.arange(<span class="number">0</span>, max_len).unsqueeze(<span class="number">1</span>)</span><br><span class="line">        <span class="comment"># 跳跃式初始化一个变化矩阵</span></span><br><span class="line">        div_term = torch.exp(torch.arange(<span class="number">0</span>, d_model, <span class="number">2</span>) * -(math.log(<span class="number">10000.0</span>) / d_model))</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 将前面定义的变化矩阵进行奇、偶分别赋值</span></span><br><span class="line">        pe[:, <span class="number">0</span>::<span class="number">2</span>] = torch.sin(position * div_term)</span><br><span class="line">        pe[:, <span class="number">1</span>::<span class="number">2</span>] = torch.cos(position * div_term)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 将二维张量扩充成3维张量</span></span><br><span class="line">        pe = pe.unsqueeze(<span class="number">0</span>)</span><br><span class="line">        self.register_buffer(<span class="string">&quot;pe&quot;</span>, pe)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        pe的编码太长，将第二个维度缩小成句子长度同等的长度</span></span><br><span class="line"><span class="string">        :param x: 文本序列的词嵌入表示</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        x = x + Variable(self.pe[:, :x.size(<span class="number">1</span>)], requires_grad=<span class="literal">False</span>)</span><br><span class="line">        <span class="keyword">return</span> self.dropout(x)</span><br></pre></td></tr></table></figure>
+<h4 id="2-编码器实现"><a href="#2-编码器实现" class="headerlink" title="2 编码器实现"></a>2 编码器实现</h4><h5 id="2-1-掩码张量"><a href="#2-1-掩码张量" class="headerlink" title="2.1 掩码张量"></a>2.1 掩码张量</h5><p>一般在自注意力机制中用来控制信息流，屏蔽或限制某些位置的信息传播，确保模型在处理某些位置时不会依赖于不应知晓的信息。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 构建掩码张量的函数</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">subsequence_mask</span>(<span class="params">size</span>):</span></span><br><span class="line">    attn_shape = (<span class="number">1</span>, size, size)</span><br><span class="line">    <span class="comment"># k可以取值-1,0,1</span></span><br><span class="line">    subsequence = np.triu(torch.ones(attn_shape), k=<span class="number">1</span>).astype(<span class="string">&#x27;uint8&#x27;</span>)</span><br><span class="line">    <span class="keyword">return</span> torch.from_numpy(<span class="number">1</span> - subsequence)</span><br></pre></td></tr></table></figure>
+<h6 id="2-2-注意力机制"><a href="#2-2-注意力机制" class="headerlink" title="2.2 注意力机制"></a>2.2 注意力机制</h6><p>大脑能够快速的把注意力放到有辨识度的部分而做出判断，而不是从头到尾观察一遍之后再做出判断。注意力计算规则需要指定3个输入：query、key和value，通过公式计算出query在key和value的作用下的表示。<strong>transformer中使用的是多头注意力机制</strong>，他是对注意力机制的扩充，同时使用多个不同的注意力机制捕捉不同的输入特征。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MultiHeadAttention</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, head, embedding_dim, dropout=<span class="number">0.1</span></span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        :param head:  代表几个头</span></span><br><span class="line"><span class="string">        :param embedding_dim: 词嵌入的维度</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">super</span>(MultiHeadAttention, self).__init__()</span><br><span class="line">        <span class="comment"># 多头的数量需要能整除词嵌入的维度</span></span><br><span class="line">        <span class="keyword">assert</span> embedding_dim % head == <span class="number">0</span></span><br><span class="line"></span><br><span class="line">        self.d_k = embedding_dim // head</span><br><span class="line">        self.head = head</span><br><span class="line">        self.embedding_dim = embedding_dim</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 4个线性层，Q、K、V、最终输出</span></span><br><span class="line">        self.linears = clones(nn.Linear(embedding_dim, embedding_dim), <span class="number">4</span>)</span><br><span class="line">        <span class="comment"># 初始化注意力张量</span></span><br><span class="line">        self.attn = <span class="literal">None</span></span><br><span class="line">        self.dropout = nn.Dropout(p=dropout)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, query, key, value, mask=<span class="literal">None</span></span>):</span></span><br><span class="line">        <span class="keyword">if</span> mask <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            mask = mask.unsqueeze(<span class="number">1</span>)</span><br><span class="line">        batch_size = query.size(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 使用zip将网络层和输入数据连接到一起</span></span><br><span class="line">        query, key, value = [model(x).view(batch_size, -<span class="number">1</span>, self.head, self.d_k).transpose(<span class="number">1</span>, <span class="number">2</span>) <span class="keyword">for</span> model, x <span class="keyword">in</span></span><br><span class="line">                             <span class="built_in">zip</span>(self.linears, (query, key, value))]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 将每个头的输出传入到注意力层</span></span><br><span class="line">        x, self.attn = attention(query, key, value, mask=mask, dropout=self.dropout)</span><br><span class="line"></span><br><span class="line">        x = x.transpose(<span class="number">1</span>, <span class="number">2</span>).contiguous().view(batch_size, -<span class="number">1</span>, self.head * self.d_k)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> self.linears[-<span class="number">1</span>](x)</span><br></pre></td></tr></table></figure>
+<h5 id="2-3-前馈全联接"><a href="#2-3-前馈全联接" class="headerlink" title="2.3 前馈全联接"></a>2.3 前馈全联接</h5><p>有2层线性层的全连接网络，为了<strong>增强注意力机制对复杂过程的拟合程度</strong>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PositionWiseFeedForward</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, d_model, d_ff, dropout=<span class="number">0.1</span></span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        :param d_model: 词嵌入的维度，也是2个线性层的输入维度和输出维度</span></span><br><span class="line"><span class="string">        :param d_ff: 第一个线性层的输出维度和第二个线性层的输入维度</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">super</span>(PositionWiseFeedForward, self).__init__()</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 定义2层全连接的线性层</span></span><br><span class="line">        self.w1 = nn.Linear(d_model, d_ff)</span><br><span class="line">        self.w2 = nn.Linear(d_ff, d_model)</span><br><span class="line">        self.dropout = nn.Dropout(p=dropout)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        <span class="comment"># 将x送到第一个线性层网络，然后经历relu激活函数在经历dropout函数处理</span></span><br><span class="line">        <span class="comment"># 最后送入第二个线性层</span></span><br><span class="line">        <span class="keyword">return</span> self.w2(self.dropout(F.relu(self.w1(x))))</span><br></pre></td></tr></table></figure>
+<h5 id="2-4-规范化层"><a href="#2-4-规范化层" class="headerlink" title="2.4 规范化层"></a>2.4 规范化层</h5><p>规范化层是所有深层网络都需要的标准网络层，因为通过多层计算后的参数可能会出现过大或者过小的情况，就可能导致学习过程出现异常，所以规范化层是为了让特征数值在合理范围内。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LayerNorm</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, features, eps=<span class="number">1e-6</span></span>):</span></span><br><span class="line">        <span class="built_in">super</span>(LayerNorm, self).__init__()</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 初始化2个张量，用来对结果做规范化计算</span></span><br><span class="line">        self.a2 = nn.Parameter(torch.ones(features))</span><br><span class="line">        self.b2 = nn.Parameter(torch.zeros(features))</span><br><span class="line">        self.eps = eps</span><br><span class="line">        </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        mean = x.mean(-<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        std = x.std(-<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">return</span> self.a2 * (x - mean) / (std + self.eps) + self.b2</span><br></pre></td></tr></table></figure>
+<h5 id="2-5-子层连接结构"><a href="#2-5-子层连接结构" class="headerlink" title="2.5 子层连接结构"></a>2.5 子层连接结构</h5><p>输入到每个子层和规范化层的过程中，使用了跳跃连接(残差连接)，这一个整体叫做子层连接结构，每个编码器有2个子层，也就是有2个子层连接结构。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SublayerConnection</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, size, dropout=<span class="number">0.1</span></span>):</span></span><br><span class="line">        <span class="built_in">super</span>(SublayerConnection, self).__init__()</span><br><span class="line">        <span class="comment"># 实例化一个规范化层的对象</span></span><br><span class="line">        self.norm = LayerNorm(size)</span><br><span class="line">        self.dropout = nn.Dropout(p=dropout)</span><br><span class="line">        self.size = size</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x, sublayer</span>):</span></span><br><span class="line">        <span class="comment"># 将x进行规范化在送入则层处理，处理结果进入dropout层，最后进行残差处理</span></span><br><span class="line">        <span class="keyword">return</span> x + self.dropout(sublayer(self.norm(x)))</span><br></pre></td></tr></table></figure>
+<h5 id="2-6-编码器"><a href="#2-6-编码器" class="headerlink" title="2.6 编码器"></a>2.6 编码器</h5><p>编码器由n个编码器层组成，每个编码器层完成一次编码过程。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 编码器层</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">EncoderLayer</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, size, self_attn, feed_forward, dropout=<span class="number">0.1</span></span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        :param size: 词嵌入的维度</span></span><br><span class="line"><span class="string">        :param self_attn: 多头自注意力子层对象</span></span><br><span class="line"><span class="string">        :param feed_forward: 前馈全连接层</span></span><br><span class="line"><span class="string">        :param dropout: dropout操作的置零比率</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">super</span>(EncoderLayer, self).__init__()</span><br><span class="line">        self.self_attn = self_attn</span><br><span class="line">        self.feed_forward = feed_forward</span><br><span class="line">        self.size = size</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 编码器层有2个子层连接结构，使用clones操作</span></span><br><span class="line">        self.sublayer = clones(SublayerConnection(size, dropout), <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x, mask</span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        :param x: 上一层传入的张量</span></span><br><span class="line"><span class="string">        :param mask: 掩码张量</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        x = self.sublayer[<span class="number">0</span>](x, <span class="keyword">lambda</span> x: self.self_attn(x, x, x, mask))</span><br><span class="line">        <span class="keyword">return</span> self.sublayer[<span class="number">1</span>](x, self.feed_forward)</span><br><span class="line">    </span><br><span class="line"><span class="comment"># 编码器</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Encoder</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, layer, N</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(Encoder, self).__init__()</span><br><span class="line">        self.layers = clones(layer, N)</span><br><span class="line">        self.norm = LayerNorm(layer.size)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x, mask</span>):</span></span><br><span class="line">        <span class="comment"># 让x一次经历N个编码器层处理</span></span><br><span class="line">        <span class="keyword">for</span> layer <span class="keyword">in</span> self.layers:</span><br><span class="line">            x = layer(x, mask)</span><br><span class="line">        <span class="comment"># 最后经过规范层</span></span><br><span class="line">        <span class="keyword">return</span> self.norm(x)</span><br></pre></td></tr></table></figure>
+<h4 id="3-解码器"><a href="#3-解码器" class="headerlink" title="3 解码器"></a>3 解码器</h4><p>和编码器差不多。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 解码器层</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DecoderLayer</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, size, self_attn, src_attn, feed_forward, dropout=<span class="number">0.1</span></span>):</span></span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        :param self_attn: 自注意力机制</span></span><br><span class="line"><span class="string">        :param src_attn: 多头自注意力机制</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span></span><br><span class="line">        <span class="built_in">super</span>(DecoderLayer, self).__init__()</span><br><span class="line"></span><br><span class="line">        self.self_attn = self_attn</span><br><span class="line">        self.size = size</span><br><span class="line">        self.src_attn = src_attn</span><br><span class="line">        self.feed_forward = feed_forward</span><br><span class="line">        self.dropout = dropout</span><br><span class="line"></span><br><span class="line">        self.sublayer = clones(SublayerConnection(size, dropout), <span class="number">3</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x, memory, source_mask, target_mask</span>):</span></span><br><span class="line">        m = memory</span><br><span class="line">        x = self.sublayer[<span class="number">0</span>](x, <span class="keyword">lambda</span> x: self.self_attn(x, x, x, target_mask))</span><br><span class="line">        x = self.sublayer[<span class="number">1</span>](x, <span class="keyword">lambda</span> x: self.src_attn(x, m, m, source_mask))</span><br><span class="line">        <span class="keyword">return</span> self.sublayer[<span class="number">2</span>](x, self.feed_forward)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 解码器</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Decoder</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, layer, N</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(Decoder, self).__init__()</span><br><span class="line">        self.layers = clones(layer, N)</span><br><span class="line">        self.norm = LayerNorm(layer.size)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x, memory, source_mask, target_mask</span>):</span></span><br><span class="line">        <span class="keyword">for</span> layer <span class="keyword">in</span> self.layers:</span><br><span class="line">            x = layer(x, memory, source_mask, target_mask)</span><br><span class="line">        <span class="keyword">return</span> self.norm(x)</span><br></pre></td></tr></table></figure>
+<h4 id="4-输出部分"><a href="#4-输出部分" class="headerlink" title="4 输出部分"></a>4 输出部分</h4><p>输出部分包含线性层和softmax层，线性层是为了转换维度，softmax为了将最后一层的向量数字缩放到0-1的值域内。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Generator</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, d_model, vocab_size</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(Generator, self).__init__()</span><br><span class="line">        self.project = nn.Linear(d_model, vocab_size)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        <span class="keyword">return</span> F.log_softmax(self.project(x), dim=-<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="四、迁移学习"><a href="#四、迁移学习" class="headerlink" title="四、迁移学习"></a>四、迁移学习</h3><p>迁移学习是一种机器学习技术，它的核心思想是将从一个任务中学到的知识迁移到另一个相关的任务中，从而加速学习过程或提高模型的性能。说白了就是把别人训练好的模型，拿来改一改变成适合自己的。主要包含2个步骤：</p>
+<p>预训练模型：一般情况下，预训练模型都是大模型，具备复杂的网络结构，众多的参数量以及足够大的数据集下进行训练产生的模型，常见的预训练模型：BERT及其变体、GPT、GPT-2、roBERTa、transformer-XL、XLNet、XLM、DistilBERT、ALBERT、T5、XLM-RoBERTa。</p>
+<p>预训练模型的使用：首先安装依赖：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip3 install tqdm boto3 requests regex sentencepiece sacremoses</span><br></pre></td></tr></table></figure>
+<p>使用pytorch.hub加载模型：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 选定预训练模型的来源</span></span><br><span class="line">source = <span class="string">&#x27;huggingface/pytorch-transformers&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 选定加载模型的哪一部分,常用的4个选项：</span></span><br><span class="line"><span class="comment"># tokenizer：映射器</span></span><br><span class="line"><span class="comment"># model：不带头的模型，这个头不是多头注意力的头，而是表示输出层，不带头的意思是仅对输入文本进行特征表示</span></span><br><span class="line"><span class="comment"># modelWithLMHead：带语言模型头的模型</span></span><br><span class="line"><span class="comment"># ModelForSequenceClassification：带类型头的模型</span></span><br><span class="line"><span class="comment"># modelForQuestionAnswering：带问答头的模型</span></span><br><span class="line">part = <span class="string">&#x27;tokenizer&#x27;</span></span><br><span class="line"><span class="comment"># 加载模型的名称</span></span><br><span class="line">model_name = <span class="string">&#x27;bert-base-chinese&#x27;</span></span><br><span class="line"><span class="comment"># 加载预训练模型映射器</span></span><br><span class="line">tokenizer = torch.hub.load(source, part, model_name)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将测试文本转换成模型可以处理的张量</span></span><br><span class="line">token_tensor = torch.tensor([model.encode(<span class="string">&#x27;测试文本&#x27;</span>)])</span><br><span class="line">print(<span class="string">&quot;token_tensor:&quot;</span>, token_tensor)</span><br><span class="line"><span class="comment"># 推理阶段不需要计算梯度，使用torch.no_grad()禁用梯度计算</span></span><br><span class="line"><span class="keyword">with</span> torch.no_grad():</span><br><span class="line">    encoded_layers, _ = model(token_tensor)</span><br><span class="line"><span class="comment"># 输出结果，这是隐藏层的输出，不是最终的输出</span></span><br><span class="line">print(encoded_layers)</span><br></pre></td></tr></table></figure>
+<p>微调(Fine-tuning)：根据给定的预训练模型，改变他的部分参数或者小分部结构，然后在小部分的数据集上训练，让整个模型更好的适应特定任务。所以微调也是一个训练过程。</p>
+
+      
+    </div>
+    
+    
+    
+
+    <div>
+      
+        <div>
+    
+        <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束||感谢您的阅读-------------</div>
+    
+</div>
+      
+    </div>
+
+    <div>
+      
+        
+<div class="my_post_copyright">
+  <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+  
+  <!-- JS库 sweetalert 可修改路径 -->
+  <script src="https://cdn.bootcss.com/jquery/2.0.0/jquery.min.js"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <p><span>本文标题:</span><a href="/AI/7.nlp/">7.nlp</a></p>
+  <p><span>发布时间:</span>2025年01月01日 - 16:01</p>
+  <p><span>最后更新:</span>2025年01月08日 - 22:01</p>
+  <p><span>原始链接:</span><a href="/AI/7.nlp/" title="7.nlp">https://wangxiaohong123.github.io/AI/7.nlp/</a>
+    <span class="copy-path"  title="点击复制文章链接"><i class="fa fa-clipboard" data-clipboard-text="https://wangxiaohong123.github.io/AI/7.nlp/"  aria-label="复制成功！"></i></span>
+  </p>
+  <p><span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">转载请保留原文链接及作者</a>。</p>  
+</div>
+<script> 
+    var clipboard = new Clipboard('.fa-clipboard');
+    $(".fa-clipboard").click(function(){
+      clipboard.on('success', function(){
+        swal({   
+          title: "",   
+          text: '复制成功',
+          icon: "success", 
+          showConfirmButton: true
+          });
+    });
+    });  
+</script>
+
+      
+    </div>
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"><i class="fa fa-tag"></i> 深度学习</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/AI/6.%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="next" title="6.计算机视觉">
+                <i class="fa fa-chevron-left"></i> 6.计算机视觉
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/face.jpeg"
+               alt="" />
+          <p class="site-author-name" itemprop="name"></p>
+           
+              <p class="site-description motion-element" itemprop="description"></p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">291</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%96%87%E6%9C%AC%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">一、文本预处理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9F%BA%E6%9C%AC%E6%96%B9%E6%B3%95"><span class="nav-number">1.1.</span> <span class="nav-text">1 基本方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-1-%E5%88%86%E8%AF%8D"><span class="nav-number">1.1.1.</span> <span class="nav-text">1.1 分词</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-2-%E5%91%BD%E5%90%8D%E5%AE%9E%E4%BD%93%E8%AF%86%E5%88%AB-NER"><span class="nav-number">1.1.2.</span> <span class="nav-text">1.2 命名实体识别(NER)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-%E8%AF%8D%E6%80%A7%E6%A0%87%E6%B3%A8-POS"><span class="nav-number">1.1.3.</span> <span class="nav-text">1.3 词性标注(POS)</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%BC%A0%E9%87%8F%E8%A1%A8%E7%A4%BA"><span class="nav-number">1.2.</span> <span class="nav-text">2 张量表示</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-one-hot"><span class="nav-number">1.2.1.</span> <span class="nav-text">2.1 one-hot</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-word2vec"><span class="nav-number">1.2.2.</span> <span class="nav-text">2.2 word2vec</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90"><span class="nav-number">1.3.</span> <span class="nav-text">3 数据分析</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#3-1-%E6%A0%87%E7%AD%BE%E6%95%B0%E9%87%8F%E5%88%86%E5%B8%83"><span class="nav-number">1.3.1.</span> <span class="nav-text">3.1 标签数量分布</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-2-%E5%8F%A5%E5%AD%90%E9%95%BF%E5%BA%A6%E5%88%86%E5%B8%83"><span class="nav-number">1.3.2.</span> <span class="nav-text">3.2 句子长度分布</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-3-%E8%AF%8D%E9%A2%91%E7%BB%9F%E8%AE%A1%E4%B8%8E%E5%85%B3%E9%94%AE%E8%AF%8D%E8%AF%8D%E4%BA%91"><span class="nav-number">1.3.3.</span> <span class="nav-text">3.3 词频统计与关键词词云</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E6%96%87%E6%9C%AC%E7%89%B9%E5%BE%81%E5%A4%84%E7%90%86"><span class="nav-number">1.4.</span> <span class="nav-text">4 文本特征处理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#4-1-%E5%A2%9E%E5%8A%A0n-gram%E7%89%B9%E5%BE%81"><span class="nav-number">1.4.1.</span> <span class="nav-text">4.1 增加n-gram特征</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-2-%E6%96%87%E6%9C%AC%E9%95%BF%E5%BA%A6%E8%A7%84%E8%8C%83"><span class="nav-number">1.4.2.</span> <span class="nav-text">4.2 文本长度规范</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-%E6%96%87%E6%9C%AC%E6%95%B0%E6%8D%AE%E5%A2%9E%E5%BC%BA"><span class="nav-number">1.4.3.</span> <span class="nav-text">5 文本数据增强</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81RNN%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">二、RNN模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BC%A0%E7%BB%9FRNN"><span class="nav-number">2.1.</span> <span class="nav-text">1 传统RNN</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-LSTM"><span class="nav-number">2.2.</span> <span class="nav-text">2 LSTM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-GRU"><span class="nav-number">2.3.</span> <span class="nav-text">3 GRU</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E3%80%81Transformer"><span class="nav-number">3.</span> <span class="nav-text">三、Transformer</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%BE%93%E5%85%A5%E9%83%A8%E5%88%86%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.1.</span> <span class="nav-text">1 输入部分实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E7%BC%96%E7%A0%81%E5%99%A8%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.2.</span> <span class="nav-text">2 编码器实现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-%E6%8E%A9%E7%A0%81%E5%BC%A0%E9%87%8F"><span class="nav-number">3.2.1.</span> <span class="nav-text">2.1 掩码张量</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#2-2-%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6"><span class="nav-number">3.2.1.1.</span> <span class="nav-text">2.2 注意力机制</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-3-%E5%89%8D%E9%A6%88%E5%85%A8%E8%81%94%E6%8E%A5"><span class="nav-number">3.2.2.</span> <span class="nav-text">2.3 前馈全联接</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-4-%E8%A7%84%E8%8C%83%E5%8C%96%E5%B1%82"><span class="nav-number">3.2.3.</span> <span class="nav-text">2.4 规范化层</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-5-%E5%AD%90%E5%B1%82%E8%BF%9E%E6%8E%A5%E7%BB%93%E6%9E%84"><span class="nav-number">3.2.4.</span> <span class="nav-text">2.5 子层连接结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-6-%E7%BC%96%E7%A0%81%E5%99%A8"><span class="nav-number">3.2.5.</span> <span class="nav-text">2.6 编码器</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E8%A7%A3%E7%A0%81%E5%99%A8"><span class="nav-number">3.3.</span> <span class="nav-text">3 解码器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E8%BE%93%E5%87%BA%E9%83%A8%E5%88%86"><span class="nav-number">3.4.</span> <span class="nav-text">4 输出部分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0"><span class="nav-number">4.</span> <span class="nav-text">四、迁移学习</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">小红</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+
+<!--
+
+<div class="powered-by">
+  由 <a class="theme-link" target="_blank" rel="noopener" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+-->
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
