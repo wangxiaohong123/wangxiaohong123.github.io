@@ -1,0 +1,757 @@
+<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>nacos-3.核心源码 | 王小红的笔记</title><meta name=keywords content="nacos"><meta name=description content="1.服务注册源码
+服务注册、订阅什么的接口是NamingClientProxy，这个接口主要有两个实现类：NamingGrpcClientProxy和NamingHttpClientProxy，注册的方法是registerService，NamingGrpcClientProxy的流程：
+
+
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+
+
+/**
+ * Register a instance to service with specified instance properties.
+ *
+ * @param serviceName 服务名
+ * @param groupName   服务分组
+ * @param instance    实例信息，保存实例id、ip、端口、权重等信息
+ */
+public void registerService(String serviceName, String groupName, Instance instance) throws NacosException {
+    // 先把实例存储到NamingGrpcRedoService的registeredInstances（ConcurrentMap）里
+    redoService.cacheInstanceForRedo(serviceName, groupName, instance);
+    // 注册服务
+    doRegisterService(serviceName, groupName, instance);
+}
+
+
+注册服务的方法："><meta name=author content><link rel=canonical href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/3.%E6%A0%B8%E5%BF%83%E6%BA%90%E7%A0%81/><link crossorigin=anonymous href=/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as=style><link rel=icon href=https://wangxiaohong123.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://wangxiaohong123.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://wangxiaohong123.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://wangxiaohong123.github.io/apple-touch-icon.png><link rel=mask-icon href=https://wangxiaohong123.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/3.%E6%A0%B8%E5%BF%83%E6%BA%90%E7%A0%81/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><meta property="og:url" content="https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/3.%E6%A0%B8%E5%BF%83%E6%BA%90%E7%A0%81/"><meta property="og:site_name" content="王小红的笔记"><meta property="og:title" content="nacos-3.核心源码"><meta property="og:description" content="1.服务注册源码 服务注册、订阅什么的接口是NamingClientProxy，这个接口主要有两个实现类：NamingGrpcClientProxy和NamingHttpClientProxy，注册的方法是registerService，NamingGrpcClientProxy的流程：
+1 2 3 4 5 6 7 8 9 10 11 12 13 /** * Register a instance to service with specified instance properties. * * @param serviceName 服务名 * @param groupName 服务分组 * @param instance 实例信息，保存实例id、ip、端口、权重等信息 */ public void registerService(String serviceName, String groupName, Instance instance) throws NacosException { // 先把实例存储到NamingGrpcRedoService的registeredInstances（ConcurrentMap）里 redoService.cacheInstanceForRedo(serviceName, groupName, instance); // 注册服务 doRegisterService(serviceName, groupName, instance); } 注册服务的方法："><meta property="og:locale" content="zh-CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:tag" content="Nacos"><meta name=twitter:card content="summary"><meta name=twitter:title content="nacos-3.核心源码"><meta name=twitter:description content="1.服务注册源码
+服务注册、订阅什么的接口是NamingClientProxy，这个接口主要有两个实现类：NamingGrpcClientProxy和NamingHttpClientProxy，注册的方法是registerService，NamingGrpcClientProxy的流程：
+
+
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+
+
+/**
+ * Register a instance to service with specified instance properties.
+ *
+ * @param serviceName 服务名
+ * @param groupName   服务分组
+ * @param instance    实例信息，保存实例id、ip、端口、权重等信息
+ */
+public void registerService(String serviceName, String groupName, Instance instance) throws NacosException {
+    // 先把实例存储到NamingGrpcRedoService的registeredInstances（ConcurrentMap）里
+    redoService.cacheInstanceForRedo(serviceName, groupName, instance);
+    // 注册服务
+    doRegisterService(serviceName, groupName, instance);
+}
+
+
+注册服务的方法："><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://wangxiaohong123.github.io/posts/"},{"@type":"ListItem","position":2,"name":"nacos-3.核心源码","item":"https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/3.%E6%A0%B8%E5%BF%83%E6%BA%90%E7%A0%81/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"nacos-3.核心源码","name":"nacos-3.核心源码","description":"1.服务注册源码 服务注册、订阅什么的接口是NamingClientProxy，这个接口主要有两个实现类：NamingGrpcClientProxy和NamingHttpClientProxy，注册的方法是registerService，NamingGrpcClientProxy的流程：\n1 2 3 4 5 6 7 8 9 10 11 12 13 /** * Register a instance to service with specified instance properties. * * @param serviceName 服务名 * @param groupName 服务分组 * @param instance 实例信息，保存实例id、ip、端口、权重等信息 */ public void registerService(String serviceName, String groupName, Instance instance) throws NacosException { // 先把实例存储到NamingGrpcRedoService的registeredInstances（ConcurrentMap）里 redoService.cacheInstanceForRedo(serviceName, groupName, instance); // 注册服务 doRegisterService(serviceName, groupName, instance); } 注册服务的方法：\n","keywords":["nacos"],"articleBody":"1.服务注册源码 服务注册、订阅什么的接口是NamingClientProxy，这个接口主要有两个实现类：NamingGrpcClientProxy和NamingHttpClientProxy，注册的方法是registerService，NamingGrpcClientProxy的流程：\n1 2 3 4 5 6 7 8 9 10 11 12 13 /** * Register a instance to service with specified instance properties. * * @param serviceName 服务名 * @param groupName 服务分组 * @param instance 实例信息，保存实例id、ip、端口、权重等信息 */ public void registerService(String serviceName, String groupName, Instance instance) throws NacosException { // 先把实例存储到NamingGrpcRedoService的registeredInstances（ConcurrentMap）里 redoService.cacheInstanceForRedo(serviceName, groupName, instance); // 注册服务 doRegisterService(serviceName, groupName, instance); } 注册服务的方法：\n1 2 3 4 5 6 7 8 9 public void doRegisterService(String serviceName, String groupName, Instance instance) throws NacosException { // 封装请求 InstanceRequest request = new InstanceRequest(namespaceId, serviceName, groupName, NamingRemoteConstants.REGISTER_INSTANCE, instance); // 这步就是加个头，然后调用grpcClient发送请求 requestToServer(request, Response.class); // 这个和上面一样，如果ConcurrentMap中没有这个服务就插入 redoService.instanceRegistered(serviceName, groupName); } 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 private \u003cT extends Response\u003e T requestToServer(AbstractNamingRequest request, Class\u003cT\u003e responseClass) throws NacosException { try { // 设置安全认证的token、accessKey之类的 request.putAllHeader( getSecurityHeaders(request.getNamespace(), request.getGroupName(), request.getServiceName())); // 通过rpcClient发起请求 Response response = requestTimeout \u003c 0 ? rpcClient.request(request) : rpcClient.request(request, requestTimeout); if (ResponseCode.SUCCESS.getCode() != response.getResultCode()) { throw new NacosException(response.getErrorCode(), response.getMessage()); } if (responseClass.isAssignableFrom(response.getClass())) { return (T) response; } NAMING_LOGGER.error(\"Server return unexpected response '{}', expected response should be '{}'\", response.getClass().getName(), responseClass.getName()); } catch (NacosException e) { throw e; } catch (Exception e) { throw new NacosException(NacosException.SERVER_ERROR, \"Request nacos server failed: \", e); } throw new NacosException(NacosException.SERVER_ERROR, \"Server return invalid response\"); } 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 public Response request(Request request, long timeoutMills) throws NacosException { int retryTimes = 0; Response response; Exception exceptionThrow = null; long start = System.currentTimeMillis(); // 没到重试次数并且没超时 while (retryTimes \u003c rpcClientConfig.retryTimes() \u0026\u0026 System.currentTimeMillis() \u003c timeoutMills + start) { boolean waitReconnect = false; try { // currentConnection表示一个grpc的链接 if (this.currentConnection == null || !isRunning()) { waitReconnect = true; throw new NacosException(NacosException.CLIENT_DISCONNECT, \"Client not connected, current status:\" + rpcClientStatus.get()); } // 发送请求 response = this.currentConnection.request(request, timeoutMills); if (response == null) { throw new NacosException(SERVER_ERROR, \"Unknown Exception.\"); } if (response instanceof ErrorResponse) { if (response.getErrorCode() == NacosException.UN_REGISTER) { synchronized (this) { waitReconnect = true; if (rpcClientStatus.compareAndSet(RpcClientStatus.RUNNING, RpcClientStatus.UNHEALTHY)) { LoggerUtils.printIfErrorEnabled(LOGGER, \"Connection is unregistered, switch server, connectionId = {}, request = {}\", currentConnection.getConnectionId(), request.getClass().getSimpleName()); switchServerAsync(); } } } throw new NacosException(response.getErrorCode(), response.getMessage()); } // return response. lastActiveTimeStamp = System.currentTimeMillis(); return response; } catch (Exception e) { if (waitReconnect) { try { // wait client to reconnect. Thread.sleep(Math.min(100, timeoutMills / 3)); } catch (Exception exception) { // Do nothing. } } LoggerUtils.printIfErrorEnabled(LOGGER, \"Send request fail, request = {}, retryTimes = {}, errorMessage = {}\", request, retryTimes, e.getMessage()); exceptionThrow = e; } retryTimes++; } // 处理失败的情况 if (rpcClientStatus.compareAndSet(RpcClientStatus.RUNNING, RpcClientStatus.UNHEALTHY)) { switchServerAsyncOnRequestFail(); } if (exceptionThrow != null) { throw (exceptionThrow instanceof NacosException) ? (NacosException) exceptionThrow : new NacosException(SERVER_ERROR, exceptionThrow); } else { throw new NacosException(SERVER_ERROR, \"Request fail, unknown Error\"); } } http请求会被InstanceController接收，进到他的register()方法中：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 @CanDistro @PostMapping @Secured(action = ActionTypes.WRITE) public String register(HttpServletRequest request) throws Exception { // 命名空间 final String namespaceId = WebUtils .optional(request, CommonParams.NAMESPACE_ID, Constants.DEFAULT_NAMESPACE_ID); // 服务名称 final String serviceName = WebUtils.required(request, CommonParams.SERVICE_NAME); NamingUtils.checkServiceNameFormat(serviceName); // 封装实例信息 final Instance instance = HttpRequestInstanceBuilder.newBuilder() .setDefaultInstanceEphemeral(switchDomain.isDefaultInstanceEphemeral()).setRequest(request).build(); // 注册服务 getInstanceOperator().registerInstance(namespaceId, serviceName, instance); NotifyCenter.publishEvent(new RegisterInstanceTraceEvent(System.currentTimeMillis(), \"\", false, namespaceId, NamingUtils.getGroupName(serviceName), NamingUtils.getServiceName(serviceName), instance.getIp(), instance.getPort())); return \"ok\"; } 注册服务也分两个，一个是服务端，一个是客户端，只看服务端的吧，跟进到InstanceOperatorServiceImpl的registerInstance()方法，这个方法先把Instance参数转换成naming.core.Instance然后调用serviceManager的registerInstance()方法：\n1 2 3 4 5 public void registerInstance(String namespaceId, String serviceName, Instance instance) throws NacosException { // 实体转换 com.alibaba.nacos.naming.core.Instance coreInstance = parseInstance(instance); serviceManager.registerInstance(namespaceId, serviceName, coreInstance); } 继续走到serviceManager里：\n1 2 3 4 5 6 7 8 9 10 11 12 13 public void registerInstance(String namespaceId, String serviceName, Instance instance) throws NacosException { NamingUtils.checkInstanceIsLegal(instance); // 如果服务不存在，创建一个空服务放到一个map(serviceMap)里，然后初始化这个服务 // 心跳检查就是在里调用的（service.init()） createEmptyService(namespaceId, serviceName, instance.isEphemeral()); // 从serviceMap获取服务 Service service = getService(namespaceId, serviceName); checkServiceIsNull(service, namespaceId, serviceName); // 补充实例数据，instance.isEphemeral()表示是否是临时节点 // 添加实例信息 addInstance(namespaceId, serviceName, instance.isEphemeral(), instance); } 关键的代码就在addInstance()这个方法里：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 public void addInstance(String namespaceId, String serviceName, boolean ephemeral, Instance... ips) throws NacosException { String key = KeyBuilder.buildInstanceListKey(namespaceId, serviceName, ephemeral); Service service = getService(namespaceId, serviceName); synchronized (service) { // 这个很关键 List\u003cInstance\u003e instanceList = addIpAddresses(service, ephemeral, ips); Instances instances = new Instances(); instances.setInstanceList(instanceList); // 这里会走distro协议的put consistencyService.put(key, instances); } } addIpAddresses()方法中处理实例的集群信息、心跳时间什么的：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 public List\u003cInstance\u003e updateIpAddresses(Service service, String action, boolean ephemeral, Instance... ips) throws NacosException { // 这个相当于服务实例的map Datum datum = consistencyService .get(KeyBuilder.buildInstanceListKey(service.getNamespaceId(), service.getName(), ephemeral)); List\u003cInstance\u003e currentIPs = service.allIPs(ephemeral); Map\u003cString, Instance\u003e currentInstances = new HashMap\u003c\u003e(currentIPs.size()); Set\u003cString\u003e currentInstanceIds = CollectionUtils.set(); for (Instance instance : currentIPs) { currentInstances.put(instance.toIpAddr(), instance); currentInstanceIds.add(instance.getInstanceId()); } Map\u003cString, Instance\u003e instanceMap; if (datum != null \u0026\u0026 null != datum.value) { // 如果有服务实例的信息，就更新，包括地址、心跳时间什么的 instanceMap = setValid(((Instances) datum.value).getInstanceList(), currentInstances); } else { // 如果没有服务实例的信息就初始化一个新map instanceMap = new HashMap\u003c\u003e(ips.length); } for (Instance instance : ips) { // 处理实例、集群 if (!service.getClusterMap().containsKey(instance.getClusterName())) { Cluster cluster = new Cluster(instance.getClusterName(), service); cluster.init(); service.getClusterMap().put(instance.getClusterName(), cluster); Loggers.SRV_LOG .warn(\"cluster: {} not found, ip: {}, will create new cluster with default configuration.\", instance.getClusterName(), instance.toJson()); } if (UtilsAndCommons.UPDATE_INSTANCE_ACTION_REMOVE.equals(action)) { instanceMap.remove(instance.getDatumKey()); } else { Instance oldInstance = instanceMap.get(instance.getDatumKey()); if (oldInstance != null) { instance.setInstanceId(oldInstance.getInstanceId()); } else { // 雪花算法生成id instance.setInstanceId(instance.generateInstanceId(currentInstanceIds)); } instanceMap.put(instance.getDatumKey(), instance); } } if (instanceMap.size() \u003c= 0 \u0026\u0026 UtilsAndCommons.UPDATE_INSTANCE_ACTION_ADD.equals(action)) { throw new IllegalArgumentException( \"ip list can not be empty, service: \" + service.getName() + \", ip list: \" + JacksonUtils .toJson(instanceMap.values())); } return new ArrayList\u003c\u003e(instanceMap.values()); } addIpAddresses()方法走完了就会走到consistencyService()方法，不同的协议会走到不同的实现类，默认是distro，所以进到DistroConsistencyServiceImpl类中：\n1 2 3 4 5 6 7 8 9 10 11 public void put(String key, Record value) throws NacosException { // 这里有个发送变更通知还不知道干啥的 onPut(key, value); // If upgrade to 2.0.X, do not sync for v1. if (ApplicationUtils.getBean(UpgradeJudgement.class).isUseGrpcFeatrues()) { return; } // 开启延迟任务，nacos服务端配置的，默认1s distroProtocol.sync(new DistroKey(key, KeyBuilder.INSTANCE_LIST_KEY_PREFIX), DataOperation.CHANGE, DistroConfig.getInstance().getSyncDelayMillis()); } onPut()方法是用来处理临时节点和发送数据变更通知的，开启延迟任务会走到DistroProtocol的syncToTarget()方法里：\n1 2 3 4 5 6 7 8 9 10 11 12 public void syncToTarget(DistroKey distroKey, DataOperation action, String targetServer, long delay) { // 先初始化一个DistroKey DistroKey distroKeyWithTarget = new DistroKey(distroKey.getResourceKey(), distroKey.getResourceType(), targetServer); // 然后创建延迟任务，添加到distroTaskEngineHolder里 // 这个是定时调度线程池实现的，同一个服务的多次任务会进行merge处理 DistroDelayTask distroDelayTask = new DistroDelayTask(distroKeyWithTarget, action, delay); distroTaskEngineHolder.getDelayTaskExecuteEngine().addTask(distroKeyWithTarget, distroDelayTask); if (Loggers.DISTRO.isDebugEnabled()) { Loggers.DISTRO.debug(\"[DISTRO-SCHEDULE] {} to {}\", distroKey, targetServer); } } getDelayTaskExecuteEngine()拿到的是NacosDelayTaskExecuteEngine，这个类里有个定时调度线程负责执行提交进来的任务，执行线程的run()方法里调用了NacosTaskProcessor的process()方法：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 public boolean process(NacosTask task) { if (!(task instanceof DistroDelayTask)) { return true; } DistroDelayTask distroDelayTask = (DistroDelayTask) task; DistroKey distroKey = distroDelayTask.getDistroKey(); switch (distroDelayTask.getAction()) { case DELETE: DistroSyncDeleteTask syncDeleteTask = new DistroSyncDeleteTask(distroKey, distroComponentHolder); distroTaskEngineHolder.getExecuteWorkersManager().addTask(distroKey, syncDeleteTask); return true; case CHANGE: case ADD: DistroSyncChangeTask syncChangeTask = new DistroSyncChangeTask(distroKey, distroComponentHolder); distroTaskEngineHolder.getExecuteWorkersManager().addTask(distroKey, syncChangeTask); return true; default: return false; } } 可以看到执行方法时又获取了ExecuteWorkersManager对象，然后会调用TaskExecuteWorker的process()方法，其实就是执行task的run：\n1 2 3 4 5 6 public boolean process(NacosTask task) { if (task instanceof AbstractExecuteTask) { putTask((Runnable) task); } return true; } 具体的任务对应不同的task，比如数据变更对应的是DistroSyncChangeTask:\n1 2 3 4 5 6 7 8 9 10 11 12 @Override protected boolean doExecute() { String type = getDistroKey().getResourceType(); DistroData distroData = getDistroData(type); if (null == distroData) { Loggers.DISTRO.warn(\"[DISTRO] {} with null data to sync, skip\", toString()); return true; } // 同步数据 return getDistroComponentHolder().findTransportAgent(type) .syncData(distroData, getDistroKey().getTargetServer()); } TransportAgent也有两种，一个是rpc的，另一个是http，都是封装个request，然后发请求：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 public boolean syncData(DistroData data, String targetServer) { if (isNoExistTarget(targetServer)) { return true; } DistroDataRequest request = new DistroDataRequest(data, data.getType()); Member member = memberManager.find(targetServer); if (checkTargetServerStatusUnhealthy(member)) { Loggers.DISTRO .warn(\"[DISTRO] Cancel distro sync caused by target server {} unhealthy, key: {}\", targetServer, data.getDistroKey()); return false; } try { Response response = clusterRpcClientProxy.sendRequest(member, request); return checkResponse(response); } catch (NacosException e) { Loggers.DISTRO.error(\"[DISTRO-FAILED] Sync distro data failed! key: {}\", data.getDistroKey(), e); } return false; } 其他nacos实例会通过controller或者rpc的服务端接收到这个请求，然后交给distroProtocol的onReceive()方法：\n1 2 3 4 5 6 7 8 9 10 11 public boolean onReceive(DistroData distroData) { Loggers.DISTRO.info(\"[DISTRO] Receive distro data type: {}, key: {}\", distroData.getType(), distroData.getDistroKey()); String resourceType = distroData.getDistroKey().getResourceType(); DistroDataProcessor dataProcessor = distroComponentHolder.findDataProcessor(resourceType); if (null == dataProcessor) { Loggers.DISTRO.warn(\"[DISTRO] Can't find data process for received data {}\", resourceType); return false; } return dataProcessor.processData(distroData); } dataProcessor也有两个，一个客户端一个服务端的，服务端主要还是调用了onPut()方法。\nonPut()方法的数据变更通知调用的是notifier.addTask()，这个notifier是内部的一个线程，他的run()方法里调用了handle()方法，handle()方法里又更具事件类型调用RecordListener的对应方法，RecordListener有一个实现类时Service，以服务实例信息变更为入口，进到Service的onChange()方法中：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 public void onChange(String key, Instances value) throws Exception { Loggers.SRV_LOG.info(\"[NACOS-RAFT] datum is changed, key: {}, value: {}\", key, value); for (Instance instance : value.getInstanceList()) { if (instance == null) { // Reject this abnormal instance list: throw new RuntimeException(\"got null instance \" + key); } if (instance.getWeight() \u003e 10000.0D) { instance.setWeight(10000.0D); } if (instance.getWeight() \u003c 0.01D \u0026\u0026 instance.getWeight() \u003e 0.0D) { instance.setWeight(0.01D); } } // 这个很关键 updateIPs(value.getInstanceList(), KeyBuilder.matchEphemeralInstanceListKey(key)); recalculateChecksum(); } updateIPs()方法先是处理了集群信息，最关键的是下面一行代码：\n1 getPushService().serviceChanged(this); 这个代码是反向通知订阅这个实例的服务。\n","wordCount":"1459","inLanguage":"en","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/3.%E6%A0%B8%E5%BF%83%E6%BA%90%E7%A0%81/"},"publisher":{"@type":"Organization","name":"王小红的笔记","logo":{"@type":"ImageObject","url":"https://wangxiaohong123.github.io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://wangxiaohong123.github.io/ accesskey=h title="王小红的笔记 (Alt + H)">王小红的笔记</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://wangxiaohong123.github.io/posts/ title=笔记><span>笔记</span></a></li><li><a href=https://wangxiaohong123.github.io/tags/ title=标签><span>标签</span></a></li><li><a href=https://wangxiaohong123.github.io/categories/ title=分类><span>分类</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">nacos-3.核心源码</h1><div class=post-meta>7 min</div></header><div class=post-content><h5 id=1服务注册源码>1.服务注册源码<a hidden class=anchor aria-hidden=true href=#1服务注册源码>#</a></h5><p>服务注册、订阅什么的接口是NamingClientProxy，这个接口主要有两个实现类：NamingGrpcClientProxy和NamingHttpClientProxy，注册的方法是registerService，NamingGrpcClientProxy的流程：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#6272a4>/**
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * Register a instance to service with specified instance properties.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> *
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param serviceName 服务名
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param groupName   服务分组
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param instance    实例信息，保存实例id、ip、端口、权重等信息
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> */</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>registerService</span>(String serviceName, String groupName, Instance instance) <span style=color:#8be9fd;font-style:italic>throws</span> NacosException {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 先把实例存储到NamingGrpcRedoService的registeredInstances（ConcurrentMap）里</span>
+</span></span><span style=display:flex><span>    redoService.<span style=color:#50fa7b>cacheInstanceForRedo</span>(serviceName, groupName, instance);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 注册服务</span>
+</span></span><span style=display:flex><span>    doRegisterService(serviceName, groupName, instance);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>注册服务的方法：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>doRegisterService</span>(String serviceName, String groupName, Instance instance) <span style=color:#8be9fd;font-style:italic>throws</span> NacosException {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 封装请求</span>
+</span></span><span style=display:flex><span>    InstanceRequest request <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> InstanceRequest(namespaceId, serviceName, groupName,
+</span></span><span style=display:flex><span>            NamingRemoteConstants.<span style=color:#50fa7b>REGISTER_INSTANCE</span>, instance);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 这步就是加个头，然后调用grpcClient发送请求</span>
+</span></span><span style=display:flex><span>    requestToServer(request, Response.<span style=color:#50fa7b>class</span>);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 这个和上面一样，如果ConcurrentMap中没有这个服务就插入</span>
+</span></span><span style=display:flex><span>    redoService.<span style=color:#50fa7b>instanceRegistered</span>(serviceName, groupName);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>private</span> <span style=color:#ff79c6>&lt;</span>T <span style=color:#8be9fd;font-style:italic>extends</span> Response<span style=color:#ff79c6>&gt;</span> T <span style=color:#50fa7b>requestToServer</span>(AbstractNamingRequest request, Class<span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span> responseClass)
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>throws</span> NacosException {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>try</span> {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 设置安全认证的token、accessKey之类的</span>
+</span></span><span style=display:flex><span>        request.<span style=color:#50fa7b>putAllHeader</span>(
+</span></span><span style=display:flex><span>                getSecurityHeaders(request.<span style=color:#50fa7b>getNamespace</span>(), request.<span style=color:#50fa7b>getGroupName</span>(), request.<span style=color:#50fa7b>getServiceName</span>()));
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 通过rpcClient发起请求</span>
+</span></span><span style=display:flex><span>        Response response <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>                requestTimeout <span style=color:#ff79c6>&lt;</span> 0 <span style=color:#ff79c6>?</span> rpcClient.<span style=color:#50fa7b>request</span>(request) : rpcClient.<span style=color:#50fa7b>request</span>(request, requestTimeout);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (ResponseCode.<span style=color:#50fa7b>SUCCESS</span>.<span style=color:#50fa7b>getCode</span>() <span style=color:#ff79c6>!=</span> response.<span style=color:#50fa7b>getResultCode</span>()) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> NacosException(response.<span style=color:#50fa7b>getErrorCode</span>(), response.<span style=color:#50fa7b>getMessage</span>());
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (responseClass.<span style=color:#50fa7b>isAssignableFrom</span>(response.<span style=color:#50fa7b>getClass</span>())) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> (T) response;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        NAMING_LOGGER.<span style=color:#50fa7b>error</span>(<span style=color:#f1fa8c>&#34;Server return unexpected response &#39;{}&#39;, expected response should be &#39;{}&#39;&#34;</span>,
+</span></span><span style=display:flex><span>                response.<span style=color:#50fa7b>getClass</span>().<span style=color:#50fa7b>getName</span>(), responseClass.<span style=color:#50fa7b>getName</span>());
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>catch</span> (NacosException e) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>throw</span> e;
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>catch</span> (Exception e) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> NacosException(NacosException.<span style=color:#50fa7b>SERVER_ERROR</span>, <span style=color:#f1fa8c>&#34;Request nacos server failed: &#34;</span>, e);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> NacosException(NacosException.<span style=color:#50fa7b>SERVER_ERROR</span>, <span style=color:#f1fa8c>&#34;Server return invalid response&#34;</span>);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">60
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">61
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">62
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">63
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">64
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">65
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">66
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">67
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">68
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">69
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">70
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">71
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> Response <span style=color:#50fa7b>request</span>(Request request, <span style=color:#8be9fd>long</span> timeoutMills) <span style=color:#8be9fd;font-style:italic>throws</span> NacosException {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> retryTimes <span style=color:#ff79c6>=</span> 0;
+</span></span><span style=display:flex><span>    Response response;
+</span></span><span style=display:flex><span>    Exception exceptionThrow <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>null</span>;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>long</span> start <span style=color:#ff79c6>=</span> System.<span style=color:#50fa7b>currentTimeMillis</span>();
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 没到重试次数并且没超时</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>while</span> (retryTimes <span style=color:#ff79c6>&lt;</span> rpcClientConfig.<span style=color:#50fa7b>retryTimes</span>() <span style=color:#ff79c6>&amp;&amp;</span> System.<span style=color:#50fa7b>currentTimeMillis</span>() <span style=color:#ff79c6>&lt;</span> timeoutMills <span style=color:#ff79c6>+</span> start) {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>boolean</span> waitReconnect <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>false</span>;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>try</span> {
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// currentConnection表示一个grpc的链接</span>
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>this</span>.<span style=color:#50fa7b>currentConnection</span> <span style=color:#ff79c6>==</span> <span style=color:#ff79c6>null</span> <span style=color:#ff79c6>||</span> <span style=color:#ff79c6>!</span>isRunning()) {
+</span></span><span style=display:flex><span>                waitReconnect <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>true</span>;
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> NacosException(NacosException.<span style=color:#50fa7b>CLIENT_DISCONNECT</span>,
+</span></span><span style=display:flex><span>                        <span style=color:#f1fa8c>&#34;Client not connected, current status:&#34;</span> <span style=color:#ff79c6>+</span> rpcClientStatus.<span style=color:#50fa7b>get</span>());
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// 发送请求</span>
+</span></span><span style=display:flex><span>            response <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>this</span>.<span style=color:#50fa7b>currentConnection</span>.<span style=color:#50fa7b>request</span>(request, timeoutMills);
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (response <span style=color:#ff79c6>==</span> <span style=color:#ff79c6>null</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> NacosException(SERVER_ERROR, <span style=color:#f1fa8c>&#34;Unknown Exception.&#34;</span>);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (response <span style=color:#ff79c6>instanceof</span> ErrorResponse) {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (response.<span style=color:#50fa7b>getErrorCode</span>() <span style=color:#ff79c6>==</span> NacosException.<span style=color:#50fa7b>UN_REGISTER</span>) {
+</span></span><span style=display:flex><span>                    <span style=color:#8be9fd;font-style:italic>synchronized</span> (<span style=color:#ff79c6>this</span>) {
+</span></span><span style=display:flex><span>                        waitReconnect <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>true</span>;
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>if</span> (rpcClientStatus.<span style=color:#50fa7b>compareAndSet</span>(RpcClientStatus.<span style=color:#50fa7b>RUNNING</span>, RpcClientStatus.<span style=color:#50fa7b>UNHEALTHY</span>)) {
+</span></span><span style=display:flex><span>                            LoggerUtils.<span style=color:#50fa7b>printIfErrorEnabled</span>(LOGGER,
+</span></span><span style=display:flex><span>                                    <span style=color:#f1fa8c>&#34;Connection is unregistered, switch server, connectionId = {}, request = {}&#34;</span>,
+</span></span><span style=display:flex><span>                                    currentConnection.<span style=color:#50fa7b>getConnectionId</span>(), request.<span style=color:#50fa7b>getClass</span>().<span style=color:#50fa7b>getSimpleName</span>());
+</span></span><span style=display:flex><span>                            switchServerAsync();
+</span></span><span style=display:flex><span>                        }
+</span></span><span style=display:flex><span>                    }
+</span></span><span style=display:flex><span>                    
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> NacosException(response.<span style=color:#50fa7b>getErrorCode</span>(), response.<span style=color:#50fa7b>getMessage</span>());
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// return response.</span>
+</span></span><span style=display:flex><span>            lastActiveTimeStamp <span style=color:#ff79c6>=</span> System.<span style=color:#50fa7b>currentTimeMillis</span>();
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> response;
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>        } <span style=color:#ff79c6>catch</span> (Exception e) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (waitReconnect) {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>try</span> {
+</span></span><span style=display:flex><span>                    <span style=color:#6272a4>// wait client to reconnect.</span>
+</span></span><span style=display:flex><span>                    Thread.<span style=color:#50fa7b>sleep</span>(Math.<span style=color:#50fa7b>min</span>(100, timeoutMills <span style=color:#ff79c6>/</span> 3));
+</span></span><span style=display:flex><span>                } <span style=color:#ff79c6>catch</span> (Exception exception) {
+</span></span><span style=display:flex><span>                    <span style=color:#6272a4>// Do nothing.</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            LoggerUtils.<span style=color:#50fa7b>printIfErrorEnabled</span>(LOGGER,
+</span></span><span style=display:flex><span>                    <span style=color:#f1fa8c>&#34;Send request fail, request = {}, retryTimes = {}, errorMessage = {}&#34;</span>, request, retryTimes,
+</span></span><span style=display:flex><span>                    e.<span style=color:#50fa7b>getMessage</span>());
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>            exceptionThrow <span style=color:#ff79c6>=</span> e;
+</span></span><span style=display:flex><span>            
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        retryTimes<span style=color:#ff79c6>++</span>;
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 处理失败的情况</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (rpcClientStatus.<span style=color:#50fa7b>compareAndSet</span>(RpcClientStatus.<span style=color:#50fa7b>RUNNING</span>, RpcClientStatus.<span style=color:#50fa7b>UNHEALTHY</span>)) {
+</span></span><span style=display:flex><span>        switchServerAsyncOnRequestFail();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (exceptionThrow <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>null</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>throw</span> (exceptionThrow <span style=color:#ff79c6>instanceof</span> NacosException) <span style=color:#ff79c6>?</span> (NacosException) exceptionThrow
+</span></span><span style=display:flex><span>                : <span style=color:#ff79c6>new</span> NacosException(SERVER_ERROR, exceptionThrow);
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> NacosException(SERVER_ERROR, <span style=color:#f1fa8c>&#34;Request fail, unknown Error&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>http请求会被InstanceController接收，进到他的register()方法中：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span>@CanDistro
+</span></span><span style=display:flex><span>@PostMapping
+</span></span><span style=display:flex><span>@Secured(action <span style=color:#ff79c6>=</span> ActionTypes.<span style=color:#50fa7b>WRITE</span>)
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> String <span style=color:#50fa7b>register</span>(HttpServletRequest request) <span style=color:#8be9fd;font-style:italic>throws</span> Exception {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 命名空间</span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>final</span> String namespaceId <span style=color:#ff79c6>=</span> WebUtils
+</span></span><span style=display:flex><span>            .<span style=color:#50fa7b>optional</span>(request, CommonParams.<span style=color:#50fa7b>NAMESPACE_ID</span>, Constants.<span style=color:#50fa7b>DEFAULT_NAMESPACE_ID</span>);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 服务名称</span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>final</span> String serviceName <span style=color:#ff79c6>=</span> WebUtils.<span style=color:#50fa7b>required</span>(request, CommonParams.<span style=color:#50fa7b>SERVICE_NAME</span>);
+</span></span><span style=display:flex><span>    NamingUtils.<span style=color:#50fa7b>checkServiceNameFormat</span>(serviceName);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 封装实例信息</span>
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>final</span> Instance instance <span style=color:#ff79c6>=</span> HttpRequestInstanceBuilder.<span style=color:#50fa7b>newBuilder</span>()
+</span></span><span style=display:flex><span>            .<span style=color:#50fa7b>setDefaultInstanceEphemeral</span>(switchDomain.<span style=color:#50fa7b>isDefaultInstanceEphemeral</span>()).<span style=color:#50fa7b>setRequest</span>(request).<span style=color:#50fa7b>build</span>();
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 注册服务</span>
+</span></span><span style=display:flex><span>    getInstanceOperator().<span style=color:#50fa7b>registerInstance</span>(namespaceId, serviceName, instance);
+</span></span><span style=display:flex><span>    NotifyCenter.<span style=color:#50fa7b>publishEvent</span>(<span style=color:#ff79c6>new</span> RegisterInstanceTraceEvent(System.<span style=color:#50fa7b>currentTimeMillis</span>(), <span style=color:#f1fa8c>&#34;&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>false</span>, namespaceId, NamingUtils.<span style=color:#50fa7b>getGroupName</span>(serviceName), NamingUtils.<span style=color:#50fa7b>getServiceName</span>(serviceName),
+</span></span><span style=display:flex><span>            instance.<span style=color:#50fa7b>getIp</span>(), instance.<span style=color:#50fa7b>getPort</span>()));
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#f1fa8c>&#34;ok&#34;</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>注册服务也分两个，一个是服务端，一个是客户端，只看服务端的吧，跟进到InstanceOperatorServiceImpl的registerInstance()方法，这个方法先把Instance参数转换成naming.core.Instance然后调用serviceManager的registerInstance()方法：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>registerInstance</span>(String namespaceId, String serviceName, Instance instance) <span style=color:#8be9fd;font-style:italic>throws</span> NacosException {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 实体转换</span>
+</span></span><span style=display:flex><span>    com.<span style=color:#50fa7b>alibaba</span>.<span style=color:#50fa7b>nacos</span>.<span style=color:#50fa7b>naming</span>.<span style=color:#50fa7b>core</span>.<span style=color:#50fa7b>Instance</span> coreInstance <span style=color:#ff79c6>=</span> parseInstance(instance);
+</span></span><span style=display:flex><span>    serviceManager.<span style=color:#50fa7b>registerInstance</span>(namespaceId, serviceName, coreInstance);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>继续走到serviceManager里：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>registerInstance</span>(String namespaceId, String serviceName, Instance instance) <span style=color:#8be9fd;font-style:italic>throws</span> NacosException {
+</span></span><span style=display:flex><span>    NamingUtils.<span style=color:#50fa7b>checkInstanceIsLegal</span>(instance);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 如果服务不存在，创建一个空服务放到一个map(serviceMap)里，然后初始化这个服务</span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 心跳检查就是在里调用的（service.init()）</span>
+</span></span><span style=display:flex><span>    createEmptyService(namespaceId, serviceName, instance.<span style=color:#50fa7b>isEphemeral</span>());
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 从serviceMap获取服务</span>
+</span></span><span style=display:flex><span>    Service service <span style=color:#ff79c6>=</span> getService(namespaceId, serviceName);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    checkServiceIsNull(service, namespaceId, serviceName);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 补充实例数据，instance.isEphemeral()表示是否是临时节点</span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 添加实例信息</span>
+</span></span><span style=display:flex><span>    addInstance(namespaceId, serviceName, instance.<span style=color:#50fa7b>isEphemeral</span>(), instance);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>关键的代码就在addInstance()这个方法里：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>addInstance</span>(String namespaceId, String serviceName, <span style=color:#8be9fd>boolean</span> ephemeral, Instance... ips)
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>throws</span> NacosException {
+</span></span><span style=display:flex><span>    String key <span style=color:#ff79c6>=</span> KeyBuilder.<span style=color:#50fa7b>buildInstanceListKey</span>(namespaceId, serviceName, ephemeral);
+</span></span><span style=display:flex><span>    Service service <span style=color:#ff79c6>=</span> getService(namespaceId, serviceName);
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>synchronized</span> (service) {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 这个很关键</span>
+</span></span><span style=display:flex><span>        List<span style=color:#ff79c6>&lt;</span>Instance<span style=color:#ff79c6>&gt;</span> instanceList <span style=color:#ff79c6>=</span> addIpAddresses(service, ephemeral, ips);
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        Instances instances <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> Instances();
+</span></span><span style=display:flex><span>        instances.<span style=color:#50fa7b>setInstanceList</span>(instanceList);
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 这里会走distro协议的put</span>
+</span></span><span style=display:flex><span>        consistencyService.<span style=color:#50fa7b>put</span>(key, instances);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>addIpAddresses()方法中处理实例的集群信息、心跳时间什么的：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> List<span style=color:#ff79c6>&lt;</span>Instance<span style=color:#ff79c6>&gt;</span> <span style=color:#50fa7b>updateIpAddresses</span>(Service service, String action, <span style=color:#8be9fd>boolean</span> ephemeral, Instance... ips)
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>throws</span> NacosException {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 这个相当于服务实例的map</span>
+</span></span><span style=display:flex><span>    Datum datum <span style=color:#ff79c6>=</span> consistencyService
+</span></span><span style=display:flex><span>            .<span style=color:#50fa7b>get</span>(KeyBuilder.<span style=color:#50fa7b>buildInstanceListKey</span>(service.<span style=color:#50fa7b>getNamespaceId</span>(), service.<span style=color:#50fa7b>getName</span>(), ephemeral));
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    List<span style=color:#ff79c6>&lt;</span>Instance<span style=color:#ff79c6>&gt;</span> currentIPs <span style=color:#ff79c6>=</span> service.<span style=color:#50fa7b>allIPs</span>(ephemeral);
+</span></span><span style=display:flex><span>    Map<span style=color:#ff79c6>&lt;</span>String, Instance<span style=color:#ff79c6>&gt;</span> currentInstances <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> HashMap<span style=color:#ff79c6>&lt;&gt;</span>(currentIPs.<span style=color:#50fa7b>size</span>());
+</span></span><span style=display:flex><span>    Set<span style=color:#ff79c6>&lt;</span>String<span style=color:#ff79c6>&gt;</span> currentInstanceIds <span style=color:#ff79c6>=</span> CollectionUtils.<span style=color:#50fa7b>set</span>();
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (Instance instance : currentIPs) {
+</span></span><span style=display:flex><span>        currentInstances.<span style=color:#50fa7b>put</span>(instance.<span style=color:#50fa7b>toIpAddr</span>(), instance);
+</span></span><span style=display:flex><span>        currentInstanceIds.<span style=color:#50fa7b>add</span>(instance.<span style=color:#50fa7b>getInstanceId</span>());
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    Map<span style=color:#ff79c6>&lt;</span>String, Instance<span style=color:#ff79c6>&gt;</span> instanceMap;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (datum <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>null</span> <span style=color:#ff79c6>&amp;&amp;</span> <span style=color:#ff79c6>null</span> <span style=color:#ff79c6>!=</span> datum.<span style=color:#50fa7b>value</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 如果有服务实例的信息，就更新，包括地址、心跳时间什么的</span>
+</span></span><span style=display:flex><span>        instanceMap <span style=color:#ff79c6>=</span> setValid(((Instances) datum.<span style=color:#50fa7b>value</span>).<span style=color:#50fa7b>getInstanceList</span>(), currentInstances);
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 如果没有服务实例的信息就初始化一个新map</span>
+</span></span><span style=display:flex><span>        instanceMap <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> HashMap<span style=color:#ff79c6>&lt;&gt;</span>(ips.<span style=color:#50fa7b>length</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (Instance instance : ips) {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 处理实例、集群</span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>!</span>service.<span style=color:#50fa7b>getClusterMap</span>().<span style=color:#50fa7b>containsKey</span>(instance.<span style=color:#50fa7b>getClusterName</span>())) {
+</span></span><span style=display:flex><span>            Cluster cluster <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> Cluster(instance.<span style=color:#50fa7b>getClusterName</span>(), service);
+</span></span><span style=display:flex><span>            cluster.<span style=color:#50fa7b>init</span>();
+</span></span><span style=display:flex><span>            service.<span style=color:#50fa7b>getClusterMap</span>().<span style=color:#50fa7b>put</span>(instance.<span style=color:#50fa7b>getClusterName</span>(), cluster);
+</span></span><span style=display:flex><span>            Loggers.<span style=color:#50fa7b>SRV_LOG</span>
+</span></span><span style=display:flex><span>                    .<span style=color:#50fa7b>warn</span>(<span style=color:#f1fa8c>&#34;cluster: {} not found, ip: {}, will create new cluster with default configuration.&#34;</span>,
+</span></span><span style=display:flex><span>                            instance.<span style=color:#50fa7b>getClusterName</span>(), instance.<span style=color:#50fa7b>toJson</span>());
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (UtilsAndCommons.<span style=color:#50fa7b>UPDATE_INSTANCE_ACTION_REMOVE</span>.<span style=color:#50fa7b>equals</span>(action)) {
+</span></span><span style=display:flex><span>            instanceMap.<span style=color:#50fa7b>remove</span>(instance.<span style=color:#50fa7b>getDatumKey</span>());
+</span></span><span style=display:flex><span>        } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>            Instance oldInstance <span style=color:#ff79c6>=</span> instanceMap.<span style=color:#50fa7b>get</span>(instance.<span style=color:#50fa7b>getDatumKey</span>());
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (oldInstance <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>null</span>) {
+</span></span><span style=display:flex><span>                instance.<span style=color:#50fa7b>setInstanceId</span>(oldInstance.<span style=color:#50fa7b>getInstanceId</span>());
+</span></span><span style=display:flex><span>            } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>// 雪花算法生成id</span>
+</span></span><span style=display:flex><span>                instance.<span style=color:#50fa7b>setInstanceId</span>(instance.<span style=color:#50fa7b>generateInstanceId</span>(currentInstanceIds));
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            instanceMap.<span style=color:#50fa7b>put</span>(instance.<span style=color:#50fa7b>getDatumKey</span>(), instance);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (instanceMap.<span style=color:#50fa7b>size</span>() <span style=color:#ff79c6>&lt;=</span> 0 <span style=color:#ff79c6>&amp;&amp;</span> UtilsAndCommons.<span style=color:#50fa7b>UPDATE_INSTANCE_ACTION_ADD</span>.<span style=color:#50fa7b>equals</span>(action)) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> IllegalArgumentException(
+</span></span><span style=display:flex><span>                <span style=color:#f1fa8c>&#34;ip list can not be empty, service: &#34;</span> <span style=color:#ff79c6>+</span> service.<span style=color:#50fa7b>getName</span>() <span style=color:#ff79c6>+</span> <span style=color:#f1fa8c>&#34;, ip list: &#34;</span> <span style=color:#ff79c6>+</span> JacksonUtils
+</span></span><span style=display:flex><span>                        .<span style=color:#50fa7b>toJson</span>(instanceMap.<span style=color:#50fa7b>values</span>()));
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>new</span> ArrayList<span style=color:#ff79c6>&lt;&gt;</span>(instanceMap.<span style=color:#50fa7b>values</span>());
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>addIpAddresses()方法走完了就会走到consistencyService()方法，不同的协议会走到不同的实现类，默认是distro，所以进到DistroConsistencyServiceImpl类中：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>put</span>(String key, Record value) <span style=color:#8be9fd;font-style:italic>throws</span> NacosException {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 这里有个发送变更通知还不知道干啥的</span>
+</span></span><span style=display:flex><span>    onPut(key, value);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// If upgrade to 2.0.X, do not sync for v1.</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (ApplicationUtils.<span style=color:#50fa7b>getBean</span>(UpgradeJudgement.<span style=color:#50fa7b>class</span>).<span style=color:#50fa7b>isUseGrpcFeatrues</span>()) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 开启延迟任务，nacos服务端配置的，默认1s</span>
+</span></span><span style=display:flex><span>    distroProtocol.<span style=color:#50fa7b>sync</span>(<span style=color:#ff79c6>new</span> DistroKey(key, KeyBuilder.<span style=color:#50fa7b>INSTANCE_LIST_KEY_PREFIX</span>), DataOperation.<span style=color:#50fa7b>CHANGE</span>,
+</span></span><span style=display:flex><span>            DistroConfig.<span style=color:#50fa7b>getInstance</span>().<span style=color:#50fa7b>getSyncDelayMillis</span>());
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>onPut()方法是用来处理临时节点和发送数据变更通知的，开启延迟任务会走到DistroProtocol的syncToTarget()方法里：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>syncToTarget</span>(DistroKey distroKey, DataOperation action, String targetServer, <span style=color:#8be9fd>long</span> delay) {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 先初始化一个DistroKey</span>
+</span></span><span style=display:flex><span>    DistroKey distroKeyWithTarget <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> DistroKey(distroKey.<span style=color:#50fa7b>getResourceKey</span>(), distroKey.<span style=color:#50fa7b>getResourceType</span>(),
+</span></span><span style=display:flex><span>            targetServer);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 然后创建延迟任务，添加到distroTaskEngineHolder里</span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 这个是定时调度线程池实现的，同一个服务的多次任务会进行merge处理</span>
+</span></span><span style=display:flex><span>    DistroDelayTask distroDelayTask <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> DistroDelayTask(distroKeyWithTarget, action, delay);
+</span></span><span style=display:flex><span>    distroTaskEngineHolder.<span style=color:#50fa7b>getDelayTaskExecuteEngine</span>().<span style=color:#50fa7b>addTask</span>(distroKeyWithTarget, distroDelayTask);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (Loggers.<span style=color:#50fa7b>DISTRO</span>.<span style=color:#50fa7b>isDebugEnabled</span>()) {
+</span></span><span style=display:flex><span>        Loggers.<span style=color:#50fa7b>DISTRO</span>.<span style=color:#50fa7b>debug</span>(<span style=color:#f1fa8c>&#34;[DISTRO-SCHEDULE] {} to {}&#34;</span>, distroKey, targetServer);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>getDelayTaskExecuteEngine()拿到的是NacosDelayTaskExecuteEngine，这个类里有个定时调度线程负责执行提交进来的任务，执行线程的run()方法里调用了NacosTaskProcessor的process()方法：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>boolean</span> <span style=color:#50fa7b>process</span>(NacosTask task) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>!</span>(task <span style=color:#ff79c6>instanceof</span> DistroDelayTask)) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    DistroDelayTask distroDelayTask <span style=color:#ff79c6>=</span> (DistroDelayTask) task;
+</span></span><span style=display:flex><span>    DistroKey distroKey <span style=color:#ff79c6>=</span> distroDelayTask.<span style=color:#50fa7b>getDistroKey</span>();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>switch</span> (distroDelayTask.<span style=color:#50fa7b>getAction</span>()) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>case</span> DELETE:
+</span></span><span style=display:flex><span>            DistroSyncDeleteTask syncDeleteTask <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> DistroSyncDeleteTask(distroKey, distroComponentHolder);
+</span></span><span style=display:flex><span>            distroTaskEngineHolder.<span style=color:#50fa7b>getExecuteWorkersManager</span>().<span style=color:#50fa7b>addTask</span>(distroKey, syncDeleteTask);
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>case</span> CHANGE:
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>case</span> ADD:
+</span></span><span style=display:flex><span>            DistroSyncChangeTask syncChangeTask <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> DistroSyncChangeTask(distroKey, distroComponentHolder);
+</span></span><span style=display:flex><span>            distroTaskEngineHolder.<span style=color:#50fa7b>getExecuteWorkersManager</span>().<span style=color:#50fa7b>addTask</span>(distroKey, syncChangeTask);
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>default</span>:
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>false</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>可以看到执行方法时又获取了ExecuteWorkersManager对象，然后会调用TaskExecuteWorker的process()方法，其实就是执行task的run：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>boolean</span> <span style=color:#50fa7b>process</span>(NacosTask task) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (task <span style=color:#ff79c6>instanceof</span> AbstractExecuteTask) {
+</span></span><span style=display:flex><span>        putTask((Runnable) task);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>具体的任务对应不同的task，比如数据变更对应的是DistroSyncChangeTask:</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span>@Override
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>protected</span> <span style=color:#8be9fd>boolean</span> <span style=color:#50fa7b>doExecute</span>() {
+</span></span><span style=display:flex><span>    String type <span style=color:#ff79c6>=</span> getDistroKey().<span style=color:#50fa7b>getResourceType</span>();
+</span></span><span style=display:flex><span>    DistroData distroData <span style=color:#ff79c6>=</span> getDistroData(type);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>null</span> <span style=color:#ff79c6>==</span> distroData) {
+</span></span><span style=display:flex><span>        Loggers.<span style=color:#50fa7b>DISTRO</span>.<span style=color:#50fa7b>warn</span>(<span style=color:#f1fa8c>&#34;[DISTRO] {} with null data to sync, skip&#34;</span>, toString());
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 同步数据</span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> getDistroComponentHolder().<span style=color:#50fa7b>findTransportAgent</span>(type)
+</span></span><span style=display:flex><span>            .<span style=color:#50fa7b>syncData</span>(distroData, getDistroKey().<span style=color:#50fa7b>getTargetServer</span>());
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>TransportAgent也有两种，一个是rpc的，另一个是http，都是封装个request，然后发请求：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>boolean</span> <span style=color:#50fa7b>syncData</span>(DistroData data, String targetServer) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (isNoExistTarget(targetServer)) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    DistroDataRequest request <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> DistroDataRequest(data, data.<span style=color:#50fa7b>getType</span>());
+</span></span><span style=display:flex><span>    Member member <span style=color:#ff79c6>=</span> memberManager.<span style=color:#50fa7b>find</span>(targetServer);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (checkTargetServerStatusUnhealthy(member)) {
+</span></span><span style=display:flex><span>        Loggers.<span style=color:#50fa7b>DISTRO</span>
+</span></span><span style=display:flex><span>                .<span style=color:#50fa7b>warn</span>(<span style=color:#f1fa8c>&#34;[DISTRO] Cancel distro sync caused by target server {} unhealthy, key: {}&#34;</span>, targetServer,
+</span></span><span style=display:flex><span>                        data.<span style=color:#50fa7b>getDistroKey</span>());
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>false</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>try</span> {
+</span></span><span style=display:flex><span>        Response response <span style=color:#ff79c6>=</span> clusterRpcClientProxy.<span style=color:#50fa7b>sendRequest</span>(member, request);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> checkResponse(response);
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>catch</span> (NacosException e) {
+</span></span><span style=display:flex><span>        Loggers.<span style=color:#50fa7b>DISTRO</span>.<span style=color:#50fa7b>error</span>(<span style=color:#f1fa8c>&#34;[DISTRO-FAILED] Sync distro data failed! key: {}&#34;</span>, data.<span style=color:#50fa7b>getDistroKey</span>(), e);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>false</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>其他nacos实例会通过controller或者rpc的服务端接收到这个请求，然后交给distroProtocol的onReceive()方法：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>boolean</span> <span style=color:#50fa7b>onReceive</span>(DistroData distroData) {
+</span></span><span style=display:flex><span>    Loggers.<span style=color:#50fa7b>DISTRO</span>.<span style=color:#50fa7b>info</span>(<span style=color:#f1fa8c>&#34;[DISTRO] Receive distro data type: {}, key: {}&#34;</span>, distroData.<span style=color:#50fa7b>getType</span>(),
+</span></span><span style=display:flex><span>            distroData.<span style=color:#50fa7b>getDistroKey</span>());
+</span></span><span style=display:flex><span>    String resourceType <span style=color:#ff79c6>=</span> distroData.<span style=color:#50fa7b>getDistroKey</span>().<span style=color:#50fa7b>getResourceType</span>();
+</span></span><span style=display:flex><span>    DistroDataProcessor dataProcessor <span style=color:#ff79c6>=</span> distroComponentHolder.<span style=color:#50fa7b>findDataProcessor</span>(resourceType);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>null</span> <span style=color:#ff79c6>==</span> dataProcessor) {
+</span></span><span style=display:flex><span>        Loggers.<span style=color:#50fa7b>DISTRO</span>.<span style=color:#50fa7b>warn</span>(<span style=color:#f1fa8c>&#34;[DISTRO] Can&#39;t find data process for received data {}&#34;</span>, resourceType);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>false</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> dataProcessor.<span style=color:#50fa7b>processData</span>(distroData);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>dataProcessor也有两个，一个客户端一个服务端的，服务端主要还是调用了onPut()方法。</p><p>onPut()方法的数据变更通知调用的是notifier.addTask()，这个notifier是内部的一个线程，他的run()方法里调用了handle()方法，handle()方法里又更具事件类型调用RecordListener的对应方法，RecordListener有一个实现类时Service，以服务实例信息变更为入口，进到Service的onChange()方法中：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>onChange</span>(String key, Instances value) <span style=color:#8be9fd;font-style:italic>throws</span> Exception {
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    Loggers.<span style=color:#50fa7b>SRV_LOG</span>.<span style=color:#50fa7b>info</span>(<span style=color:#f1fa8c>&#34;[NACOS-RAFT] datum is changed, key: {}, value: {}&#34;</span>, key, value);
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (Instance instance : value.<span style=color:#50fa7b>getInstanceList</span>()) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (instance <span style=color:#ff79c6>==</span> <span style=color:#ff79c6>null</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// Reject this abnormal instance list:</span>
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> RuntimeException(<span style=color:#f1fa8c>&#34;got null instance &#34;</span> <span style=color:#ff79c6>+</span> key);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (instance.<span style=color:#50fa7b>getWeight</span>() <span style=color:#ff79c6>&gt;</span> 10000.<span style=color:#50fa7b>0D</span>) {
+</span></span><span style=display:flex><span>            instance.<span style=color:#50fa7b>setWeight</span>(10000.<span style=color:#50fa7b>0D</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (instance.<span style=color:#50fa7b>getWeight</span>() <span style=color:#ff79c6>&lt;</span> 0.<span style=color:#50fa7b>01D</span> <span style=color:#ff79c6>&amp;&amp;</span> instance.<span style=color:#50fa7b>getWeight</span>() <span style=color:#ff79c6>&gt;</span> 0.<span style=color:#50fa7b>0D</span>) {
+</span></span><span style=display:flex><span>            instance.<span style=color:#50fa7b>setWeight</span>(0.<span style=color:#50fa7b>01D</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 这个很关键</span>
+</span></span><span style=display:flex><span>    updateIPs(value.<span style=color:#50fa7b>getInstanceList</span>(), KeyBuilder.<span style=color:#50fa7b>matchEphemeralInstanceListKey</span>(key));
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    recalculateChecksum();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>updateIPs()方法先是处理了集群信息，最关键的是下面一行代码：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span>getPushService().<span style=color:#50fa7b>serviceChanged</span>(<span style=color:#ff79c6>this</span>);
+</span></span></code></pre></td></tr></table></div></div><p>这个代码是反向通知订阅这个实例的服务。</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://wangxiaohong123.github.io/tags/nacos/>Nacos</a></li></ul><nav class=paginav><a class=prev href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/2.%E5%9F%BA%E7%A1%80/><span class=title>« Prev</span><br><span>nacos-2.基础</span>
+</a><a class=next href=https://wangxiaohong123.github.io/posts/nginx/0.openresty%E5%AE%89%E8%A3%85/><span class=title>Next »</span><br><span>nginx-1.安装</span></a></nav><ul class=share-buttons><li><a target=_blank rel="noopener noreferrer" aria-label="share nacos-3.核心源码 on x" href="https://x.com/intent/tweet/?text=nacos-3.%e6%a0%b8%e5%bf%83%e6%ba%90%e7%a0%81&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fnacos%2f3.%25E6%25A0%25B8%25E5%25BF%2583%25E6%25BA%2590%25E7%25A0%2581%2f&amp;hashtags=nacos"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446C483.971.0 512 28.03 512 62.554zM269.951 190.75 182.567 75.216H56L207.216 272.95 63.9 436.783h61.366L235.9 310.383l96.667 126.4H456L298.367 228.367l134-153.151H371.033zM127.633 110h36.468l219.38 290.065H349.5z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share nacos-3.核心源码 on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fnacos%2f3.%25E6%25A0%25B8%25E5%25BF%2583%25E6%25BA%2590%25E7%25A0%2581%2f&amp;title=nacos-3.%e6%a0%b8%e5%bf%83%e6%ba%90%e7%a0%81&amp;summary=nacos-3.%e6%a0%b8%e5%bf%83%e6%ba%90%e7%a0%81&amp;source=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fnacos%2f3.%25E6%25A0%25B8%25E5%25BF%2583%25E6%25BA%2590%25E7%25A0%2581%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share nacos-3.核心源码 on reddit" href="https://reddit.com/submit?url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fnacos%2f3.%25E6%25A0%25B8%25E5%25BF%2583%25E6%25BA%2590%25E7%25A0%2581%2f&title=nacos-3.%e6%a0%b8%e5%bf%83%e6%ba%90%e7%a0%81"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share nacos-3.核心源码 on facebook" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fnacos%2f3.%25E6%25A0%25B8%25E5%25BF%2583%25E6%25BA%2590%25E7%25A0%2581%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share nacos-3.核心源码 on whatsapp" href="https://api.whatsapp.com/send?text=nacos-3.%e6%a0%b8%e5%bf%83%e6%ba%90%e7%a0%81%20-%20https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fnacos%2f3.%25E6%25A0%25B8%25E5%25BF%2583%25E6%25BA%2590%25E7%25A0%2581%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share nacos-3.核心源码 on telegram" href="https://telegram.me/share/url?text=nacos-3.%e6%a0%b8%e5%bf%83%e6%ba%90%e7%a0%81&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fnacos%2f3.%25E6%25A0%25B8%25E5%25BF%2583%25E6%25BA%2590%25E7%25A0%2581%2f"><svg viewBox="2 2 28 28" height="30" width="30" fill="currentColor"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share nacos-3.核心源码 on ycombinator" href="https://news.ycombinator.com/submitlink?t=nacos-3.%e6%a0%b8%e5%bf%83%e6%ba%90%e7%a0%81&u=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fnacos%2f3.%25E6%25A0%25B8%25E5%25BF%2583%25E6%25BA%2590%25E7%25A0%2581%2f"><svg width="30" height="30" viewBox="0 0 512 512" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446zM183.8767 87.9921h-62.034L230.6673 292.4508V424.0079h50.6655V292.4508L390.1575 87.9921H328.1233L256 238.2489z"/></svg></a></li></ul></footer></article></main><footer class=footer><span>&copy; 2025 <a href=https://wangxiaohong123.github.io/>王小红的笔记</a></span> ·
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Kafka on 王小红的笔记</title><link>https://wangxiaohong123.github.io/tags/kafka/</link><description>Recent content in Kafka on 王小红的笔记</description><generator>Hugo -- 0.150.0</generator><language>zh-CN</language><lastBuildDate>Mon, 27 Sep 2021 06:27:35 +0000</lastBuildDate><atom:link href="https://wangxiaohong123.github.io/tags/kafka/index.xml" rel="self" type="application/rss+xml"/><item><title>15.kafka源码-常见问题</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/kafka/15.%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/</link><pubDate>Mon, 27 Sep 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/kafka/15.%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/</guid><description>&lt;h5 id="消息丢失问题"&gt;消息丢失问题&lt;/h5&gt;
+&lt;h6 id="broker写入消息丢失"&gt;broker写入消息丢失&lt;/h6&gt;
+&lt;p&gt;如果leader里写入一条数据，此时还没同步到follower，然后leader崩溃了，这个时候重新选举出来的leader里的数据并不是最新的，也就是unclear leader election，要想解决这个问题就要保证所有insync状态的副本都写成功才能让consumer消费到，如果配置了&lt;code&gt;unclear.leader.election.enable=false&lt;/code&gt;参数当所有follower都不是最新数据的时候这个topic就不允许写消息了，此时可以保证一致性，但是可用性会降低。&lt;/p&gt;
+&lt;p&gt;发生上面的topic不可用的问题就是没有同步成功的follower，所以当写如消息的时候要最少保证一个follower要同步成功才算是写成功，通过两个参数配合实现：&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;min.insync.replicas=2&lt;/code&gt;，保证一个leader和最少一个follower的数据是insync的，也就是同步的。
+producer端设置acks=all，保证所有insync的副本写成功才算成功。
+在配合&lt;code&gt;unclear.leader.election.enable=false&lt;/code&gt;，这样broker写入就不会丢失了。&lt;/p&gt;
+&lt;h6 id="consumer端消息丢失"&gt;consumer端消息丢失&lt;/h6&gt;
+&lt;p&gt;有时候consumer拿到一批数据后会交给线程池异步处理，然后consumer会自动提交偏移量，auto commit，这样不管消息消费成不成功broker都会认为他消费成功。&lt;/p&gt;
+&lt;p&gt;在consumer里添加&lt;code&gt;enable.auto.commit=false&lt;/code&gt;的配置，关闭自动提交。使用consumer.commitSync()手动提交。&lt;/p&gt;
+&lt;h5 id="consumer重复消费问题"&gt;consumer重复消费问题&lt;/h5&gt;
+&lt;p&gt;不管手动还是自动提交offset都会有重复消费的问题&lt;/p&gt;
+&lt;p&gt;如果设置成手动提交，当一部分消息还没来得及提交offset，此时又去拉取数据，这个时候就可能拉取到还没来得及提交offset的消息。&lt;/p&gt;
+&lt;p&gt;如果是自动提交，如果重启服务器或者服务器宕机，这个时候也会有消费完的数据还没来得及auto commit。&lt;/p&gt;</description></item></channel></rss>

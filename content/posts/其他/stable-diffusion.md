@@ -1,0 +1,127 @@
+---
+title: stable-diffusion
+tags:
+  - stable-diffusion
+categories: 其他
+copyright: true
+---
+
+stable-diffusion原理就是**逆向降噪**的过程，就好比秋天的时候地上都是树叶，这个时候地上的树叶就是噪点，把树叶一点一点收起来，地面越来越清晰就是降噪的过程，所以使用stable-diffusion生成图片的时候控制台中的图片时从模糊到越来越清晰的。
+
+那么就有两个问题，初始的图片为什么要加噪点，以及如何实现降噪？
+
+##### 为什么要加噪点？
+
+加噪点是为了给图片降维，图片是由像素组成，像素是由红黄蓝三颜色混合组成，拿一个512\*512的图片举例，这个图片就可以转换成$512*512*3=786432$个数字组成，如果是读取的话没有任何困难，但是如果把786432个数字放到神经网络里就会变成786432维，这种算力不是普通显卡可以承受的，所以把图片上不是关键的像素变成噪点可以减少计算维度，就像地上虽然堆满了树叶，但是我们还能看出来这是一片空地，。其实不需要关心怎么给图片加上噪点，模型库中的图片自带噪点，只需要计算怎么降燥。
+
+##### 怎么去除噪点？
+
+网上一搜这里会出现一大堆名次，VAE、UNet、CLIP巴拉巴拉看不懂，但是可以想象出来地上的树叶并不是一次全都落下来的，每次只落一点慢慢地上的树叶越来越多，清理这些树叶可能需要n次，n越大就越干净，这里就对应了stable-diffusion的**采样步数**，可以理解成清除噪点的次数。如何降噪对应的是**采样器**，比如有的采样器是用吸尘器吸树叶，有的采样器用手捡树叶。
+
+##### stable-diffusion怎么识别prompt去画图？
+
+首先需要一个足够大的图片数据库，里面存放的是降维过的(也就是说有噪点的)图片，就是**模型库**，其次它需要有**语意识别(trnasformer，也是chat GPT里的T)**功能，识别语意之后去模型库中找到描述相关的图片中和prompt相符合的内容，最后把他们整合。
+
+### 安装模型
+
+我没有使用cola安装，很多扩展都没有，比如civitai，但是我手动装了civitai页面上页不显示，这样的话下载模型只能去c站[https://civitai.com/]手动下载，把下载完的模型放到stable-diffusion目录下的models/Stable-diffusion路径下，然后重启stable-diffusion。
+
+##### 1.lora模型
+
+安装完lora模型之后点击附加网络是看不到我们刚刚下载的模型的：
+
+![Xnip2023-08-29_08-34-30](https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-34-30.png)
+
+但是他已经提示了需要把模型放到models/lora路径下，把刚刚下载的模型复制一份到这个路径，然后点击页面右边的刷新按钮就可以看到刚才安装的模型了。
+
+然后我们去c站找一张lora的模型示例图，把prompt复制到文生图的提示词里：
+
+![Xnip2023-08-29_08-46-55](https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-46-55.png)
+
+然后点击刚刚下载的模型，在上面的输入框会出现一个lora标签，shuimobysimV3就是我们刚刚下载的模型在本地的名称，最后的1表示权重，这里能看到复制过来的提示词中的lora中的模型名和我们安装的不一样， 所以需要替换模型名最后删掉刚才生成的lora标签，点击生成：
+
+![Xnip2023-08-29_08-55-15](https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_08-55-15.png)
+
+严格来说lora不像是一个模型，下载的时候就可以看出来他的体积非常小，他的原理类似一个汉堡，一个人说不够甜，厨师就把上面的面包拿掉，挤了点糖，第二次说生菜少了，厨师就把上面的面包和牛肉拿掉，下面放了几片生菜，就这样一点一点加工。他的原理就是不影响原有扩散模型的层中的内容，而是在中间插入新层影响输出内容。
+
+### controlNet
+
+##### 安装
+
+从网址安装扩展中输入controlnet[[https://github.com/Mikubill/sd-webui-controlnet](https://openai.wiki/go?_=47fe78c830aHR0cHM6Ly9naXRodWIuY29tL01pa3ViaWxsL3NkLXdlYnVpLWNvbnRyb2xuZXQ%3D)]的地址安装。本地自己安装的stable-diffusion在装完controlNet之后是没有模型的，需要自己去hugginface[https://huggingface.co/lllyasviel/ControlNet-v1-1/tree/main]或者[https://huggingface.co/TencentARC/T2I-Adapter/tree/main/models]上下载pth后缀的模型，下载完后放到stable-diffusion-webui/extensions/sd-webui-controlnet/models路径下，最后重启webUI。
+
+新版生成预览按钮在这里，妈的找半天：
+
+![Xnip2023-08-29_23-54-23](https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-29_23-54-23.png)
+
+##### 常用预处理器和模型
+
+1.   canny：线稿检测，就是上图的效果，把图片的信息提取出线条，这样可以让SD根据提供的线条作画；
+2.   color：他会把图片变成马赛克，马赛克的颜色和图片对应，这样可以控制SD画图时的颜色；
+3.   mlsd+seg开头的预处理器：mlsd是直线检测，他会把图片中的直线选中，曲线被忽略，seg开头的是分块检测，会把图片中的每个物体用不同颜色区分，他俩一起使用可以实现室内设计相关功能；
+
+如果想要同时使用controlNet的多个模型时可以使用上面的control net unit选显卡，每个选项卡对应一个模型，**每个选项卡都需要勾选enable**：
+
+![Xnip2023-08-30_08-52-37](https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-08-30_08-52-37.png)
+
+### 简单使用
+
+##### 1.提示词
+
+大部分情况的提示次其实就一个字，抄，去c站找到目标图片查看他的提示次和模型……
+
+正向提示次：
+
+*   普通关键词使用','分割，不同顺序会导致不一样的出图结果；
+*   小括号表示赋权，比如(blue hair:1.5)表示蓝色头发权重1.5；
+*   中括号表示关键词参与采样步数占比，比如采样步数为20时，[blue hair:0.5]和[blue hair::10]都表示关键词参与前10步的采样；
+
+##### 2.局部重绘
+
+图生图的一个选项卡，使用这个可以把图片中我们不想要的内容替换掉。
+
+##### 3.换脸
+
+换脸和换其他部位的思路一样，使用局部重绘功能把想要更换的位置涂掉，然后利用canny模型锁定图片整体的线条，然后用open pose模型锁定任务的骨架，open pose的作用是换脸时因为脸部被我们涂掉了，所以DF在自由发挥的时候很有可能在脸上画一只手之类的，open pose可以限制DF不要话其他的四肢，在确定参数、模型都没问题后可能换出来的脸很丑，这个时候需要提示次做最后的补充，然后开始刷图，跟抽奖一样。
+
+inpaint anything扩展也可以实现这个功能。
+
+##### 4.图片放大
+
+不考虑插件的情况SD有3个地方可以实现图片的放大：
+
+1.   字生图时选择高清修复；
+2.   图生图时在脚本处选择SD upscale，或者安装Ultimate SD upscale[https://github.com/Coyote-A/ultimate-upscale-for-automatic1111]扩展;
+3.   额外功能中对图片进行缩放；
+
+不管使用哪种方式都要选择放大算法，常见的放大的算法：Lanczos、Nearest、LDSR、ESRGAN_4x、R-ESRGAN 4x+、R-ESRGAN 4x+ Anime6B、SwinIR_4x、ScuNET、ScuNET PSNR。
+
+**Lanczos、Nearest不好用，LDSR动漫和真人都可以，ESRGAN_4x和SwinIR_4x更适合真人；R-ESRGAN 4x+、R-ESRGAN 4x+ Anime6B更适合动漫；SwinIR_4x、ScuNET、ScuNET PSNR更适合降噪；**
+
+##### 5.图片改色和修补
+
+图片上色使用controlnet的lineart相关模型，lineart_anime适合处理动漫的黑白照片，lineart_realistic适合处理真人的黑白照片，这个模型用来生成线稿图，canny模型也可以提取线稿，不过他生成完的图片和原图有点差异，提取完线稿图就可以填写关键词进行上色了。
+
+修补使用controlnet的inpaint相关模型，这个模型除了可以修补，还可以扩图比如把一张图片变宽，两侧需要补充图案就可以用inpaint相关模型，inpaint only + lama效果比inpaint only好，inpaint_global_harmonious会对细节做额外处理。
+
+##### 6.调光
+
+调光使用controlnet的Lighting based pictrue control controlnet模型。
+
+##### 7.二维码美化
+
+二维码美化用到的大模型是ReV Animated，用到的controlnet的模型是qrcode_monster、tile和brightness。
+
+二维码根据定位点(小回字)和马眼(边上的大回字)来定位有效区域；二维码的容错率是指角度不同、部分缺失、模糊，但是只要马眼和定位点能够被识别就可以扫描出二维码的内容。
+
+步骤：
+
+1.   去[https://qrcode.antfu.me/]生成一张带噪点的二维码(1140\*1140左右)，然后裁剪成768\*768(二维码占一个角)，类似下面这样
+
+     <img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/未标题-1 拷贝.png" alt="未标题-1拷贝" style="zoom:25%;" />
+
+2.   上传到controlnet里，SD的大模型选择ReV Animated，controlnet的模型选择qr_code，去c站找一张稍微复杂点的图片，把他的描述词抄过来，SD的采样步数调到40，画布大小调到768\*768，controlnet的控制权重调到1.5左右点击生成；
+
+3.   运气好的话第一步就可以生成一张看不出来是二维码又很好看又能被扫出来的图片，运气不好的话继续点击图生图，识别不出来可能是qr_code权重给大了，在图生图的时候继续使用controlnet的qr_code模型重绘，调整权重，把重绘强度调大，为了防止重绘强度过高导致新图片和原图差异过大，需要另开一个controlnet窗口，上传刚才生成的二维码图片，选择tile模型，点击生成；
+
+4.   如果重新生成还是不稳定的话需要调高qr_code的权重刷图，或者在开一个controlnet窗口，使用brightness模型，brightness模型对图片的修改比较大，需要把他的权重调到0.3，启动控制步数和结束步数在0.8到0.9之间慢慢调整；
