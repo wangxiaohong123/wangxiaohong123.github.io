@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>HBase on 王小红的笔记</title><link>https://wangxiaohong123.github.io/tags/hbase/</link><description>Recent content in HBase on 王小红的笔记</description><generator>Hugo -- 0.150.0</generator><language>zh-CN</language><lastBuildDate>Thu, 24 Jun 2021 06:27:35 +0000</lastBuildDate><atom:link href="https://wangxiaohong123.github.io/tags/hbase/index.xml" rel="self" type="application/rss+xml"/><item><title>5.底层原理</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/05%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/</link><pubDate>Thu, 24 Jun 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/05%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/</guid><description>&lt;h3 id="hlog"&gt;HLog&lt;/h3&gt;
+&lt;p&gt;每个HRegionServer都有一个HLog，也可以配置多个，所有region共享这个HLog，每次操作数据都会产生一个log，很像MySQL的redoLog，这条log的key就是&lt;strong&gt;表名+region名+写入时间+sequenceid+clusterid&lt;/strong&gt;，内容就是对那个列改了什么value。&lt;/p&gt;
+&lt;p&gt;在hdfs上有两个专门的目录存放HLog：&amp;quot;/hbase/WALs&amp;quot;和&amp;quot;/hbase/oldWALs&amp;quot;，WALs里存放的是还没过期的数据，就说还在memStore里，没有刷到hdfs中的，在这个目录下面对于每个HRegionServer都有一个自己的目录，类似这样：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;/hbase/WALs/hbase12.df.zszs.org,60020,1304970381600&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;hbase12.df.zszs.org是HRegionServer的机器域名，60020是统一的端口号，最后面试创建的时间戳，在HRegionServer文件夹里就是一堆HLog文件了。有多个HLog文件是为了方便删除，因为大部分的数据都会刷到hdfs中，已经落盘的数据对应的HLog就没有存在的必要了。&lt;/p&gt;
+&lt;p&gt;什么时候创建一个新的HWAL日志文件呢？通过配置&lt;strong&gt;hbase.regionserver.logroll.period&lt;/strong&gt;，这个默认是1小时，每个小时HBase后台的一个线程就会去创建一个新的日志文件。当数据被持久化到了hdfs中后，对应的日志文件就会被放到oldWALs中，然后HBase的后台还有一个线程根据参数&lt;strong&gt;hbase.master.cleaner.interval(默认1分钟)&lt;strong&gt;来检查文件在oldWALs文件夹里待的时间超过了&lt;/strong&gt;hbase.master.logcleaner.ttl(默认10分钟)&lt;/strong&gt;，就会把这个日志删掉了。为什么还要再等10分钟呢？据说是主要用于调试。&lt;/p&gt;
+&lt;h3 id="memstore的写入"&gt;memStore的写入&lt;/h3&gt;
+&lt;p&gt;memStore使用的是双跳表机制来实现key的有序性，直接使用的java的ConcurrentSkipListMap，把rowkey+列族+列+timestamp当做跳表的key，当一个跳表满了的时候新进来的数据都会写入到另一个跳表中，这个跳表的数据慢慢刷到hdfs里，数据的value存储在chunk数组里。&lt;/p&gt;
+&lt;h3 id="hfile"&gt;HFile&lt;/h3&gt;
+&lt;h4 id="逻辑组成"&gt;逻辑组成&lt;/h4&gt;
+&lt;p&gt;HFile逻辑上包含4部分：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Scanned block：Data Block（key-value数据），Leaf Index Block（索引树的叶子节点），Bloom Block（布隆过滤器）；&lt;/li&gt;
+&lt;li&gt;Non-scanned Block：Meta Block、Intermediate Level Data Index Blocks；&lt;/li&gt;
+&lt;li&gt;Load-on-open Block：这部分会在RegionServer打开HFile的时候直接加载到内存里去，包括FileInfo、布隆过滤器的MetaBlock、Root Index Block和Meta IndexBlock（在查找元素的时候都要从根节点开始）、Bloom Index Block（这个是布隆过滤器的索引，因为一个HFile可能会有很多布隆过滤器）；&lt;/li&gt;
+&lt;li&gt;Trailer Block：HFile版本和其他几个部分的偏移量以及寻址信息，寻址信息就包括Load-on-open Block的地址；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;当HRegionServer打开HFile的时候会先读取文件的信息，这个时候就知道了文件有多少字节，然后就可以从末尾把Trailer Block读取出来，Trailer中有Load-on-open Block的位置信息，就可以把Load-on-open Block读取到内存中。&lt;/p&gt;
+&lt;h4 id="查询"&gt;查询&lt;/h4&gt;
+&lt;p&gt;当从HFile里查找文件的时候，会现根据Load-on-open Block中的布隆过滤器索引拿到所有的过滤器，然后判断要查找的数据是否在这个文件中，如果在就根据LSM树来查找数据，也就是根据Scanned block中的Leaf Index Block最终拿到Data Block，data block中就是一个一个的key-vakue对，key由rowkey、列族、列、操作时间戳、keyType（keyType就是Put、Delete、DeleteColumn、DeleteFamily这些）组成。&lt;/p&gt;
+&lt;p&gt;LSM树和MySQL的聚簇索引差不多，当数据量少的时候只有一层，Load-on-open Block直接指向Data Block，当数据量变多后，会出现叶子节点，再多就会出现Non-scanned Block的Intermediate Level Data Index Blocks。&lt;/p&gt;
+&lt;p&gt;不管是get还是scan，底层都是scan，在查询时，首先会有3层scan（RegionScanner、StoreScanner、MemStoreScanner和StoreFileScanner），第一层先找到对应的region，第二层找到store，第三层在memStore找到具体的数据和通过布隆找对具体的HFile。&lt;/p&gt;
+&lt;p&gt;找到数据之后会在内存中进行合并筛选。&lt;/p&gt;
+&lt;h4 id="block-cache"&gt;block cache&lt;/h4&gt;
+&lt;p&gt;因为每次查找数据会涉及到几次磁盘IO，读取intermediate level index block发生一次IO，读取leaf index block发生一次IO，读取data block发生一次IO，最多就3次IO，但是如果是批量get并且只有每次只有3个IO，查询速度也会达到秒级，所以hbase有一个和MySQL的缓冲池类似的东西，block cache，它是以我们存储数据的block为单位存储，其实就是3个ConcurrentHashMap，map的key就是block的key，value可能就是一个地址的指向：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;single-access：数据刚被读取的时候会在这个map里&lt;/li&gt;
+&lt;li&gt;multi-access：当数据被第二次使用的时候会从single-access移动到multi-access里&lt;/li&gt;
+&lt;li&gt;in-memory：比如在创建列族的时候指定了n_memory=true，这个列族的block就会存在在这个map中&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这3个map都是LRU map，内存占用比是25%:50%:25%。&lt;/p&gt;</description></item><item><title>3.物理模型</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/</link><pubDate>Mon, 14 Jun 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/03%E7%89%A9%E7%90%86%E6%A8%A1%E5%9E%8B/</guid><description>&lt;p&gt;hbase使用多维的稀疏排序map存储数据，比如像下面这样：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;rowkey_01+列族1:列1+put+t3：v1&lt;/strong&gt;，他的key是多维的，存储了rowkey、列族名称、列名称、操作方法、操作时间戳，并且根据key进行排序，value就是操作的值，这样看的话就是一个多维排序的map，稀疏的话说的是每一列不一定有值，这样看起来就很稀疏。&lt;/p&gt;
+&lt;p&gt;他是一种列簇式存储，把同一列族下的所有列的值存到一个大文件里，所以查询同一列族下的数据会很快，到是一次查找多个列族，就会涉及到读取多个文件，所以在建表的时候需要考虑好，尽量让每次插叙都是同一列族下的列数据，相对于列存储和行存储，列簇存储更灵活，如果一个表只有一个列簇，就变成了行存储，如果每一个列簇只有一个列，就变成了列存储。&lt;/p&gt;
+&lt;h3 id="架构图"&gt;架构图&lt;/h3&gt;
+&lt;p&gt;&lt;img loading="lazy" src="https://tva1.sinaimg.cn/large/008i3skNly1gri6bw1tc9j30u00zkn24.jpg"&gt;&lt;/p&gt;</description></item><item><title>4.put流程</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/04put%E6%B5%81%E7%A8%8B/</link><pubDate>Mon, 14 Jun 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/04put%E6%B5%81%E7%A8%8B/</guid><description>&lt;h4 id="hbasemeta"&gt;hbase:meta&lt;/h4&gt;
+&lt;p&gt;put就是找到对应的regision，然后把数据写到HLog和对应的store里去，所以第一步就是要先拿到region信息，这个信息存到了一张meta表里，所属空间是hbase，当client端没找到region信息的时候就回去这个表里查出来region的信息，然后缓存在本地，下次直接读取本地的就可以了，但是hbase:meta也是一张表，client怎么知道这个表在那个region上呢？在zk中，zk里维护了一份meta表的信息，client先去zk上拿到meta在那，然后把数据读取出来，拿到了将要put的表的region信息，就可以进行put操作了。&lt;/p&gt;
+&lt;p&gt;hbase:meta只有一个列族，叫info，他的rowkey结构是表名+起始rowkey+region创建时间戳+这3个字段的md5，表里面有4个列，分别是info:regioninfo(包括md5值，region名称，起始rowkey，结束rowkey)、info:seqnumDuringOpen(region打开时的sequenceId)、info:server(存储Region在哪个RegionServer上)、info:serverstartcode(RegionServer的启动timestamp)。&lt;/p&gt;
+&lt;h3 id="开始put"&gt;开始put&lt;/h3&gt;
+&lt;p&gt;找到region信息之前还需要判断是否开启了autoFlush，如果autoFlush=false(默认是true)，这个时候是不会想region发送数据的，他会在客户端缓存数据，当数据达到2M时一起推送到region，一般没人开这个，因为开了这个数据很容易就丢失。&lt;/p&gt;
+&lt;p&gt;拿到region信息之后就要把哪一行数据加锁，然后把这次的操作封装成一个&lt;strong&gt;FSWALEntry&lt;/strong&gt;对象写入WAL的队列中，这是一个基于disruptor的无锁有界队列，消费者拿到这条数据后会把WAL日志写到缓存中，修改完成之后会释放锁，并且把结果封装成&lt;strong&gt;SyncFutrue&lt;/strong&gt;对象发送到disruptor中，消费者拿到这条数据后就可以把WAL日志刷到hdfs里去了，对于HLog的持久化有5种机制，在调用JavaAPI的时候可以通过**put.setDurability(Durability.SYNC_WAL)**来设置：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;SKIP_WAL：不写WAL日志，把数据写到memStore里就算成功，但是memStore里的数据可能还没写到HFile中，数据丢失的概率也非常大；&lt;/li&gt;
+&lt;li&gt;ASYNC_WAL：这个也是把数据写到memStore里就算成功，然后异步去写WAL；&lt;/li&gt;
+&lt;li&gt;SYNC_WAL：要把WAl日志写到hdfs里，但是也只是存在在hdfs的os cache中；&lt;/li&gt;
+&lt;li&gt;FSYNC_WAL：强制刷到hdfs的磁盘里才算成功；&lt;/li&gt;
+&lt;li&gt;USER_DEFAULT：默认级别，就是SYNC_WAL；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img loading="lazy" src="https://tva1.sinaimg.cn/large/008i3skNly1grticuek0sj31980s441k.jpg"&gt;&lt;/p&gt;
+&lt;h3 id="memstore频繁full-gc问题"&gt;memStore频繁full gc问题&lt;/h3&gt;
+&lt;p&gt;大量的put操作会让memStore年青代频繁gc，短时间发生多次gc就会有大量的对象躲过gc并进入老年代，这样很快老年代也会满掉，频繁的发生full gc，HBase通过chunk数组的方式，每一个memStore会创建一个MemStoreLAB对象，对象里是一个2M的chunk数组，这里的2M可以和autoFlush的2M对应起来，当一个chunk数组写满后，就会申请一个新的chunk数组，这样就算老年代发生了full gc，但是使用了数组的数据结构，内存都是连续的，减少了内存碎片，第一gc的频率会比之前低很多，第二减少了gc之后的整理内存时间。但是还是会频繁的young gc，所以他把chunk放到了一个chunk池里反复利用。&lt;/p&gt;
+&lt;h3 id="memstore生成hfile的时机"&gt;memStore生成HFile的时机&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;当memStore中的数据达到128M的时候，使用&lt;strong&gt;hbase.hregion.memstore.flush.size&lt;/strong&gt;控制这个数值；&lt;/li&gt;
+&lt;li&gt;当region中的所有memStore总和超过了&lt;strong&gt;hbase.hregion.memstore.block.multiplier * hbase.hregion.memstore.flush.size&lt;/strong&gt;时；&lt;/li&gt;
+&lt;li&gt;当所有memStore的总和超过了&lt;strong&gt;hbase.regionserver.global.memstore.size.lower.limit * hbase.regionserver.global.memstore.size&lt;/strong&gt;的时候，从大到小刷，刷到不满足为止；&lt;/li&gt;
+&lt;li&gt;当HLog数量超过了&lt;strong&gt;hbase.regionserver.maxlogs&lt;/strong&gt;时，选择最早的HLog来刷；&lt;/li&gt;
+&lt;li&gt;默认一小时刷一次；&lt;/li&gt;
+&lt;li&gt;通过flush命令；&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>1.habse基础</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/01%E5%9F%BA%E7%A1%80/</link><pubDate>Sun, 06 Jun 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/01%E5%9F%BA%E7%A1%80/</guid><description>&lt;h3 id="hdfs和hbase的关系"&gt;HDFS和HBase的关系：&lt;/h3&gt;
+&lt;p&gt;HDFS能做的事非常少，也就是创建文件，删除文件，大文件读取，追加数据，如果想要修改或者根据某些条件查询就不行，hbase就是做这个的。&lt;/p&gt;
+&lt;p&gt;hbase是一个nosql，他不负责存储数据，需要基于HDFS来实现，但是他不能执行复杂的条件查询，对海量数据的简单的增删改查。&lt;/p&gt;
+&lt;h3 id="架构特点"&gt;架构特点&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;hbase基于多台regionServer来管理数据分片，regionServer是高可用的，region是存储在HDFS中，本省就有两个副本。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;主从强一致。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;支持MapReduce和spark这种分布式计算引擎。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;支持java API。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;支持协处理器，块缓存和布隆过滤器。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;可以使用web端管理和运维。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="使用场景"&gt;使用场景&lt;/h3&gt;
+&lt;p&gt;海量数据的简单增删改查，不支持索引，也不知道事务，不支持SQL语法。想要上面的功能也没必要用hbase，实现索引可以用es，实现海量数据事务可以用TiDB，实现海量数据的的实时分析可以用clickhouse或者druid。&lt;/p&gt;
+&lt;h3 id="数据模型和物理模型"&gt;数据模型和物理模型&lt;/h3&gt;
+&lt;p&gt;针对数据模型有几个概念：&lt;/p&gt;
+&lt;p&gt;rowkey：每行都有一个rowkey，和mysql的主键差不多，也会根据这个排序，所以要把相似的数据放到一起，这样的话好查，比如这里存了订单和订单明细，rowkey可以是这样的order_1_111，order-detail_1_110，就是用户1在的111订单，和用户1的110订单明细。&lt;/p&gt;
+&lt;p&gt;列族：就是列名，两部分组成，列族+分号+列限定符（column qualifier），列族就是一系列的类的family，有点像表的意思。&lt;/p&gt;
+&lt;p&gt;列：他的列是要存储多个版本的值的，每个值都带着一个时间戳（版本）。&lt;/p&gt;
+&lt;p&gt;单元格：取到某行某列的某个时间戳对应的值就是一个单元格。&lt;/p&gt;
+&lt;p&gt;rowkey order:base order:detail order:extent&lt;/p&gt;
+&lt;p&gt;order_1_110 xxx xxx&lt;/p&gt;
+&lt;p&gt;order_1_111 x1(t1); x2(t2) xxx xxx&lt;/p&gt;
+&lt;p&gt;实际存储上他会把数据根据列来拆分成行进行存储，所以叫列式存储，像下面这样：&lt;/p&gt;
+&lt;p&gt;rowkey timestamp 列 值&lt;/p&gt;
+&lt;p&gt;order_1_110 t1 order:detail xxx&lt;/p&gt;
+&lt;p&gt;order_1_111 t2 order:base xxx&lt;/p&gt;
+&lt;p&gt;order_1_111 t3 order:extent xxx&lt;/p&gt;
+&lt;h3 id="简单的语法"&gt;简单的语法&lt;/h3&gt;
+&lt;p&gt;进入bin下执行**./hbase shell**连接hbase。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;21
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;24
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;25
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;26
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;27
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;28
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;29
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;30
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;31
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;32
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;33
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;34
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;35
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;36
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;37
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;38
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;39
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;40
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;41
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;42
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;43
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;44
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;45
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 查看命令使用&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;help&lt;/span&gt; &lt;span style="color:#f1fa8c"&gt;&amp;#39;list&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 创建工作空间&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;create_namespace &lt;span style="color:#f1fa8c"&gt;&amp;#39;stats&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 修改工作空间&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;alter_namespace &lt;span style="color:#f1fa8c"&gt;&amp;#39;stats&amp;#39;&lt;/span&gt;, &lt;span style="color:#ff79c6"&gt;{&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;METHOD&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;&lt;span style="color:#f1fa8c"&gt;&amp;#39;set&amp;#39;&lt;/span&gt;, &lt;span style="color:#8be9fd;font-style:italic"&gt;NAME&lt;/span&gt; &lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt; &lt;span style="color:#f1fa8c"&gt;&amp;#39;stats1&amp;#39;&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 修改工作空间&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;drop_namespace &lt;span style="color:#f1fa8c"&gt;&amp;#39;stats&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 创建一张test表，制定工作空间是stats，指定一个列族cf，创建表时必须要有列族，可以是多个列族create &amp;#39;test&amp;#39;,&amp;#39;cf1&amp;#39;,&amp;#39;cf2&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;create &lt;span style="color:#f1fa8c"&gt;&amp;#39;stats:test&amp;#39;&lt;/span&gt;,&lt;span style="color:#f1fa8c"&gt;&amp;#39;cf&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 使用list获取所有表，也可以指定表，比如list &amp;#39;test&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;list
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 或者使用exist 表名&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;exists &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 禁用表，所有dml操作都需要先禁用表&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;disable &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 启用表&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;enable&lt;/span&gt; &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 表是否启用&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;is_enabled &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 查看表的明细&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;describe &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 添加列族&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;alter &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;, &lt;span style="color:#f1fa8c"&gt;&amp;#39;Extra&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 删除列族&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;alter &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;, &lt;span style="color:#ff79c6"&gt;{&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;NAME&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;&lt;span style="color:#f1fa8c"&gt;&amp;#39;Extra&amp;#39;&lt;/span&gt;, &lt;span style="color:#8be9fd;font-style:italic"&gt;METHOD&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;&lt;span style="color:#f1fa8c"&gt;&amp;#39;delete&amp;#39;&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 删除表，这一步是基于disable之后的&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;drop &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 插入或者更新一行数据，put 表名,rowkey,列族：列名,值……&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;put &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;,&lt;span style="color:#f1fa8c"&gt;&amp;#39;row1&amp;#39;&lt;/span&gt;,&lt;span style="color:#f1fa8c"&gt;&amp;#39;cf1:a&amp;#39;&lt;/span&gt;,&lt;span style="color:#f1fa8c"&gt;&amp;#39;1&amp;#39;&lt;/span&gt;,&lt;span style="color:#f1fa8c"&gt;&amp;#39;cf2:b&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 指定返回行数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;scan &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;, &lt;span style="color:#ff79c6"&gt;{&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;LIMIT&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;10&lt;span style="color:#ff79c6"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 获取列族或者列数据&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;scan &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;, &lt;span style="color:#ff79c6"&gt;{&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;COLUMNS&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;&lt;span style="color:#ff79c6"&gt;[&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;&amp;#39;cf1:a&amp;#39;&lt;/span&gt;, &lt;span style="color:#f1fa8c"&gt;&amp;#39;cf2:b&amp;#39;&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;]}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 根据rowkey前缀匹配&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;scan &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;, &lt;span style="color:#ff79c6"&gt;{&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;STARTROW&lt;/span&gt; &lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt; &lt;span style="color:#f1fa8c"&gt;&amp;#39;row1&amp;#39;&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 获取表数据，例子是倒叙，条件可以不带&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;scan &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;,&lt;span style="color:#ff79c6"&gt;{&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;REVERSED&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;true,STARTROW&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;&lt;span style="color:#f1fa8c"&gt;&amp;#39;row100~&amp;#39;&lt;/span&gt;,ENDROW&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;&lt;span style="color:#f1fa8c"&gt;&amp;#39;row100&amp;#39;&lt;/span&gt;,LIMIT&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;5&lt;span style="color:#ff79c6"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 再来个正序&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;scan &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;,&lt;span style="color:#ff79c6"&gt;{&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;STARTROW&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;&lt;span style="color:#f1fa8c"&gt;&amp;#39;row100&amp;#39;&lt;/span&gt;,ENDROW&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;&lt;span style="color:#f1fa8c"&gt;&amp;#39;row100~&amp;#39;&lt;/span&gt;,LIMIT&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&amp;gt;5&lt;span style="color:#ff79c6"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 还可以根据row key获取一条数据&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;get &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt; &lt;span style="color:#f1fa8c"&gt;&amp;#39;row1&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 删除数据，表名,rowkey,列族:列名，列族和列名都不是必须的，这样是删除最新的一个数据&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 把所有版本全部删除时deleteall&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;delete &lt;span style="color:#f1fa8c"&gt;&amp;#39;test&amp;#39;&lt;/span&gt;,&lt;span style="color:#f1fa8c"&gt;&amp;#39;row1&amp;#39;&lt;/span&gt;,&lt;span style="color:#f1fa8c"&gt;&amp;#39;cf1:a&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;21
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;22
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;23
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;24
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;25
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;26
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;27
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;28
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;29
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;30
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;31
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-properties" data-lang="properties"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 刷新memStore的阈值，默认是128M&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.hregion.memstore.flush.size
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 当所有memStore都超过了这么大的时候把memStore刷到hdfs中&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.regionserver.global.memstore.size.lower.limit
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# HLog数量上限&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.regionserver.maxlogs
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 设置chunk大小，默认是2MB&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.hregion.memstore.mslab.chunksize
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 开启chunk pool，默认是0，可以设置0到1的数字&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 比如设置成0.3，就会把年轻代的大小 * 0.3分配给pool&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.hregion.memstore.chunkpool.maxsize
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# pool中初始化多少个chunk&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.hregion.memstore.chunkpool.initialsize
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 每隔多久创建一个新的WAL日志文件，默认一小时&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.regionserver.logroll.period
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 每隔多久删掉过期的old WAL文件，默认1分钟&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.master.cleaner.interval
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# old WAL文件过期时间，默认10分钟&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.master.logcleaner.ttl
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 合并HFile的阈值&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.hstore.compactionThreshold
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# major compaction的周期（天），0是关闭&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.hregion.majorcompaction
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 当未合并的文件数量低于这个阈值时，停止合并，默认是3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.store.compaction.min
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 合并文件的large线程池的线程数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.regionserver.thread.compaction.large
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 合并文件的small线程池的线程数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.regionserver.thread.compaction.small
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# 合并的文件数超过这个值就会使用large线程池&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;hbase.regionserver.thread.compaction.throttle
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>2.habse安装</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/02%E5%AE%89%E8%A3%85/</link><pubDate>Sun, 06 Jun 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/hbase/02%E5%AE%89%E8%A3%85/</guid><description/></item></channel></rss>

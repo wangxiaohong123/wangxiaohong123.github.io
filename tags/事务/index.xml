@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>事务 on 王小红的笔记</title><link>https://wangxiaohong123.github.io/tags/%E4%BA%8B%E5%8A%A1/</link><description>Recent content in 事务 on 王小红的笔记</description><generator>Hugo -- 0.150.0</generator><language>zh-CN</language><atom:link href="https://wangxiaohong123.github.io/tags/%E4%BA%8B%E5%8A%A1/index.xml" rel="self" type="application/rss+xml"/><item><title>saga事务</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/4.saga%E9%9D%9E%E9%87%8D%E7%82%B9/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/4.saga%E9%9D%9E%E9%87%8D%E7%82%B9/</guid><description>&lt;p&gt;saga和tcc很像，tcc是把接口拆成三个，try、confirm、cancel，saga就是两个，try和confirm合并为一个。&lt;/p&gt;
+&lt;h3 id="两种思想"&gt;两种思想&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;编排模式：事件驱动模式，服务之间的调用时通过发布事件，监听时间来驱动，比如借助mq，回滚也是一样的，通过事件来驱动。编排模式很有去中心化的思想，而且是异步调用，缺点就是异步发生异常不好排查问题，而且需要依赖mq。&lt;/li&gt;
+&lt;li&gt;命令模式：类似tcc，有一个saga分布式事务管理器，同步调用。优点和缺点和编排模式相反。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="axonframework"&gt;AxonFramework&lt;/h3&gt;
+&lt;p&gt;AxonFramework是一个CQRS框架，在国内几乎没人用，不过它是基于DDD，现在国内DDD正火，而且这个框架自带saga事务的实现，&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;aggregate&lt;/strong&gt;：聚合，就是类图中的聚合。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;event sourcing&lt;/strong&gt;：回溯，存储数据变化的历史版本，这样就可以找到历史的版本。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Actor模型&lt;/strong&gt;：每个actor都是一个线程，都有个mailbox，各个actor都可以通过mailbox相互通信，这样的话就没有并发问题了，因为线程值直接修改数据的。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;CQRS&lt;/strong&gt;：命令和查询职责分离，c就是command，增删改的操作，q就是query，查询，大概意思就是增删改和查询时两个服务，写服务写到单独的存储里去，比如mysql，有一个单独的同步组件，把数据同步到读用到的存储中，比如es。&lt;/p&gt;
+&lt;p&gt;这些都是DDD中的概念。DDD中提到了一种事务模型，就是saga事务模型。&lt;/p&gt;
+&lt;h3 id="saga事务框架"&gt;saga事务框架&lt;/h3&gt;
+&lt;p&gt;Eventuate Tram Saga：gitbub才100多star，哈哈哈哈哈哈，作者还出了本书。&lt;/p&gt;
+&lt;p&gt;AxonFramework：1000多star，他不是事务框架，只是顺带包括了saga事务。&lt;/p&gt;
+&lt;p&gt;华为的ServiceComb：这是一套分布式的技术栈，包括了saga的支持。&lt;/p&gt;
+&lt;p&gt;这就能看出来，saga的运用还是比较少的，也没有单独的成熟的方案，都是包括在了框架中。&lt;/p&gt;</description></item><item><title>transactional</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/1.transactional/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/1.transactional/</guid><description>&lt;p&gt;在Spring中如果想使用注解声明的事务需要添加@EnableTransactionManagement注解，从这个注解进去是个ImportSelector类，然后进入ProxyTransactionManagementConfiguration，这是个全配置类，里面创建了一个Bean：TransactionInterceptor，他是AOP事务的增强逻辑。&lt;/p&gt;
+&lt;p&gt;被transactional修饰的方法会被spring生成一个动态代理对象，controller注入的bean也是被代理过的，代理对象的方法中调用方法之前会使用transactional.start()启动一个MySQL的事务，如果执行法法的过程中有报错就会调用MySQL的事务回滚，方法执行完之后会调用MySQL的事务提交。&lt;/p&gt;
+&lt;p&gt;被transactional修饰的类就是一个切面。spring的事务的核心逻辑都在spring-tx的jar包下。&lt;/p&gt;
+&lt;p&gt;调用@transactional修饰的方法之前先会走TransactionInterceptor（org.springframework.transaction.interceptor包下），这个类下的invoke()方法是事务控制的核心，这个方法中调用了invokeWithinTransaction()。这个方法是父类（TransactionAspectSupport）的方法，核心就是这行代码：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;18
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;19
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;20
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;21
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-java" data-lang="java"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;// 这段代码实在动态代理的类执行时候进行拦截的&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;// 创建事务，在点进去看到是用PlatformTransactionManager开启事务，这是jpa里的代码&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;TransactionInfo txInfo &lt;span style="color:#ff79c6"&gt;=&lt;/span&gt; createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;Object retVal &lt;span style="color:#ff79c6"&gt;=&lt;/span&gt; &lt;span style="color:#ff79c6"&gt;null&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;try&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#6272a4"&gt;// This is an around advice: Invoke the next interceptor in the chain.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#6272a4"&gt;// This will normally result in a target object being invoked.&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#6272a4"&gt;// 执行代码逻辑&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; retVal &lt;span style="color:#ff79c6"&gt;=&lt;/span&gt; invocation.&lt;span style="color:#50fa7b"&gt;proceedWithInvocation&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;catch&lt;/span&gt; (Throwable ex) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#6272a4"&gt;// target invocation exception&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#6272a4"&gt;// 回滚事务，在抛出异常&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; completeTransactionAfterThrowing(txInfo, ex);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;throw&lt;/span&gt; ex;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;finally&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; cleanupTransactionInfo(txInfo);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;// 提交事务&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;commitTransactionAfterReturning(txInfo);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;代码很好找，一直往下跟就行，看到底层可以看到是基于hibernate来实现的。最后的找到的最最最底层的代码在AbstractLogicalConnectionImplementor（org.hibernate.resource.jdbc.internal）里：&lt;/p&gt;</description></item><item><title>事务-2.XA事务</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/2.%E5%8D%95%E6%A8%A1%E5%9D%97%E5%A4%9A%E5%BA%93/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/2.%E5%8D%95%E6%A8%A1%E5%9D%97%E5%A4%9A%E5%BA%93/</guid><description>&lt;p&gt;一般项目刚上线不久，数据量稍微有点大的时候，但是还没到分库分表的数据量，会把不同的表放到不同的数据库中，但是这个时候@transactional注解垮裤不会生效了。这时候就要用到XA规范和2PC、3PC理论。&lt;/p&gt;
+&lt;h3 id="xa规范"&gt;XA规范&lt;/h3&gt;
+&lt;p&gt;&lt;img loading="lazy" src="../images/XA%E4%BA%8B%E5%8A%A1.png"&gt;&lt;/p&gt;
+&lt;p&gt;TM和RM通信的规范就是XA，TM就相当于是引入的一个组件。&lt;/p&gt;
+&lt;p&gt;XA规范流程：connect -&amp;gt; closed，start -&amp;gt; end，prepare -&amp;gt; commit/rollback。&lt;/p&gt;
+&lt;p&gt;一般的TM用的都是Atomikos&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;4
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-xml" data-lang="xml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.springframework.boot&lt;span style="color:#ff79c6"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-boot-starter-jta-atomikos&lt;span style="color:#ff79c6"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id="2pctow-phase-commit"&gt;2PC（Tow Phase Commit）&lt;/h3&gt;
+&lt;p&gt;2PC是一套基于XA的理论，两阶段提交，第一个阶段TM发送prepare消息，让RM先把操作数据库的语句跑完，但是不提交，操作完后给TM结果，如果TM收到的结果全是成功就在告诉RM进行提交，如果有失败的或者超时的就会通知RM回滚。&lt;/p&gt;
+&lt;h4 id="问题"&gt;问题：&lt;/h4&gt;
+&lt;p&gt;在第二阶段提交之前，资源会一直锁定，这样别人在对资源加独占锁的时候会同步阻塞住；&lt;/p&gt;
+&lt;p&gt;在第一阶段后单点的TM挂了，这时候资源就会被一直占用着；&lt;/p&gt;
+&lt;p&gt;在TM发送commit消息的时候，一台服务器挂了，TM也挂了，这时候在选举一个TM出来也不知道哪个消息commit成功了；&lt;/p&gt;
+&lt;p&gt;脑裂问题，所有主从都有脑裂问题；&lt;/p&gt;
+&lt;h3 id="3pc"&gt;3PC&lt;/h3&gt;
+&lt;p&gt;第一阶段：TM发送CanCommit消息，各个库确认环境是否OK；&lt;/p&gt;
+&lt;p&gt;第二阶段：发送PreCommit消息，相当于2PC的第一阶段；&lt;/p&gt;
+&lt;p&gt;第三阶段：发送DoCommit消息，2PC的第二阶段；&lt;/p&gt;
+&lt;p&gt;每个库有一个超时机制，如果在PreCommit之后过一段时间没接收到DoCommit的消息，就会回滚，关键还有一个CanCommit阶段，因为能到PreCommit消息说明所有库都在CanCommit阶段返回成功了，那么这么长时间还没有DoCommit或者abort消息，应该就是TM挂了。&lt;/p&gt;
+&lt;p&gt;MySQL支持的是2PC协议。&lt;/p&gt;
+&lt;h3 id="jta事务"&gt;JTA事务&lt;/h3&gt;
+&lt;p&gt;J2EE中的概念，单库的的事务是基于jdbc的，多库的事务是JTA事务，也是基于DTP那一套玩的。&lt;/p&gt;
+&lt;h3 id="全局事务"&gt;全局事务&lt;/h3&gt;
+&lt;p&gt;x/Open组织定义了一套分布式事务的模型和规范，叫做DTP，就是图中的TM、RM等等。全局事务就是DTP模型中的一个概念，图里也写到了。&lt;/p&gt;</description></item><item><title>事务-3.TCC事务</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/3.tcc%E5%8F%8A%E5%8F%98%E7%A7%8D%E6%96%B9%E6%A1%88/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/3.tcc%E5%8F%8A%E5%8F%98%E7%A7%8D%E6%96%B9%E6%A1%88/</guid><description>&lt;p&gt;&lt;img loading="lazy" src="../images/TCC%E4%BA%8B%E5%8A%A1.png"&gt;&lt;/p&gt;
+&lt;p&gt;主业务服务就是调用其他服务的接口，比如说下订单的接口，在这个接口中需要冻结用户钱包金额，主业务服务就是订单服务，从业务服务就是钱包服务，钱包服务需要提供三个接口：try接口、confirm接口、cancel接口。&lt;/p&gt;
+&lt;p&gt;业务活动管理器就是管理分布式事务状态的，他会去触发从业务服务的confirm和cancel接口。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;try阶段&lt;/strong&gt;：会锁定资源，没有资源锁定的操作，try接口就可以留空。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;confirm&lt;/strong&gt;：执行具体的逻辑；&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;cancel&lt;/strong&gt;：对之前的变动回滚；&lt;/p&gt;
+&lt;h3 id="tcc的两个变种"&gt;TCC的两个变种&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;异步型TCC方案：从业务服务之前加一层消息服务，从业务服务只有一个confirm接口，try操作就是在消息服务中写入一条confirm消息，confirm操作就是把这个消息发送到从业务服务，cancel操作就是把消息删掉，比如从业务服务已经写好了接口，如果现在要改成分布式事务，需要加两个接口，一个try，一个concel，加一个消息服务，从业务服务就不需要加接口了。&lt;/li&gt;
+&lt;li&gt;补偿性TCC方案：只有两个阶段，一个do接口，一个compensate接口，其实就是把try拿掉了。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="国内的热门tcc框架"&gt;国内的热门TCC框架&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;tcc-transaction：对spring cloud整合不太好，dubbo还行。&lt;/li&gt;
+&lt;li&gt;himly：他的整合都是用xml格式，现在都是注解了。&lt;/li&gt;
+&lt;li&gt;ByteTCC：支持TCC和saga事务，注解驱动，和spring cloud整合还行。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;byteTCC可以实现tcc事务和saga事务，在tcc事务中，try和cancel是对应起来的，如果confirm失败会一直重试，cancel失败也会一直重试，而在saga事务中，没有confirm，try就是执行业务逻辑，cancel提供对应的反向数据操作。&lt;/p&gt;
+&lt;h3 id="bytetcc源码"&gt;byteTCC源码&lt;/h3&gt;
+&lt;p&gt;首先使用byteTCC需要在dataSource组件加入注解：&lt;strong&gt;@Import(SpringCloudConfiguration.class)&lt;/strong&gt;，SpringCloudConfiguration.class里面是对cloud的组件比如feign创建了自己的动态代理，实现自己的逻辑。&lt;/p&gt;
+&lt;p&gt;启动类上添加注解**@ImportResource({ &amp;ldquo;classpath:bytetcc-supports-springcloud.xml&amp;rdquo; }) **，这个xml配置了很多bean。&lt;/p&gt;
+&lt;p&gt;服务之间的事务上下文都是通过request的header传递。&lt;/p&gt;
+&lt;p&gt;bytejta表中如果只有一条记录，说明try执行完了，confirm或者cancel还没执行成功，正常来说一个事务会对应两条记录。&lt;/p&gt;
+&lt;p&gt;CompensableWork会定时（60s）重试失败的confirm或者cancel，也是调用CompensableCoordinatorController中的接口，同时在刚启动的时候他也会去恢复没执行的事务。&lt;/p&gt;
+&lt;p&gt;链式调用也是使用resourceList。&lt;/p&gt;
+&lt;p&gt;在bytetcc中，confirm和cancel失败会一直重试，直到成功，讲道理来说，confirm失败也应该调用对应的cancel，cancel失败不断重试就完美了。&lt;/p&gt;
+&lt;p&gt;&lt;img loading="lazy" src="https://tva1.sinaimg.cn/large/007S8ZIlly1gi22bwbbbwj30u01autzp.jpg"&gt;&lt;/p&gt;</description></item><item><title>事务-6.seata</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/6.seata/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/6.seata/</guid><description>&lt;h3 id="seata原理"&gt;seata原理&lt;/h3&gt;
+&lt;h4 id="at模式原理"&gt;AT模式原理&lt;/h4&gt;
+&lt;p&gt;首先有一个Seata Server负责控制事务的提交和回滚，每个服务里需要引入seata client负责监听sql，并生成对应的undo_log，undo_log存储在表里，并且操作本地数据和插入undo_log在同一本地事务中，当服务完成本地事务后需要告诉Seata Server分支事务提交成功，所有分支事务都完成后(&lt;strong&gt;那个角色提交？&lt;/strong&gt;)向Seata Server提交事务并释放全局锁，如果存在某个服务发生异常，此时Seata Server会向提交分支事务成功的服务发送执行回滚日志消息，再由seata client执行对应的undo_log。&lt;/p&gt;
+&lt;p&gt;![seataAT模式](&lt;a href="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/seata"&gt;https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/seata&lt;/a&gt; AT模式.png)&lt;/p&gt;
+&lt;h4 id="读写隔离原理"&gt;读写隔离原理&lt;/h4&gt;
+&lt;p&gt;seata的隔离级别是读未提交，未提交指的是分布式事务没有提交，并不是本地事务。&lt;/p&gt;
+&lt;p&gt;首先完整的流程如下图，在提交本地事务前必须要通过Seata Server获取全局锁，其他分布式事务在没有拿到全局锁前不能提交本地事务，如果没有全局锁会导致多个分布式事务同时操作一条数据，发生回滚时数据错乱的问题，但是引入的全局锁会让性能下降的严重，所以AT模式的分布式事务只用在跟钱相关的操作里，其他时候如果需要用到分布式事务可以使用mq的软事务。&lt;/p&gt;
+&lt;p&gt;![seataAT模式读写隔离原理](&lt;a href="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/seata"&gt;https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/seata&lt;/a&gt; AT模式读写隔离原理.png)&lt;/p&gt;
+&lt;h4 id="死锁问题"&gt;死锁问题&lt;/h4&gt;
+&lt;p&gt;比如上图两个事务操作同一条数据，事务1中服务A的操作执行完成并且提交了本地事务，此时事务2开始执行服务A的操作，此时全局锁在事务1上，所以事务2的服务A没法提交本地事务，他会等待拿到全局锁，但是这个时候他是持有11001的本地锁的，事务1在执行服务B操作的时候发生异常需要回滚，服务A收到回滚消息需要拿到11001的本地锁，出现了事务1持有事务2需要的全局锁，事务2持有事务1需要的本地锁，循环等待了，seata为了解决这个死锁问题在获取全局锁的时候加了个超时机制，如果超时会回滚数据并释放锁。&lt;/p&gt;
+&lt;h4 id="使用seata"&gt;使用seata&lt;/h4&gt;
+&lt;p&gt;前提：Seata Server启动好，每个服务对应的库创建好undo_log表。&lt;/p&gt;
+&lt;p&gt;pom中添加依赖：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;11
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;12
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;13
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;14
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;15
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;16
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;17
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;18
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-xml" data-lang="xml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;&amp;lt;!-- 引入seata整合分布式事务 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;com.alibaba.cloud&lt;span style="color:#ff79c6"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;spring-cloud-starter-alibaba-seata&lt;span style="color:#ff79c6"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;io.seata&lt;span style="color:#ff79c6"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;seata-spring-boot-starter&lt;span style="color:#ff79c6"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;/exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;/exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;&amp;lt;!-- 跟安装的seata-server需要保持版本一致 --&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;io.seata&lt;span style="color:#ff79c6"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;seata-spring-boot-starter&lt;span style="color:#ff79c6"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;version&amp;gt;&lt;/span&gt;1.3.0&lt;span style="color:#ff79c6"&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;添加配置：&lt;/p&gt;</description></item><item><title>事务-可靠消息最终一致性事务</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/5.%E5%8F%AF%E9%9D%A0%E6%B6%88%E6%81%AF%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/%E4%BA%8B%E5%8A%A1/5.%E5%8F%AF%E9%9D%A0%E6%B6%88%E6%81%AF%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7/</guid><description>&lt;p&gt;一些耗时的操作可以使用这个。&lt;/p&gt;
+&lt;p&gt;&lt;img loading="lazy" src="../images/%E5%8F%AF%E9%9D%A0%E6%B6%88%E6%81%AF%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7%E6%B5%81%E7%A8%8B.png"&gt;&lt;/p&gt;
+&lt;p&gt;步骤5.1失败了：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;可靠消息服务更新状态为已发送：一直会有一条状态时待确认的消息；&lt;/li&gt;
+&lt;li&gt;可靠消息服务删除消息失败：一直会有一条状态是待确认的消息；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;不管是那种情况操作失败了，都是比较尴尬的。&lt;/p&gt;
+&lt;p&gt;步骤7失败：可靠消息服务一直有一条状态是已发送的消息；&lt;/p&gt;
+&lt;p&gt;可以看出来出现尴尬问题的点都在可靠消息服务上。&lt;/p&gt;
+&lt;p&gt;解决步骤5.1失败：回调机制，可靠消息服务后台线程定时扫描超时的待确认消息，然后回调上游服务，上游服务返回这条消息对应的业务处理结果是成功还是失败，如果失败就删掉这条消息，如果是成功就执行步骤5.2。&lt;/p&gt;
+&lt;p&gt;解决步骤6、7失败：可靠消息服务后台线程定时扫描超时的已发送消息，重新投递到消息队列中，不过下游消息要做好幂等性。&lt;/p&gt;
+&lt;p&gt;一般做这种事务都不要太依赖mq，mq只是作为存储消息的中间件，这样mq的bug不会影响到我们系统，而且以后想换mq或者升级也不会受到影响。&lt;/p&gt;
+&lt;p&gt;这套方案的缺陷非常明显，可靠消息服务全部基于MySQL，扛不住高并发。数据量也很大，可以用redis或者zk来代替MySQL，定时清理数据。&lt;/p&gt;</description></item></channel></rss>

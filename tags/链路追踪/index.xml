@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>链路追踪 on 王小红的笔记</title><link>https://wangxiaohong123.github.io/tags/%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/</link><description>Recent content in 链路追踪 on 王小红的笔记</description><generator>Hugo -- 0.150.0</generator><language>zh-CN</language><atom:link href="https://wangxiaohong123.github.io/tags/%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/index.xml" rel="self" type="application/rss+xml"/><item><title>链路追踪-1.原理</title><link>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/1.%E5%8E%9F%E7%90%86/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/1.%E5%8E%9F%E7%90%86/</guid><description>&lt;h5 id="apmapplication-performance-monitor"&gt;APM(Application Performance Monitor)&lt;/h5&gt;
+&lt;p&gt;应用性能监控系统，他要监控到每个请求链路调用了那些环节，那些节点，每个节点的耗时，是否有异常，整个请求链路的TPS、性能延迟，出了问题能够快速便捷的看到某一次请求的日志。&lt;/p&gt;
+&lt;h5 id="skywalking模块"&gt;SkyWalking模块&lt;/h5&gt;
+&lt;ul&gt;
+&lt;li&gt;探针：在要监控的节点上通过注解的方式加上探针，这种无侵入的加探针的方式叫做插桩。&lt;/li&gt;
+&lt;li&gt;OAP平台：observability analysis platform，观察分析平台，需要独立部署。他会接收探针上报数据的请求。&lt;/li&gt;
+&lt;li&gt;存储模块：支持多种存储，es、mysql、hbase等等。&lt;/li&gt;
+&lt;li&gt;UI模块：统计数据查询和展现。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id="增强原理"&gt;增强原理&lt;/h5&gt;
+&lt;p&gt;主要是依靠java agent技术实现class字节码增强，当jvm加载class的时候会触发ClassFileLoadHool事件，然后遍历所有的instrumentation并执行里面的ClassFileTransformer的transform()方法，instrumentation就相当于类信息，transform()方法的入参有ClassLoader、ClassName、byte[]等等类信息，在SkyWalking的java agent中，就是在他的premain()方法中把所有的ClassFileTransformer添加到instrumentation里。&lt;/p&gt;
+&lt;h5 id="链路追踪模型"&gt;链路追踪模型&lt;/h5&gt;
+&lt;p&gt;在sky walking中一次方法的调用成为span，span中有spanId和parent spanId，第一个span的parent id是null，第一个parent id为null的span会开启一个trace id，一个trace id对应一条链路。span有3中类型，entry、local、exit。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;entry是一般是http server收到的请求。&lt;/li&gt;
+&lt;li&gt;local是相同进程内的方法的调用。&lt;/li&gt;
+&lt;li&gt;exit表示trace segment出来，比如发起rpc请求或者调用数据库。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;sky walking的trace segment是进程内所有span的集合，上报时会以segment为单位组装上报，提升效率，entry span就是trace segment的第一个span。&lt;/p&gt;
+&lt;h5 id="内核轻量级队列模型"&gt;内核轻量级队列模型&lt;/h5&gt;
+&lt;p&gt;oap server收到上报数据之后会把数据放到内存队列中，在去进行消费、聚合、计算、持久化，oap server使用的内存队列是一个循环队列。&lt;/p&gt;
+&lt;p&gt;首先有个概念叫DataCarrier，他负责管理Channel，Channel负责管理buffer，每个Buffer表示一个数组，这个数组才是一个真正的队列。DataCarrier有两个参数，channel_size和buffer_size，channel_size表示Channel中有多少个buffer，buffer_size表示buffer中的数组长度。DataCarrier中还有一个组件IDataPartitoner，他负责处理数据应该路由到那个buffer。&lt;/p&gt;
+&lt;p&gt;buffer中持有一个index(此次数据应该写入的索引)和BufferStrategy strategy(队列策略)，因为buffer的数据是个循环数组，所以当往index上写入数据的时候发现这个数据没有被消费，需要对应的策略，他有三种实现，blocking阻塞等待+callbacks回调，override覆盖以及if_possible往后找空闲位置。&lt;/p&gt;
+&lt;p&gt;当buffer注册到DataCarrier上时会指定n个线程去消费，1个线程消费1个或者多个buffer，也有可能多个线程消费一个buffer，每个线程内部有一个consumeList，大小为1500，间隔consumCycle秒时开始扫描buffer，当发现存在不为null的数据后就放入自己的consumeList，扫描完后如果有数据就交给处理器中的处理函数。&lt;/p&gt;</description></item><item><title>链路追踪-2.环境搭建</title><link>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/2.%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/2.%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</guid><description>&lt;p&gt;首先去官网[https://archive.apache.org/dist/skywalking/]点击8.5.0/，下载apache-skywalking-apm-es7-8.5.0.tar.gz，因为这个版本的和我们的es版本一致。下载之后解压，解压后的主要目录：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;agent⽬录将来要拷⻉到各服务所在机器上⽤作探针&lt;/li&gt;
+&lt;li&gt;bin⽬录是服务启动脚本&lt;/li&gt;
+&lt;li&gt;config⽬录是配置⽂件&lt;/li&gt;
+&lt;li&gt;oap-libs⽬录是oap服务运⾏所需的jar包&lt;/li&gt;
+&lt;li&gt;webapp⽬录是web服务运⾏所需的jar包&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;确保es7.8.5可用&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id="单机版"&gt;单机版&lt;/h3&gt;
+&lt;p&gt;进入解压后的目录中。&lt;/p&gt;
+&lt;p&gt;修改config/application.yml配置文件：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;vim config/application.yml
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;修改存储方式是es7，并修改elasticsearch7的配置：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;7
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-yaml" data-lang="yaml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;storage&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;selector&lt;/span&gt;: ${SW_STORAGE:elasticsearch7}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;elasticsearch7&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#6272a4"&gt;# 这个感觉是es集群名称&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;nameSpace&lt;/span&gt;: ${SW_NAMESPACE:&amp;#34;escluster&amp;#34;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#6272a4"&gt;# 默认是9200，改成我们自己的es的端口，es集群的多个地址用逗号分割&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;clusterNodes&lt;/span&gt;: ${SW_STORAGE_ES_CLUSTER_NODES:127.0.0.1:9300}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;修改jvm配置：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;vim bin/oapService.sh
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;调整堆内存大小：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;JAVA_OPTS&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;${&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;JAVA_OPTS&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;:-&lt;/span&gt; -Xms512M -Xmx512M&lt;span style="color:#f1fa8c"&gt;}&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;启动oap服务：&lt;/p&gt;</description></item><item><title>链路追踪-3.使用</title><link>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/3.%E4%BD%BF%E7%94%A8/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E6%9C%8D%E5%8A%A1%E6%B2%BB%E7%90%86/2.%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/3.%E4%BD%BF%E7%94%A8/</guid><description>&lt;p&gt;&lt;a href="https://skywalking.apache.org/docs/main/v8.5.0/en/setup/service-agent/java-agent/readme/#table-of-agent-configuration-properties"&gt;agent配置信息大全&lt;/a&gt;&lt;/p&gt;
+&lt;h5 id="启动脚本配置"&gt;启动脚本配置&lt;/h5&gt;
+&lt;h6 id="intellij启动"&gt;intellij启动&lt;/h6&gt;
+&lt;p&gt;进入edit configurations配置界面，配置vm options：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;-javaagent:&lt;span style="color:#ff79c6"&gt;[&lt;/span&gt;agent目录&lt;span style="color:#ff79c6"&gt;]&lt;/span&gt;/agent/skywalking-agent.jar
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;Environment variables添加配置：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;SW_AGENT_COLLECTOR_BACKEND_SERVICES&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;ip:11800;&lt;span style="color:#8be9fd;font-style:italic"&gt;SW_AGENT_NAME&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=[&lt;/span&gt;服务名&lt;span style="color:#ff79c6"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h6 id="生产环境启动"&gt;生产环境启动&lt;/h6&gt;
+&lt;p&gt;启动脚本中添加如下配置：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;5
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# skywalking-agent.jar所在位置&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;-javaagent:&lt;span style="color:#f1fa8c"&gt;${&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;AGENT_ADDR&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# oap服务的ip:端口&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;-Dskywalking.collector.backend_service&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;${&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;OAP_SERVER&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;-Dskywalking.agent.service_name&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;${&lt;/span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;APP_NAME&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h5 id="为接口添加注解"&gt;为接口添加注解&lt;/h5&gt;
+&lt;p&gt;项目中添加依赖：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 8
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 9
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;10
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-xml" data-lang="xml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.skywalking&lt;span style="color:#ff79c6"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;apm-toolkit-trace&lt;span style="color:#ff79c6"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;version&amp;gt;&lt;/span&gt;${skywalking.version}&lt;span style="color:#ff79c6"&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.apache.skywalking&lt;span style="color:#ff79c6"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;apm-toolkit-opentracing&lt;span style="color:#ff79c6"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;version&amp;gt;&lt;/span&gt;${skywalking.version}&lt;span style="color:#ff79c6"&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;scope&amp;gt;&lt;/span&gt;provided&lt;span style="color:#ff79c6"&gt;&amp;lt;/scope&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;/dependency&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;然后在service接口上添加@Trace和@Tags注解，@Tags里面传@Tag数组，入下图，arg[0]表示方法第一个参数，returnedObj表示方法的返回值，这两个注解可以帮助我们在查看链路时的方法中标记入参和返回值：
+&lt;img loading="lazy" src="https://tva1.sinaimg.cn/large/e6c9d24ely1h1yu88nf0pj21160dgq5t.jpg"&gt;&lt;/p&gt;</description></item></channel></rss>

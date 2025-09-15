@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Maven on 王小红的笔记</title><link>https://wangxiaohong123.github.io/tags/maven/</link><description>Recent content in Maven on 王小红的笔记</description><generator>Hugo -- 0.150.0</generator><language>zh-CN</language><atom:link href="https://wangxiaohong123.github.io/tags/maven/index.xml" rel="self" type="application/rss+xml"/><item><title>maven基础</title><link>https://wangxiaohong123.github.io/posts/maven/maven%E5%9F%BA%E7%A1%80/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/maven/maven%E5%9F%BA%E7%A1%80/</guid><description>&lt;p&gt;gradle：google发布的，安卓用的比较多，一些开源的项目比如Spring也使用的这个构建的，使用DSL语言构建管理，非常难搞。&lt;/p&gt;
+&lt;h3 id="配置"&gt;配置&lt;/h3&gt;
+&lt;p&gt;maven配置了基本的环境变量之后还要再配一下opts，因为maven也是用java写的，有的时候构建的项目很大也会导致OOM，新建一个用户变量MAVEN_OPTS值是-Xms128m -Xmx512m就够了应该.&lt;/p&gt;
+&lt;p&gt;一般配置完settings.xml之后不要把这个文件放在maven的目录下，因为以后maven可能升级，这样还要去搞一下这个文件，所以要把这个配置文件放在用户目录下，用户目录下有一个.m2文件夹，如果没有就运行mvn help:system命令，然后就有了，这样的话以后不管怎么弄maven他都会去.m2文件夹下找配置文件。&lt;/p&gt;
+&lt;h3 id="大概的体系结构"&gt;大概的体系结构&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;首先会去看.m2文件夹下的配置文件&lt;/li&gt;
+&lt;li&gt;解析工程的pom.xml文件&lt;/li&gt;
+&lt;li&gt;然后去本地仓库找依赖&lt;/li&gt;
+&lt;li&gt;没找到的就去远程仓库下载到本地仓库&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;查看中央仓库地址：在maven的安装文件夹的lib目录下有个maven-model-builder的jar包，jar包里有一个超级pom文件，里面写了默认的中央仓库地址：https://repo.maven.apache.org/maven2/。&lt;/p&gt;
+&lt;p&gt;简单的打包：&lt;/p&gt;
+&lt;p&gt;mvn clean package：先清理上次编译的文件，然后编译项目在打包。&lt;/p&gt;
+&lt;p&gt;包名：一般都是公司域名倒过来，如果公司没有官网，就用com.公司名称缩写&lt;/p&gt;
+&lt;h3 id="坐标"&gt;坐标&lt;/h3&gt;
+&lt;p&gt;maven有五个维度来定位唯一的jar包：groupId + artifactId + version + packaging + classifier，正常情况下用前三个就可以定位到了，企业级的坐标命名：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;groupId：公司或者组织的官网域名倒叙然后再加上项目名，比如com.net5008.oa；&lt;/li&gt;
+&lt;li&gt;artifactId：项目名-模块名，比如权限模块：oa-auth；&lt;/li&gt;
+&lt;li&gt;version：版本号；&lt;/li&gt;
+&lt;li&gt;packaging：打包的方式，war或者jar或者pom；&lt;/li&gt;
+&lt;li&gt;classifier：定义工程的附属项目，&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id="dependency"&gt;dependency&lt;/h3&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;：引入的类型，一般不用写，如果依赖的工程的打包方式写上pom，这块也应该写pom；&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;：maven有三种classpath，编译、测试和打包，scope标注了引用的jar包在那个classpath下可用，有四个选项：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;compile：默认的，三个classpath都可以用；&lt;/li&gt;
+&lt;li&gt;test：测试范围有效，一般就是测试的框架使用；&lt;/li&gt;
+&lt;li&gt;runtime：测试和打包有效，写代码（编译）的时候没有；&lt;/li&gt;
+&lt;li&gt;provided：测试和编译有效，但是打包的时候是没有的；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;比如说我们引入的junit，写上&lt;!-- raw HTML omitted --&gt;test&lt;!-- raw HTML omitted --&gt;之后，不能在正常的代码中使用@Test注解，只能在test包下使用。&lt;/p&gt;</description></item><item><title>maven统一版本号修改</title><link>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</guid><description>&lt;p&gt;引入 &lt;strong&gt;versions-maven-plugin&lt;/strong&gt; 插件&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;6
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;7
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;8
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-xml" data-lang="xml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;plugin&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;groupId&amp;gt;&lt;/span&gt;org.codehaus.mojo&lt;span style="color:#ff79c6"&gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;artifactId&amp;gt;&lt;/span&gt;versions-maven-plugin&lt;span style="color:#ff79c6"&gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;version&amp;gt;&lt;/span&gt;2.7&lt;span style="color:#ff79c6"&gt;&amp;lt;/version&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;configuration&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;generateBackupPoms&amp;gt;&lt;/span&gt;false&lt;span style="color:#ff79c6"&gt;&amp;lt;/generateBackupPoms&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;/configuration&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;/plugin&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;设置父模块的版本号&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;mvn versions:set -DnewVersion&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;1.0.1
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;子模块同步父模块的版本号&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;mvn -N versions:update-child-modules
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;提交更新&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;mvn versions:commit
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>私仓相关</title><link>https://wangxiaohong123.github.io/posts/maven/nexus/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/maven/nexus/</guid><description>&lt;p&gt;仓库有三种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;group（仓库组）：将各种宿主仓库、代理仓库组成虚拟的仓库组，项目只要配置依赖一个仓库自，相当于自动连接仓库组内的各种仓库。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;proxy（代理仓库）：代理了公司外部的各种仓库，比如Jboss、中央仓库，可以修改为阿里的。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;hosted（宿主仓库）：公司内部的发布包。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;平时用的仓库就五个&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;maven-central：maven中央仓库的代理仓库；&lt;/li&gt;
+&lt;li&gt;maven-public：仓库组，我们平时就连这个；&lt;/li&gt;
+&lt;li&gt;maven-release：公司内部经过完善的测试，可以在生产环境使用的发布包；&lt;/li&gt;
+&lt;li&gt;maven-snapshots：正在开发过程中的其他项目也需要依赖的的发布包；&lt;/li&gt;
+&lt;li&gt;3rd-party：这个是放中央仓库下载不了，我们自己下载然后传到这个仓库，3.9没有这个仓库，需要我们自己创建；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;剩下三个是.net使用的。&lt;/p&gt;
+&lt;p&gt;账号有三种：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;deployment：可以搜索构建，普通的开发账号，3.x之后需要自己创建；&lt;/li&gt;
+&lt;li&gt;admin：管理员，密码是admin123；&lt;/li&gt;
+&lt;li&gt;anonymous：匿名账号，可以下载和查看依赖；&lt;/li&gt;
+&lt;/ul&gt;</description></item></channel></rss>

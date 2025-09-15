@@ -1,0 +1,625 @@
+<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>4.支付成功到履约相关问题 | 王小红的笔记</title><meta name=keywords content="cloud-alibaba"><meta name=description content='支付成功之前进行的预支付和取消订单的延迟消息处理需要用到分布式锁，防止在处理订单超时时，用户支付，不同业务可能还要加上在支付回调中检测订单取消后发起退款
+同时为了防止发送延时消息失败需要有一个定时任务，定时扫描超过30分钟没有支付的订单，执行超时操作
+在支付成功后订单系统会受到一条回调，这个时候需要把订单状态更新成已支付，然后发送支付完成消息，发出去消息后再由订单系统自己来消费这个消息，为什么要发消息，第一履约执行很耗时间，通过mq解耦加快支付成功的响应时间，然后其他服务需要监听支付成功不需要通过api，直接消费消息就好了。
+当收到支付成功事件后，先调用履约系统，调用履约系统成功后再把订单改成已履约，流程如下图，红线表示可能出现问题的步骤：
+
+发送支付成功消息失败
+收到回调并且修改完订单状态，此时如果发送mq消息失败，需要回滚数据，这里用到的是rocket的事务消息，他的事务消息使用的是TransactionMQProducer，使用**TransactionSendResult result = transactionMQProducer.sendMessageInTransaction(mq, orderInfoDO);**发送消息，每次发送消息之前producer都需要设置监听，用来处理发送消息成功和失败的情况，例如：
+
+
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+
+
+transactionMQProducer.setTransactionListener(new TransactionListener() {
+    @Override
+    public LocalTransactionState executeLocalTransaction(Message message, Object o) {
+        try {
+            // 正常的业务逻辑代码
+            return LocalTransactionState.COMMIT_MESSAGE;
+        } catch (BaseBizException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("system error", e);
+            return LocalTransactionState.ROLLBACK_MESSAGE;
+        }
+
+    }
+
+    @Override
+    public LocalTransactionState checkLocalTransaction(MessageExt messageExt) {
+        // 这个回调只有mq检测到存在长时间没提交的half消息时调用
+        // 逻辑就是判断之前的的正常业务代码有没有执行完
+        // 执行完就返回COMMIT_MESSAGE，没执行完就返回ROLLBACK_MESSAGE
+        if(true) {
+            return LocalTransactionState.COMMIT_MESSAGE;
+        }
+        return LocalTransactionState.ROLLBACK_MESSAGE;
+    }
+});
+
+
+消费支付成功消息
+调用履约系统失败
+调用履约失败只要消费者返回Action.RECONSUME_LATER就可以了，返回这个rocket就会把消息放到重试队列里，重试超过16次会把消息放到死信队列里，这个时候需要在起一个消费者负责消费私信队列。'><meta name=author content><link rel=canonical href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/cloud-alibaba-demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/><link crossorigin=anonymous href=/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as=style><link rel=icon href=https://wangxiaohong123.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://wangxiaohong123.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://wangxiaohong123.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://wangxiaohong123.github.io/apple-touch-icon.png><link rel=mask-icon href=https://wangxiaohong123.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/cloud-alibaba-demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><meta property="og:url" content="https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/cloud-alibaba-demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"><meta property="og:site_name" content="王小红的笔记"><meta property="og:title" content="4.支付成功到履约相关问题"><meta property="og:description" content='支付成功之前进行的预支付和取消订单的延迟消息处理需要用到分布式锁，防止在处理订单超时时，用户支付，不同业务可能还要加上在支付回调中检测订单取消后发起退款
+同时为了防止发送延时消息失败需要有一个定时任务，定时扫描超过30分钟没有支付的订单，执行超时操作
+在支付成功后订单系统会受到一条回调，这个时候需要把订单状态更新成已支付，然后发送支付完成消息，发出去消息后再由订单系统自己来消费这个消息，为什么要发消息，第一履约执行很耗时间，通过mq解耦加快支付成功的响应时间，然后其他服务需要监听支付成功不需要通过api，直接消费消息就好了。
+当收到支付成功事件后，先调用履约系统，调用履约系统成功后再把订单改成已履约，流程如下图，红线表示可能出现问题的步骤：
+发送支付成功消息失败 收到回调并且修改完订单状态，此时如果发送mq消息失败，需要回滚数据，这里用到的是rocket的事务消息，他的事务消息使用的是TransactionMQProducer，使用**TransactionSendResult result = transactionMQProducer.sendMessageInTransaction(mq, orderInfoDO);**发送消息，每次发送消息之前producer都需要设置监听，用来处理发送消息成功和失败的情况，例如：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 transactionMQProducer.setTransactionListener(new TransactionListener() { @Override public LocalTransactionState executeLocalTransaction(Message message, Object o) { try { // 正常的业务逻辑代码 return LocalTransactionState.COMMIT_MESSAGE; } catch (BaseBizException e) { throw e; } catch (Exception e) { log.error("system error", e); return LocalTransactionState.ROLLBACK_MESSAGE; } } @Override public LocalTransactionState checkLocalTransaction(MessageExt messageExt) { // 这个回调只有mq检测到存在长时间没提交的half消息时调用 // 逻辑就是判断之前的的正常业务代码有没有执行完 // 执行完就返回COMMIT_MESSAGE，没执行完就返回ROLLBACK_MESSAGE if(true) { return LocalTransactionState.COMMIT_MESSAGE; } return LocalTransactionState.ROLLBACK_MESSAGE; } }); 消费支付成功消息 调用履约系统失败 调用履约失败只要消费者返回Action.RECONSUME_LATER就可以了，返回这个rocket就会把消息放到重试队列里，重试超过16次会把消息放到死信队列里，这个时候需要在起一个消费者负责消费私信队列。'><meta property="og:locale" content="zh-CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:tag" content="Cloud-Alibaba"><meta name=twitter:card content="summary"><meta name=twitter:title content="4.支付成功到履约相关问题"><meta name=twitter:description content='支付成功之前进行的预支付和取消订单的延迟消息处理需要用到分布式锁，防止在处理订单超时时，用户支付，不同业务可能还要加上在支付回调中检测订单取消后发起退款
+同时为了防止发送延时消息失败需要有一个定时任务，定时扫描超过30分钟没有支付的订单，执行超时操作
+在支付成功后订单系统会受到一条回调，这个时候需要把订单状态更新成已支付，然后发送支付完成消息，发出去消息后再由订单系统自己来消费这个消息，为什么要发消息，第一履约执行很耗时间，通过mq解耦加快支付成功的响应时间，然后其他服务需要监听支付成功不需要通过api，直接消费消息就好了。
+当收到支付成功事件后，先调用履约系统，调用履约系统成功后再把订单改成已履约，流程如下图，红线表示可能出现问题的步骤：
+
+发送支付成功消息失败
+收到回调并且修改完订单状态，此时如果发送mq消息失败，需要回滚数据，这里用到的是rocket的事务消息，他的事务消息使用的是TransactionMQProducer，使用**TransactionSendResult result = transactionMQProducer.sendMessageInTransaction(mq, orderInfoDO);**发送消息，每次发送消息之前producer都需要设置监听，用来处理发送消息成功和失败的情况，例如：
+
+
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+
+
+transactionMQProducer.setTransactionListener(new TransactionListener() {
+    @Override
+    public LocalTransactionState executeLocalTransaction(Message message, Object o) {
+        try {
+            // 正常的业务逻辑代码
+            return LocalTransactionState.COMMIT_MESSAGE;
+        } catch (BaseBizException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("system error", e);
+            return LocalTransactionState.ROLLBACK_MESSAGE;
+        }
+
+    }
+
+    @Override
+    public LocalTransactionState checkLocalTransaction(MessageExt messageExt) {
+        // 这个回调只有mq检测到存在长时间没提交的half消息时调用
+        // 逻辑就是判断之前的的正常业务代码有没有执行完
+        // 执行完就返回COMMIT_MESSAGE，没执行完就返回ROLLBACK_MESSAGE
+        if(true) {
+            return LocalTransactionState.COMMIT_MESSAGE;
+        }
+        return LocalTransactionState.ROLLBACK_MESSAGE;
+    }
+});
+
+
+消费支付成功消息
+调用履约系统失败
+调用履约失败只要消费者返回Action.RECONSUME_LATER就可以了，返回这个rocket就会把消息放到重试队列里，重试超过16次会把消息放到死信队列里，这个时候需要在起一个消费者负责消费私信队列。'><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://wangxiaohong123.github.io/posts/"},{"@type":"ListItem","position":2,"name":"4.支付成功到履约相关问题","item":"https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/cloud-alibaba-demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"4.支付成功到履约相关问题","name":"4.支付成功到履约相关问题","description":"支付成功之前进行的预支付和取消订单的延迟消息处理需要用到分布式锁，防止在处理订单超时时，用户支付，不同业务可能还要加上在支付回调中检测订单取消后发起退款\n同时为了防止发送延时消息失败需要有一个定时任务，定时扫描超过30分钟没有支付的订单，执行超时操作\n在支付成功后订单系统会受到一条回调，这个时候需要把订单状态更新成已支付，然后发送支付完成消息，发出去消息后再由订单系统自己来消费这个消息，为什么要发消息，第一履约执行很耗时间，通过mq解耦加快支付成功的响应时间，然后其他服务需要监听支付成功不需要通过api，直接消费消息就好了。\n当收到支付成功事件后，先调用履约系统，调用履约系统成功后再把订单改成已履约，流程如下图，红线表示可能出现问题的步骤：\n发送支付成功消息失败 收到回调并且修改完订单状态，此时如果发送mq消息失败，需要回滚数据，这里用到的是rocket的事务消息，他的事务消息使用的是TransactionMQProducer，使用**TransactionSendResult result = transactionMQProducer.sendMessageInTransaction(mq, orderInfoDO);**发送消息，每次发送消息之前producer都需要设置监听，用来处理发送消息成功和失败的情况，例如：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 transactionMQProducer.setTransactionListener(new TransactionListener() { @Override public LocalTransactionState executeLocalTransaction(Message message, Object o) { try { // 正常的业务逻辑代码 return LocalTransactionState.COMMIT_MESSAGE; } catch (BaseBizException e) { throw e; } catch (Exception e) { log.error(\u0026#34;system error\u0026#34;, e); return LocalTransactionState.ROLLBACK_MESSAGE; } } @Override public LocalTransactionState checkLocalTransaction(MessageExt messageExt) { // 这个回调只有mq检测到存在长时间没提交的half消息时调用 // 逻辑就是判断之前的的正常业务代码有没有执行完 // 执行完就返回COMMIT_MESSAGE，没执行完就返回ROLLBACK_MESSAGE if(true) { return LocalTransactionState.COMMIT_MESSAGE; } return LocalTransactionState.ROLLBACK_MESSAGE; } }); 消费支付成功消息 调用履约系统失败 调用履约失败只要消费者返回Action.RECONSUME_LATER就可以了，返回这个rocket就会把消息放到重试队列里，重试超过16次会把消息放到死信队列里，这个时候需要在起一个消费者负责消费私信队列。\n","keywords":["cloud-alibaba"],"articleBody":"支付成功之前进行的预支付和取消订单的延迟消息处理需要用到分布式锁，防止在处理订单超时时，用户支付，不同业务可能还要加上在支付回调中检测订单取消后发起退款\n同时为了防止发送延时消息失败需要有一个定时任务，定时扫描超过30分钟没有支付的订单，执行超时操作\n在支付成功后订单系统会受到一条回调，这个时候需要把订单状态更新成已支付，然后发送支付完成消息，发出去消息后再由订单系统自己来消费这个消息，为什么要发消息，第一履约执行很耗时间，通过mq解耦加快支付成功的响应时间，然后其他服务需要监听支付成功不需要通过api，直接消费消息就好了。\n当收到支付成功事件后，先调用履约系统，调用履约系统成功后再把订单改成已履约，流程如下图，红线表示可能出现问题的步骤：\n发送支付成功消息失败 收到回调并且修改完订单状态，此时如果发送mq消息失败，需要回滚数据，这里用到的是rocket的事务消息，他的事务消息使用的是TransactionMQProducer，使用**TransactionSendResult result = transactionMQProducer.sendMessageInTransaction(mq, orderInfoDO);**发送消息，每次发送消息之前producer都需要设置监听，用来处理发送消息成功和失败的情况，例如：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 transactionMQProducer.setTransactionListener(new TransactionListener() { @Override public LocalTransactionState executeLocalTransaction(Message message, Object o) { try { // 正常的业务逻辑代码 return LocalTransactionState.COMMIT_MESSAGE; } catch (BaseBizException e) { throw e; } catch (Exception e) { log.error(\"system error\", e); return LocalTransactionState.ROLLBACK_MESSAGE; } } @Override public LocalTransactionState checkLocalTransaction(MessageExt messageExt) { // 这个回调只有mq检测到存在长时间没提交的half消息时调用 // 逻辑就是判断之前的的正常业务代码有没有执行完 // 执行完就返回COMMIT_MESSAGE，没执行完就返回ROLLBACK_MESSAGE if(true) { return LocalTransactionState.COMMIT_MESSAGE; } return LocalTransactionState.ROLLBACK_MESSAGE; } }); 消费支付成功消息 调用履约系统失败 调用履约失败只要消费者返回Action.RECONSUME_LATER就可以了，返回这个rocket就会把消息放到重试队列里，重试超过16次会把消息放到死信队列里，这个时候需要在起一个消费者负责消费私信队列。\n调用履约系统成功后修改订单状态失败 这里也是用到事务消息\n履约后订单状态消息乱序问题 首先RocketMQ的消息要存储在不同的consumerQueue里，那就有可能出库和发货在不同的queue中，可能造成先消费发货，又消费出库，或者Ian消费了签收，又消费发货，再或者消费状态消息的时候出错，导致重新消费，这个时候也可能造成状态不正确，不管怎么样订单的数据都不准了，解决的办法就是使用mq的顺序消息，在发送的时候把同一个订单的状态改变消息发送到同一个consumerQueue中，只要在发送消息的时候多传入两个参数，一个MessageQueueSelector并重写select方法，一个需要路由的key：\n1 2 3 4 5 6 7 8 9 SendResult sendResult = defaultMQProducer.send(message, new MessageQueueSelector() { @Override public MessageQueue select(List\u003cMessageQueue\u003e mqs, Message message, Object arg) { //根据订单id选择发送queue String orderId = (String) arg; long index = hash(orderId) % mqs.size(); return mqs.get((int) index); } }, orderId); 消费者应该是MessageListenerOrderly类型，然后消费失败导致时也不应该返回RECONSUME_LATER了，而是返回ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;这样的话整个队列都不会消费，被挂起，这样的话只需要在消费的时候加锁，不需要幂等校验，因为队列已经被挂起了。\nseata 解决履约实务问题 履约的流程比较复杂这里选择使用saga事务，saga相对于AT来说没有全局锁，这是优点，也是缺点，并且不需要单独的表；相对于TCC来说不会对代码做那么多的侵入，不需要每个节点都实现3个方法；还还可以实现异步调用的事务机制。\n使用seata实现saga首先需要定义状态基文件，在resources的statelang文件夹下创建order_fullfill.json：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 { // 事务状态名成 \"Name\": \"order_fulfill\", // 备注 \"Comment\": \"订单履约流程\", // 初始状态 \"StartState\": \"FulfillService\", \"Version\": \"1.0.0\", // 里面定义了各种状态，每个状态里有流转的节点 // 里面有两种节点，一种正常的任务节点，负责逻辑处理，还有一种判断节点根据上一个节点的结果判断流转方向 \"States\": { \"FulfillService\": { \"Type\": \"ServiceTask\", \"ServiceName\": \"fulfillSagaService\", \"ServiceMethod\": \"createFulfillOrder\", \"CompensateState\": \"CreateFulfillOrderCompensate\", \"Next\": \"ChoiceWmsState\", \"Input\": [ \"$.[receiveFulfillRequest]\" ], \"Output\": { \"CreateFulfillOrderResult\": \"$.#root\" }, \"Status\": { \"#root == true\": \"SU\", \"#root == false\": \"FA\", \"$Exception{java.lang.Throwable}\": \"UN\" }, \"Catch\": [ { \"Exceptions\": [ \"java.lang.Throwable\" ], \"Next\": \"CompensationTrigger\" } ] }, \"ChoiceWmsState\":{ \"Type\": \"Choice\", \"Choices\":[ { \"Expression\":\"[CreateFulfillOrderResult] == true\", \"Next\":\"WmsService\" } ], \"Default\":\"Fail\" }, \"WmsService\": { \"Type\": \"ServiceTask\", \"ServiceName\": \"wmsSageService\", \"ServiceMethod\": \"pickGoods\", \"CompensateState\": \"WmsPickGoodsCompensate\", \"Next\": \"ChoiceTmsState\", \"Input\": [ \"$.[receiveFulfillRequest]\" ], \"Output\": { \"WmsPickGoodsResult\": \"$.#root\" }, \"Status\": { \"#root == true\": \"SU\", \"#root == false\": \"FA\", \"$Exception{java.lang.Throwable}\": \"UN\" }, \"Catch\": [ { \"Exceptions\": [ \"java.lang.Throwable\" ], \"Next\": \"CompensationTrigger\" } ] }, \"ChoiceTmsState\":{ \"Type\": \"Choice\", \"Choices\":[ { \"Expression\":\"[WmsPickGoodsResult] == true\", \"Next\":\"TmsService\" } ], \"Default\":\"Fail\" }, \"TmsService\": { \"Type\": \"ServiceTask\", \"ServiceName\": \"tmsSagaService\", \"ServiceMethod\": \"sendOut\", \"CompensateState\": \"TmsSendOutCompensate\", \"Input\": [ \"$.[receiveFulfillRequest]\" ], \"Output\": { \"TmsSendOutResult\": \"$.#root\" }, \"Status\": { \"#root == true\": \"SU\", \"#root == false\": \"FA\", \"$Exception{java.lang.Throwable}\": \"UN\" }, \"Catch\": [ { \"Exceptions\": [ \"java.lang.Throwable\" ], \"Next\": \"CompensationTrigger\" } ], \"Next\": \"Succeed\" }, \"CreateFulfillOrderCompensate\": { \"Type\": \"ServiceTask\", \"ServiceName\": \"fulfillSagaService\", \"ServiceMethod\": \"createFulfillOrderCompensate\", \"Input\": [ \"$.[receiveFulfillRequest]\" ] }, \"WmsPickGoodsCompensate\": { \"Type\": \"ServiceTask\", \"ServiceName\": \"wmsSageService\", \"ServiceMethod\": \"pickGoodsCompensate\", \"Input\": [ \"$.[receiveFulfillRequest]\" ] }, \"TmsSendOutCompensate\": { \"Type\": \"ServiceTask\", \"ServiceName\": \"tmsSagaService\", \"ServiceMethod\": \"sendOutCompensate\", \"Input\": [ \"$.[receiveFulfillRequest]\" ] }, \"CompensationTrigger\": { \"Type\": \"CompensationTrigger\", \"Next\": \"Fail\" }, \"Succeed\": { \"Type\":\"Succeed\" }, \"Fail\": { \"Type\":\"Fail\", \"ErrorCode\": \"500\", \"Message\": \"订单履约异常！！\" } } } 然后为saga创建数据库配置和状态基配置：\nDataSourceConfiguration：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 @Configuration public class DataSourceConfiguration { @ConfigurationProperties(prefix = \"spring.datasource\") @Bean public DruidDataSource druidDataSource(){ return new DruidDataSource(); } @Bean(name = \"transactionManager\") @Primary public DataSourceTransactionManager transactionManager(@Qualifier(\"druidDataSource\") DruidDataSource druidDataSource) { return new DataSourceTransactionManager(druidDataSource); } } StateMachineConfiguration：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 @Configuration public class StateMachineConfiguration { @Bean public ThreadPoolExecutorFactoryBean threadExecutor(){ ThreadPoolExecutorFactoryBean threadExecutor = new ThreadPoolExecutorFactoryBean(); threadExecutor.setThreadNamePrefix(\"SAGA_ASYNC_EXE_\"); threadExecutor.setCorePoolSize(1); threadExecutor.setMaxPoolSize(20); return threadExecutor; } @Bean public DbStateMachineConfig dbStateMachineConfig(ThreadPoolExecutorFactoryBean threadExecutor , DruidDataSource druidDataSource) throws IOException { DbStateMachineConfig dbStateMachineConfig = new DbStateMachineConfig(); dbStateMachineConfig.setDataSource(druidDataSource); dbStateMachineConfig.setThreadPoolExecutor((ThreadPoolExecutor) threadExecutor.getObject()); dbStateMachineConfig.setResources(new PathMatchingResourcePatternResolver() .getResources(\"classpath*:statelang/*.json\")); dbStateMachineConfig.setEnableAsync(true); dbStateMachineConfig.setTxServiceGroup(\"ruyuan-eshop-fulfill-group\"); return dbStateMachineConfig; } /** * saga状态机实例 */ @Bean public ProcessCtrlStateMachineEngine stateMachineEngine(DbStateMachineConfig dbStateMachineConfig){ ProcessCtrlStateMachineEngine stateMachineEngine = new ProcessCtrlStateMachineEngine(); stateMachineEngine.setStateMachineConfig(dbStateMachineConfig); return stateMachineEngine; } @Bean public StateMachineEngineHolder stateMachineEngineHolder(ProcessCtrlStateMachineEngine stateMachineEngine){ StateMachineEngineHolder stateMachineEngineHolder = new StateMachineEngineHolder(); stateMachineEngineHolder.setStateMachineEngine(stateMachineEngine); return stateMachineEngineHolder; } } 然后根据定义的流程实现方法就可以了，同时需要注意saga也有幂等或者空回滚/空悬挂问题。\n","wordCount":"713","inLanguage":"en","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/cloud-alibaba-demo%E4%B9%8B%E8%AE%A2%E5%8D%95/4.%E6%94%AF%E4%BB%98%E6%88%90%E5%8A%9F%E5%88%B0%E5%B1%A5%E7%BA%A6%E7%9A%84%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"},"publisher":{"@type":"Organization","name":"王小红的笔记","logo":{"@type":"ImageObject","url":"https://wangxiaohong123.github.io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://wangxiaohong123.github.io/ accesskey=h title="王小红的笔记 (Alt + H)">王小红的笔记</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://wangxiaohong123.github.io/posts/ title=笔记><span>笔记</span></a></li><li><a href=https://wangxiaohong123.github.io/tags/ title=标签><span>标签</span></a></li><li><a href=https://wangxiaohong123.github.io/categories/ title=分类><span>分类</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">4.支付成功到履约相关问题</h1><div class=post-meta>4 min</div></header><div class=post-content><p><strong>支付成功之前进行的预支付和取消订单的延迟消息处理需要用到分布式锁，防止在处理订单超时时，用户支付，不同业务可能还要加上在支付回调中检测订单取消后发起退款</strong></p><p><strong>同时为了防止发送延时消息失败需要有一个定时任务，定时扫描超过30分钟没有支付的订单，执行超时操作</strong></p><p>在支付成功后订单系统会受到一条回调，这个时候需要把订单状态更新成已支付，然后发送支付完成消息，发出去消息后再由订单系统自己来消费这个消息，为什么要发消息，第一履约执行很耗时间，通过mq解耦加快支付成功的响应时间，然后其他服务需要监听支付成功不需要通过api，直接消费消息就好了。</p><p>当收到支付成功事件后，先调用履约系统，调用履约系统成功后再把订单改成已履约，流程如下图，红线表示可能出现问题的步骤：</p><p><img loading=lazy src=https://tva1.sinaimg.cn/large/008i3skNly1gxrl8dth1dj318h0u0ju7.jpg></p><h5 id=发送支付成功消息失败>发送支付成功消息失败<a hidden class=anchor aria-hidden=true href=#发送支付成功消息失败>#</a></h5><p>收到回调并且修改完订单状态，此时如果发送mq消息失败，需要回滚数据，这里用到的是rocket的事务消息，他的事务消息使用的是TransactionMQProducer，使用**TransactionSendResult result = transactionMQProducer.sendMessageInTransaction(mq, orderInfoDO);**发送消息，每次发送消息之前producer都需要设置监听，用来处理发送消息成功和失败的情况，例如：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span>transactionMQProducer.<span style=color:#50fa7b>setTransactionListener</span>(<span style=color:#ff79c6>new</span> TransactionListener() {
+</span></span><span style=display:flex><span>    @Override
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>public</span> LocalTransactionState <span style=color:#50fa7b>executeLocalTransaction</span>(Message message, Object o) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>try</span> {
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// 正常的业务逻辑代码</span>
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> LocalTransactionState.<span style=color:#50fa7b>COMMIT_MESSAGE</span>;
+</span></span><span style=display:flex><span>        } <span style=color:#ff79c6>catch</span> (BaseBizException e) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>throw</span> e;
+</span></span><span style=display:flex><span>        } <span style=color:#ff79c6>catch</span> (Exception e) {
+</span></span><span style=display:flex><span>            log.<span style=color:#50fa7b>error</span>(<span style=color:#f1fa8c>&#34;system error&#34;</span>, e);
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> LocalTransactionState.<span style=color:#50fa7b>ROLLBACK_MESSAGE</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    @Override
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>public</span> LocalTransactionState <span style=color:#50fa7b>checkLocalTransaction</span>(MessageExt messageExt) {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 这个回调只有mq检测到存在长时间没提交的half消息时调用</span>
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 逻辑就是判断之前的的正常业务代码有没有执行完</span>
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 执行完就返回COMMIT_MESSAGE，没执行完就返回ROLLBACK_MESSAGE</span>
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span>(<span style=color:#ff79c6>true</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> LocalTransactionState.<span style=color:#50fa7b>COMMIT_MESSAGE</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> LocalTransactionState.<span style=color:#50fa7b>ROLLBACK_MESSAGE</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>});
+</span></span></code></pre></td></tr></table></div></div><h4 id=消费支付成功消息>消费支付成功消息<a hidden class=anchor aria-hidden=true href=#消费支付成功消息>#</a></h4><h5 id=调用履约系统失败>调用履约系统失败<a hidden class=anchor aria-hidden=true href=#调用履约系统失败>#</a></h5><p>调用履约失败只要消费者返回Action.RECONSUME_LATER就可以了，返回这个rocket就会把消息放到重试队列里，重试超过16次会把消息放到死信队列里，这个时候需要在起一个消费者负责消费私信队列。</p><h5 id=调用履约系统成功后修改订单状态失败>调用履约系统成功后修改订单状态失败<a hidden class=anchor aria-hidden=true href=#调用履约系统成功后修改订单状态失败>#</a></h5><p>这里也是用到事务消息</p><h5 id=履约后订单状态消息乱序问题>履约后订单状态消息乱序问题<a hidden class=anchor aria-hidden=true href=#履约后订单状态消息乱序问题>#</a></h5><p>首先RocketMQ的消息要存储在不同的consumerQueue里，那就有可能出库和发货在不同的queue中，可能造成先消费发货，又消费出库，或者Ian消费了签收，又消费发货，再或者消费状态消息的时候出错，导致重新消费，这个时候也可能造成状态不正确，不管怎么样订单的数据都不准了，解决的办法就是使用mq的顺序消息，在发送的时候把同一个订单的状态改变消息发送到同一个consumerQueue中，只要在发送消息的时候多传入两个参数，一个MessageQueueSelector并重写select方法，一个需要路由的key：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">9
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span>SendResult sendResult <span style=color:#ff79c6>=</span> defaultMQProducer.<span style=color:#50fa7b>send</span>(message, <span style=color:#ff79c6>new</span> MessageQueueSelector() {
+</span></span><span style=display:flex><span>    @Override
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>public</span> MessageQueue <span style=color:#50fa7b>select</span>(List<span style=color:#ff79c6>&lt;</span>MessageQueue<span style=color:#ff79c6>&gt;</span> mqs, Message message, Object arg) {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>//根据订单id选择发送queue</span>
+</span></span><span style=display:flex><span>        String orderId <span style=color:#ff79c6>=</span> (String) arg;
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>long</span> index <span style=color:#ff79c6>=</span> hash(orderId) <span style=color:#ff79c6>%</span> mqs.<span style=color:#50fa7b>size</span>();
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> mqs.<span style=color:#50fa7b>get</span>((<span style=color:#8be9fd>int</span>) index);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}, orderId);
+</span></span></code></pre></td></tr></table></div></div><p>消费者应该是MessageListenerOrderly类型，然后消费失败导致时也不应该返回RECONSUME_LATER了，而是返回ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;这样的话整个队列都不会消费，被挂起，这样的话只需要在消费的时候加锁，不需要幂等校验，因为队列已经被挂起了。</p><h5 id=seata-解决履约实务问题>seata 解决履约实务问题<a hidden class=anchor aria-hidden=true href=#seata-解决履约实务问题>#</a></h5><p>履约的流程比较复杂这里选择使用saga事务，saga相对于AT来说没有全局锁，这是优点，也是缺点，并且不需要单独的表；相对于TCC来说不会对代码做那么多的侵入，不需要每个节点都实现3个方法；还还可以实现异步调用的事务机制。</p><p>使用seata实现saga首先需要定义状态基文件，在resources的statelang文件夹下创建order_fullfill.json：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 59
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 60
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 61
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 62
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 63
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 64
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 65
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 66
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 67
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 68
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 69
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 70
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 71
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 72
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 73
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 74
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 75
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 76
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 77
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 78
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 79
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 80
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 81
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 82
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 83
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 84
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 85
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 86
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 87
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 88
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 89
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 90
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 91
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 92
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 93
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 94
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 95
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 96
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 97
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 98
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 99
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">100
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">101
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">102
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">103
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">104
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">105
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">106
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">107
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">108
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">109
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">110
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">111
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">112
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">113
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">114
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">115
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">116
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">117
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">118
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">119
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">120
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">121
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">122
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">123
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">124
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">125
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">126
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">127
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">128
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">129
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">130
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">131
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">132
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">133
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">134
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">135
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">136
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">137
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">138
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">139
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">140
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">141
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">142
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">143
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">144
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">145
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">146
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">147
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-json data-lang=json><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 事务状态名成
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>&#34;Name&#34;</span>: <span style=color:#f1fa8c>&#34;order_fulfill&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 备注
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>&#34;Comment&#34;</span>: <span style=color:#f1fa8c>&#34;订单履约流程&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 初始状态
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>&#34;StartState&#34;</span>: <span style=color:#f1fa8c>&#34;FulfillService&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>&#34;Version&#34;</span>: <span style=color:#f1fa8c>&#34;1.0.0&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 里面定义了各种状态，每个状态里有流转的节点
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// 里面有两种节点，一种正常的任务节点，负责逻辑处理，还有一种判断节点根据上一个节点的结果判断流转方向
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>&#34;States&#34;</span>: {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;FulfillService&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>: <span style=color:#f1fa8c>&#34;ServiceTask&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceName&#34;</span>: <span style=color:#f1fa8c>&#34;fulfillSagaService&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceMethod&#34;</span>: <span style=color:#f1fa8c>&#34;createFulfillOrder&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;CompensateState&#34;</span>: <span style=color:#f1fa8c>&#34;CreateFulfillOrderCompensate&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Next&#34;</span>: <span style=color:#f1fa8c>&#34;ChoiceWmsState&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Input&#34;</span>: [
+</span></span><span style=display:flex><span>                <span style=color:#f1fa8c>&#34;$.[receiveFulfillRequest]&#34;</span>
+</span></span><span style=display:flex><span>            ],
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Output&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;CreateFulfillOrderResult&#34;</span>: <span style=color:#f1fa8c>&#34;$.#root&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Status&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;#root == true&#34;</span>: <span style=color:#f1fa8c>&#34;SU&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;#root == false&#34;</span>: <span style=color:#f1fa8c>&#34;FA&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;$Exception{java.lang.Throwable}&#34;</span>: <span style=color:#f1fa8c>&#34;UN&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Catch&#34;</span>: [
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Exceptions&#34;</span>: [
+</span></span><span style=display:flex><span>                        <span style=color:#f1fa8c>&#34;java.lang.Throwable&#34;</span>
+</span></span><span style=display:flex><span>                    ],
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Next&#34;</span>: <span style=color:#f1fa8c>&#34;CompensationTrigger&#34;</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            ]
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;ChoiceWmsState&#34;</span>:{
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>: <span style=color:#f1fa8c>&#34;Choice&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Choices&#34;</span>:[
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Expression&#34;</span>:<span style=color:#f1fa8c>&#34;[CreateFulfillOrderResult] == true&#34;</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Next&#34;</span>:<span style=color:#f1fa8c>&#34;WmsService&#34;</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            ],
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Default&#34;</span>:<span style=color:#f1fa8c>&#34;Fail&#34;</span>
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;WmsService&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>: <span style=color:#f1fa8c>&#34;ServiceTask&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceName&#34;</span>: <span style=color:#f1fa8c>&#34;wmsSageService&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceMethod&#34;</span>: <span style=color:#f1fa8c>&#34;pickGoods&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;CompensateState&#34;</span>: <span style=color:#f1fa8c>&#34;WmsPickGoodsCompensate&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Next&#34;</span>: <span style=color:#f1fa8c>&#34;ChoiceTmsState&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Input&#34;</span>: [
+</span></span><span style=display:flex><span>                <span style=color:#f1fa8c>&#34;$.[receiveFulfillRequest]&#34;</span>
+</span></span><span style=display:flex><span>            ],
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Output&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;WmsPickGoodsResult&#34;</span>: <span style=color:#f1fa8c>&#34;$.#root&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Status&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;#root == true&#34;</span>: <span style=color:#f1fa8c>&#34;SU&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;#root == false&#34;</span>: <span style=color:#f1fa8c>&#34;FA&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;$Exception{java.lang.Throwable}&#34;</span>: <span style=color:#f1fa8c>&#34;UN&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Catch&#34;</span>: [
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Exceptions&#34;</span>: [
+</span></span><span style=display:flex><span>                        <span style=color:#f1fa8c>&#34;java.lang.Throwable&#34;</span>
+</span></span><span style=display:flex><span>                    ],
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Next&#34;</span>: <span style=color:#f1fa8c>&#34;CompensationTrigger&#34;</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            ]
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;ChoiceTmsState&#34;</span>:{
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>: <span style=color:#f1fa8c>&#34;Choice&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Choices&#34;</span>:[
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Expression&#34;</span>:<span style=color:#f1fa8c>&#34;[WmsPickGoodsResult] == true&#34;</span>,
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Next&#34;</span>:<span style=color:#f1fa8c>&#34;TmsService&#34;</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            ],
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Default&#34;</span>:<span style=color:#f1fa8c>&#34;Fail&#34;</span>
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;TmsService&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>: <span style=color:#f1fa8c>&#34;ServiceTask&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceName&#34;</span>: <span style=color:#f1fa8c>&#34;tmsSagaService&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceMethod&#34;</span>: <span style=color:#f1fa8c>&#34;sendOut&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;CompensateState&#34;</span>: <span style=color:#f1fa8c>&#34;TmsSendOutCompensate&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Input&#34;</span>: [
+</span></span><span style=display:flex><span>                <span style=color:#f1fa8c>&#34;$.[receiveFulfillRequest]&#34;</span>
+</span></span><span style=display:flex><span>            ],
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Output&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;TmsSendOutResult&#34;</span>: <span style=color:#f1fa8c>&#34;$.#root&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Status&#34;</span>: {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;#root == true&#34;</span>: <span style=color:#f1fa8c>&#34;SU&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;#root == false&#34;</span>: <span style=color:#f1fa8c>&#34;FA&#34;</span>,
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>&#34;$Exception{java.lang.Throwable}&#34;</span>: <span style=color:#f1fa8c>&#34;UN&#34;</span>
+</span></span><span style=display:flex><span>            },
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Catch&#34;</span>: [
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Exceptions&#34;</span>: [
+</span></span><span style=display:flex><span>                        <span style=color:#f1fa8c>&#34;java.lang.Throwable&#34;</span>
+</span></span><span style=display:flex><span>                    ],
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&#34;Next&#34;</span>: <span style=color:#f1fa8c>&#34;CompensationTrigger&#34;</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            ],
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Next&#34;</span>: <span style=color:#f1fa8c>&#34;Succeed&#34;</span>
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;CreateFulfillOrderCompensate&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>: <span style=color:#f1fa8c>&#34;ServiceTask&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceName&#34;</span>: <span style=color:#f1fa8c>&#34;fulfillSagaService&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceMethod&#34;</span>: <span style=color:#f1fa8c>&#34;createFulfillOrderCompensate&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Input&#34;</span>: [
+</span></span><span style=display:flex><span>                <span style=color:#f1fa8c>&#34;$.[receiveFulfillRequest]&#34;</span>
+</span></span><span style=display:flex><span>            ]
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;WmsPickGoodsCompensate&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>: <span style=color:#f1fa8c>&#34;ServiceTask&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceName&#34;</span>: <span style=color:#f1fa8c>&#34;wmsSageService&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceMethod&#34;</span>: <span style=color:#f1fa8c>&#34;pickGoodsCompensate&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Input&#34;</span>: [
+</span></span><span style=display:flex><span>                <span style=color:#f1fa8c>&#34;$.[receiveFulfillRequest]&#34;</span>
+</span></span><span style=display:flex><span>            ]
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;TmsSendOutCompensate&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>: <span style=color:#f1fa8c>&#34;ServiceTask&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceName&#34;</span>: <span style=color:#f1fa8c>&#34;tmsSagaService&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ServiceMethod&#34;</span>: <span style=color:#f1fa8c>&#34;sendOutCompensate&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Input&#34;</span>: [
+</span></span><span style=display:flex><span>                <span style=color:#f1fa8c>&#34;$.[receiveFulfillRequest]&#34;</span>
+</span></span><span style=display:flex><span>            ]
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;CompensationTrigger&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>: <span style=color:#f1fa8c>&#34;CompensationTrigger&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Next&#34;</span>: <span style=color:#f1fa8c>&#34;Fail&#34;</span>
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;Succeed&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>:<span style=color:#f1fa8c>&#34;Succeed&#34;</span>
+</span></span><span style=display:flex><span>        },
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&#34;Fail&#34;</span>: {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Type&#34;</span>:<span style=color:#f1fa8c>&#34;Fail&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;ErrorCode&#34;</span>: <span style=color:#f1fa8c>&#34;500&#34;</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&#34;Message&#34;</span>: <span style=color:#f1fa8c>&#34;订单履约异常！！&#34;</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>然后为saga创建数据库配置和状态基配置：</p><p>DataSourceConfiguration：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span>@Configuration
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd;font-style:italic>class</span> <span style=color:#50fa7b>DataSourceConfiguration</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    @ConfigurationProperties(prefix <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;spring.datasource&#34;</span>)
+</span></span><span style=display:flex><span>    @Bean
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>public</span> DruidDataSource <span style=color:#50fa7b>druidDataSource</span>(){
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>new</span> DruidDataSource();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    @Bean(name <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#34;transactionManager&#34;</span>)
+</span></span><span style=display:flex><span>    @Primary
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>public</span> DataSourceTransactionManager <span style=color:#50fa7b>transactionManager</span>(@Qualifier(<span style=color:#f1fa8c>&#34;druidDataSource&#34;</span>) DruidDataSource druidDataSource) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>new</span> DataSourceTransactionManager(druidDataSource);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>StateMachineConfiguration：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span>@Configuration
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd;font-style:italic>class</span> <span style=color:#50fa7b>StateMachineConfiguration</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    @Bean
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>public</span> ThreadPoolExecutorFactoryBean <span style=color:#50fa7b>threadExecutor</span>(){
+</span></span><span style=display:flex><span>        ThreadPoolExecutorFactoryBean threadExecutor <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> ThreadPoolExecutorFactoryBean();
+</span></span><span style=display:flex><span>        threadExecutor.<span style=color:#50fa7b>setThreadNamePrefix</span>(<span style=color:#f1fa8c>&#34;SAGA_ASYNC_EXE_&#34;</span>);
+</span></span><span style=display:flex><span>        threadExecutor.<span style=color:#50fa7b>setCorePoolSize</span>(1);
+</span></span><span style=display:flex><span>        threadExecutor.<span style=color:#50fa7b>setMaxPoolSize</span>(20);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> threadExecutor;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    @Bean
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>public</span> DbStateMachineConfig <span style=color:#50fa7b>dbStateMachineConfig</span>(ThreadPoolExecutorFactoryBean threadExecutor
+</span></span><span style=display:flex><span>            , DruidDataSource druidDataSource) <span style=color:#8be9fd;font-style:italic>throws</span> IOException {
+</span></span><span style=display:flex><span>        DbStateMachineConfig dbStateMachineConfig <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> DbStateMachineConfig();
+</span></span><span style=display:flex><span>        dbStateMachineConfig.<span style=color:#50fa7b>setDataSource</span>(druidDataSource);
+</span></span><span style=display:flex><span>        dbStateMachineConfig.<span style=color:#50fa7b>setThreadPoolExecutor</span>((ThreadPoolExecutor) threadExecutor.<span style=color:#50fa7b>getObject</span>());
+</span></span><span style=display:flex><span>        dbStateMachineConfig.<span style=color:#50fa7b>setResources</span>(<span style=color:#ff79c6>new</span> PathMatchingResourcePatternResolver()
+</span></span><span style=display:flex><span>                .<span style=color:#50fa7b>getResources</span>(<span style=color:#f1fa8c>&#34;classpath*:statelang/*.json&#34;</span>));
+</span></span><span style=display:flex><span>        dbStateMachineConfig.<span style=color:#50fa7b>setEnableAsync</span>(<span style=color:#ff79c6>true</span>);
+</span></span><span style=display:flex><span>        dbStateMachineConfig.<span style=color:#50fa7b>setTxServiceGroup</span>(<span style=color:#f1fa8c>&#34;ruyuan-eshop-fulfill-group&#34;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> dbStateMachineConfig;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>/**
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>     * saga状态机实例
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>     */</span>
+</span></span><span style=display:flex><span>    @Bean
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>public</span> ProcessCtrlStateMachineEngine <span style=color:#50fa7b>stateMachineEngine</span>(DbStateMachineConfig dbStateMachineConfig){
+</span></span><span style=display:flex><span>        ProcessCtrlStateMachineEngine stateMachineEngine <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> ProcessCtrlStateMachineEngine();
+</span></span><span style=display:flex><span>        stateMachineEngine.<span style=color:#50fa7b>setStateMachineConfig</span>(dbStateMachineConfig);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> stateMachineEngine;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    @Bean
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>public</span> StateMachineEngineHolder <span style=color:#50fa7b>stateMachineEngineHolder</span>(ProcessCtrlStateMachineEngine stateMachineEngine){
+</span></span><span style=display:flex><span>        StateMachineEngineHolder stateMachineEngineHolder <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> StateMachineEngineHolder();
+</span></span><span style=display:flex><span>        stateMachineEngineHolder.<span style=color:#50fa7b>setStateMachineEngine</span>(stateMachineEngine);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> stateMachineEngineHolder;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></td></tr></table></div></div><p>然后根据定义的流程实现方法就可以了，同时需要注意saga也有幂等或者空回滚/空悬挂问题。</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://wangxiaohong123.github.io/tags/cloud-alibaba/>Cloud-Alibaba</a></li></ul><nav class=paginav><a class=prev href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/framework/4.%E6%89%AB%E6%8F%8F/><span class=title>« Prev</span><br><span>4.扫描</span>
+</a><a class=next href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/4.%E6%B6%88%E6%81%AF%E8%8E%B7%E5%8F%96/><span class=title>Next »</span><br><span>4.消息消费</span></a></nav><ul class=share-buttons><li><a target=_blank rel="noopener noreferrer" aria-label="share 4.支付成功到履约相关问题 on x" href="https://x.com/intent/tweet/?text=4.%e6%94%af%e4%bb%98%e6%88%90%e5%8a%9f%e5%88%b0%e5%b1%a5%e7%ba%a6%e7%9b%b8%e5%85%b3%e9%97%ae%e9%a2%98&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fcloud-alibaba-demo%25E4%25B9%258B%25E8%25AE%25A2%25E5%258D%2595%2f4.%25E6%2594%25AF%25E4%25BB%2598%25E6%2588%2590%25E5%258A%259F%25E5%2588%25B0%25E5%25B1%25A5%25E7%25BA%25A6%25E7%259A%2584%25E7%259B%25B8%25E5%2585%25B3%25E9%2597%25AE%25E9%25A2%2598%2f&amp;hashtags=cloud-alibaba"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446C483.971.0 512 28.03 512 62.554zM269.951 190.75 182.567 75.216H56L207.216 272.95 63.9 436.783h61.366L235.9 310.383l96.667 126.4H456L298.367 228.367l134-153.151H371.033zM127.633 110h36.468l219.38 290.065H349.5z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 4.支付成功到履约相关问题 on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fcloud-alibaba-demo%25E4%25B9%258B%25E8%25AE%25A2%25E5%258D%2595%2f4.%25E6%2594%25AF%25E4%25BB%2598%25E6%2588%2590%25E5%258A%259F%25E5%2588%25B0%25E5%25B1%25A5%25E7%25BA%25A6%25E7%259A%2584%25E7%259B%25B8%25E5%2585%25B3%25E9%2597%25AE%25E9%25A2%2598%2f&amp;title=4.%e6%94%af%e4%bb%98%e6%88%90%e5%8a%9f%e5%88%b0%e5%b1%a5%e7%ba%a6%e7%9b%b8%e5%85%b3%e9%97%ae%e9%a2%98&amp;summary=4.%e6%94%af%e4%bb%98%e6%88%90%e5%8a%9f%e5%88%b0%e5%b1%a5%e7%ba%a6%e7%9b%b8%e5%85%b3%e9%97%ae%e9%a2%98&amp;source=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fcloud-alibaba-demo%25E4%25B9%258B%25E8%25AE%25A2%25E5%258D%2595%2f4.%25E6%2594%25AF%25E4%25BB%2598%25E6%2588%2590%25E5%258A%259F%25E5%2588%25B0%25E5%25B1%25A5%25E7%25BA%25A6%25E7%259A%2584%25E7%259B%25B8%25E5%2585%25B3%25E9%2597%25AE%25E9%25A2%2598%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 4.支付成功到履约相关问题 on reddit" href="https://reddit.com/submit?url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fcloud-alibaba-demo%25E4%25B9%258B%25E8%25AE%25A2%25E5%258D%2595%2f4.%25E6%2594%25AF%25E4%25BB%2598%25E6%2588%2590%25E5%258A%259F%25E5%2588%25B0%25E5%25B1%25A5%25E7%25BA%25A6%25E7%259A%2584%25E7%259B%25B8%25E5%2585%25B3%25E9%2597%25AE%25E9%25A2%2598%2f&title=4.%e6%94%af%e4%bb%98%e6%88%90%e5%8a%9f%e5%88%b0%e5%b1%a5%e7%ba%a6%e7%9b%b8%e5%85%b3%e9%97%ae%e9%a2%98"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 4.支付成功到履约相关问题 on facebook" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fcloud-alibaba-demo%25E4%25B9%258B%25E8%25AE%25A2%25E5%258D%2595%2f4.%25E6%2594%25AF%25E4%25BB%2598%25E6%2588%2590%25E5%258A%259F%25E5%2588%25B0%25E5%25B1%25A5%25E7%25BA%25A6%25E7%259A%2584%25E7%259B%25B8%25E5%2585%25B3%25E9%2597%25AE%25E9%25A2%2598%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 4.支付成功到履约相关问题 on whatsapp" href="https://api.whatsapp.com/send?text=4.%e6%94%af%e4%bb%98%e6%88%90%e5%8a%9f%e5%88%b0%e5%b1%a5%e7%ba%a6%e7%9b%b8%e5%85%b3%e9%97%ae%e9%a2%98%20-%20https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fcloud-alibaba-demo%25E4%25B9%258B%25E8%25AE%25A2%25E5%258D%2595%2f4.%25E6%2594%25AF%25E4%25BB%2598%25E6%2588%2590%25E5%258A%259F%25E5%2588%25B0%25E5%25B1%25A5%25E7%25BA%25A6%25E7%259A%2584%25E7%259B%25B8%25E5%2585%25B3%25E9%2597%25AE%25E9%25A2%2598%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 4.支付成功到履约相关问题 on telegram" href="https://telegram.me/share/url?text=4.%e6%94%af%e4%bb%98%e6%88%90%e5%8a%9f%e5%88%b0%e5%b1%a5%e7%ba%a6%e7%9b%b8%e5%85%b3%e9%97%ae%e9%a2%98&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fcloud-alibaba-demo%25E4%25B9%258B%25E8%25AE%25A2%25E5%258D%2595%2f4.%25E6%2594%25AF%25E4%25BB%2598%25E6%2588%2590%25E5%258A%259F%25E5%2588%25B0%25E5%25B1%25A5%25E7%25BA%25A6%25E7%259A%2584%25E7%259B%25B8%25E5%2585%25B3%25E9%2597%25AE%25E9%25A2%2598%2f"><svg viewBox="2 2 28 28" height="30" width="30" fill="currentColor"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share 4.支付成功到履约相关问题 on ycombinator" href="https://news.ycombinator.com/submitlink?t=4.%e6%94%af%e4%bb%98%e6%88%90%e5%8a%9f%e5%88%b0%e5%b1%a5%e7%ba%a6%e7%9b%b8%e5%85%b3%e9%97%ae%e9%a2%98&u=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E6%25A1%2586%25E6%259E%25B6%2fspring%2fcloud-alibaba%2fcloud-alibaba-demo%25E4%25B9%258B%25E8%25AE%25A2%25E5%258D%2595%2f4.%25E6%2594%25AF%25E4%25BB%2598%25E6%2588%2590%25E5%258A%259F%25E5%2588%25B0%25E5%25B1%25A5%25E7%25BA%25A6%25E7%259A%2584%25E7%259B%25B8%25E5%2585%25B3%25E9%2597%25AE%25E9%25A2%2598%2f"><svg width="30" height="30" viewBox="0 0 512 512" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446zM183.8767 87.9921h-62.034L230.6673 292.4508V424.0079h50.6655V292.4508L390.1575 87.9921H328.1233L256 238.2489z"/></svg></a></li></ul></footer></article></main><footer class=footer><span>&copy; 2025 <a href=https://wangxiaohong123.github.io/>王小红的笔记</a></span> ·
+<span>Powered by
+<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
+</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
