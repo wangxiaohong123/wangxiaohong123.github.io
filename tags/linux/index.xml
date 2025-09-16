@@ -64,7 +64,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;ls是list的意思。链接就是有多少文件名链接到了这个节点(inode)。文件大小的默认单位是byte。如果文件名前面多个[.]表示隐藏文件。&lt;/p&gt;
-&lt;p&gt;ls的更多更多用法使用&lt;strong&gt;ls &amp;ndash;help&lt;/strong&gt;或者&lt;strong&gt;man ls&lt;/strong&gt;或者&lt;strong&gt;info ls&lt;/strong&gt;查看。&lt;/p&gt;
+&lt;p&gt;ls的更多更多用法使用&lt;strong&gt;ls --help&lt;/strong&gt;或者&lt;strong&gt;man ls&lt;/strong&gt;或者&lt;strong&gt;info ls&lt;/strong&gt;查看。&lt;/p&gt;
 &lt;h5 id="文件类型"&gt;文件类型&lt;/h5&gt;
 &lt;ul&gt;
 &lt;li&gt;常规文件：[-]表示常规文件，按照文件内容可以分成3类：
@@ -315,7 +315,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;xfs系统相比ext2、ext3、ext4来说多了两个区，他的数据区(data section)可以理解成ext系列的所有区块，但是不包括ext3和ext4的日志，xfs的文件系统活动区(log section)就是用日志用来记录文件的变化，xfs的实时运行区(realtime section)是用来实时分配inode和区块的，这也是他和ext系列系统的最大区别。可以使用&lt;strong&gt;xfs_info 挂载点/设备文件名&lt;/strong&gt;命令查看xfs文件系统信息。&lt;/p&gt;</description></item><item><title>linux-4.vi</title><link>https://wangxiaohong123.github.io/posts/linux/4.vi/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/linux/4.vi/</guid><description>&lt;p&gt;比vi好用的编辑器有很多，比如nano，但是不是所有发行版都内置除vi意外的编辑器。最重要的是很多软件的编辑接口都会主动调用vi，比如crontab、visudo，所以vi是最重要的。vim是vi的升级版，他会根据文件的扩展名和文件内的开头信息显示对应的语法样式，其实感觉就是多个颜色、下划线等样式，缩进啥的还是很痛苦。&lt;/p&gt;
-&lt;p&gt;大部分的发行版都用vim替换vi了，如果输入&lt;strong&gt;alias&lt;/strong&gt;时出现**alias vi=&amp;lsquo;vim&amp;rsquo;**表示执行vi就是在执行vim，否则还是要手动执行vim。&lt;/p&gt;
+&lt;p&gt;大部分的发行版都用vim替换vi了，如果输入&lt;strong&gt;alias&lt;/strong&gt;时出现**alias vi='vim'**表示执行vi就是在执行vim，否则还是要手动执行vim。&lt;/p&gt;
 &lt;p&gt;vi分为3中模式：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;一般命令模式：vi 文件名 就进入一般命令模式了，简称一般模式，在这个模式里可以使用上下左右移动光标，删除字符或者删除整行，也可以使用复制粘贴；&lt;/li&gt;
@@ -595,7 +595,7 @@
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;:! command&lt;/td&gt;
-&lt;td&gt;暂时退出vi到命令模式下执行command的显示结果&lt;!-- raw HTML omitted --&gt;例如【:! ls /home】就是在vi中查看/home下面以ls输出文件信息&lt;/td&gt;
+&lt;td&gt;暂时退出vi到命令模式下执行command的显示结果&lt;br /&gt;例如【:! ls /home】就是在vi中查看/home下面以ls输出文件信息&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;:set nu(针对vim)&lt;/td&gt;
@@ -609,7 +609,7 @@
 &lt;/table&gt;
 &lt;h5 id="vim的缓存"&gt;vim的缓存&lt;/h5&gt;
 &lt;p&gt;vim防止某些原因导致的程序异常退出的情况会在编辑文件时创建一个.filename.swp的文件，这个文件里缓存了对filename的操作，如果打开文件之前出现了.swp文件就会报错，说什么found a swap file之类的，出现这个错误可能有两种情况：第一个就是多人维护同一个文件，第二个就是异常退出了。&lt;/p&gt;</description></item><item><title>linux-5.bash</title><link>https://wangxiaohong123.github.io/posts/linux/5.bash/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/linux/5.bash/</guid><description>&lt;h5 id="bash是shell的一种"&gt;bash是shell的一种&lt;/h5&gt;
-&lt;p&gt;操作系统就是一组软件，通过这组软件来管理硬件和监控，如果这组软件能被用户随意使用，那么操作系统就很容易崩溃，但是又不能不让用户使用操作系统，所以就有了操作系统之上的一层程序，通过这层程序指挥内核，然后内核再去操作硬件。现在关系变成了应用程序&amp;ndash;&amp;gt;内核&amp;ndash;&amp;gt;硬件，这样一层一层的关系，我理解的就是硬件像蛋黄，内核是蛋清，应用程序是蛋壳，所以叫shell(壳程序)。壳程序的功能是提供用户操作系统的一个界面。&lt;/p&gt;
+&lt;p&gt;操作系统就是一组软件，通过这组软件来管理硬件和监控，如果这组软件能被用户随意使用，那么操作系统就很容易崩溃，但是又不能不让用户使用操作系统，所以就有了操作系统之上的一层程序，通过这层程序指挥内核，然后内核再去操作硬件。现在关系变成了应用程序--&amp;gt;内核--&amp;gt;硬件，这样一层一层的关系，我理解的就是硬件像蛋黄，内核是蛋清，应用程序是蛋壳，所以叫shell(壳程序)。壳程序的功能是提供用户操作系统的一个界面。&lt;/p&gt;
 &lt;p&gt;也就是说只要能操作内核程序的软件都叫壳程序，比如图形界面的软件(视频播放器这种)，比如bash，我们可以在bash中运行操作内核的命令，比如man、chmod等等。&lt;/p&gt;
 &lt;h5 id="shell有很多个"&gt;shell有很多个&lt;/h5&gt;
 &lt;p&gt;最开始的时候UNIX有很多的发展者，就会对应多个shell的版本，比如Bourne shell(sh)，Sun里的C shell，商用的K shell，TCSH(增强版C shell)。Linux使用的是Bouren Again Shell(bash)，是Bourne shell的增强版本，在/etc/shells里可以看到能够使用的shell：&lt;/p&gt;

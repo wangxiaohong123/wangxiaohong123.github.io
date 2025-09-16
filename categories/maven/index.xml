@@ -23,18 +23,54 @@
 &lt;li&gt;classifier：定义工程的附属项目，&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id="dependency"&gt;dependency&lt;/h3&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;：引入的类型，一般不用写，如果依赖的工程的打包方式写上pom，这块也应该写pom；&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;：maven有三种classpath，编译、测试和打包，scope标注了引用的jar包在那个classpath下可用，有四个选项：&lt;/p&gt;
+&lt;groupId&gt;
+&lt;artifactId&gt;
+&lt;version&gt;
+&lt;p&gt;&lt;type&gt;：引入的类型，一般不用写，如果依赖的工程的打包方式写上pom，这块也应该写pom；&lt;/p&gt;
+&lt;p&gt;&lt;scope&gt;：maven有三种classpath，编译、测试和打包，scope标注了引用的jar包在那个classpath下可用，有四个选项：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;compile：默认的，三个classpath都可以用；&lt;/li&gt;
 &lt;li&gt;test：测试范围有效，一般就是测试的框架使用；&lt;/li&gt;
 &lt;li&gt;runtime：测试和打包有效，写代码（编译）的时候没有；&lt;/li&gt;
 &lt;li&gt;provided：测试和编译有效，但是打包的时候是没有的；&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;比如说我们引入的junit，写上&lt;!-- raw HTML omitted --&gt;test&lt;!-- raw HTML omitted --&gt;之后，不能在正常的代码中使用@Test注解，只能在test包下使用。&lt;/p&gt;</description></item><item><title>maven统一版本号修改</title><link>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</guid><description>&lt;p&gt;引入 &lt;strong&gt;versions-maven-plugin&lt;/strong&gt; 插件&lt;/p&gt;
+&lt;p&gt;比如说我们引入的junit，写上&lt;scope&gt;test&lt;/scope&gt;之后，不能在正常的代码中使用@Test注解，只能在test包下使用。&lt;/p&gt;
+&lt;p&gt;&lt;optional&gt;：可选依赖，会让依赖传递失效，比如A依赖B，B依赖C，但是B中对C声明了optional，那么A就不会依赖C&lt;/p&gt;
+&lt;h4 id="传递性依赖"&gt;传递性依赖&lt;/h4&gt;
+&lt;p&gt;maven会下载你依赖中依赖的其他jar包，会把所有的依赖链下完，自动下载。传递性依赖就是我们依赖了A，A自己依赖了B，如果我们对A的scope是compile，A对B是runtime，那么我们对B也是runtime。&lt;/p&gt;
+&lt;h4 id="依赖调解"&gt;依赖调解&lt;/h4&gt;
+&lt;p&gt;依赖链条可能会很长，当简介引用了相同的项目，但是版本不一样，就会选用最近的依赖版本，如果长度相等，就使用先声明的。&lt;/p&gt;
+&lt;h4 id="既然有依赖调解为什么还会有依赖冲突"&gt;既然有依赖调解为什么还会有依赖冲突？&lt;/h4&gt;
+&lt;p&gt;这是因为maven选择了错误的版本，如果发生了冲突一般就选择最新的版本，因为正常的开源项目高版本都会兼容低版本，如果不兼容赶紧换插件，太垃圾了。&lt;/p&gt;
+&lt;p&gt;运行mvn dependency:tree，然后他会分析版本，找到最新的是哪个依赖引用的，然后把其他引用冲突的依赖给排除。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-xml" data-lang="xml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;groupId&amp;gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;artifactId&amp;gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;/exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;/exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id="仓库"&gt;仓库&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;本地仓库：本地的仓库&lt;/li&gt;
+&lt;li&gt;私服：有的公司由于安全性不会让你使用外网，或者自己开发的中间件需要在别的项目使用，就要用到私服，只有私服连外网或者私服上有自己开发的中间件；&lt;/li&gt;
+&lt;li&gt;其他仓库：比如Jboss仓库、Google仓库，私服上和中央仓库上都没有就可以去其他仓库找找；&lt;/li&gt;
+&lt;li&gt;镜像仓库：由于中央仓库在国外，所以下载非常慢，阿里云的镜像仓库差不多和中央仓库一样，由于在国内，下载jar包非常快，镜像仓库没有再去中央仓库上找；&lt;/li&gt;
+&lt;li&gt;中央仓库：maven的超父pom中定义的仓库地址；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id="私仓"&gt;私仓&lt;/h5&gt;
+&lt;p&gt;使用nexus就可以搭建自己的私仓，挺简单的，用的时候百度一下，主要有三种仓库。&lt;/p&gt;</description></item><item><title>maven统一版本号修改</title><link>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</guid><description>&lt;p&gt;引入 &lt;strong&gt;versions-maven-plugin&lt;/strong&gt; 插件&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1

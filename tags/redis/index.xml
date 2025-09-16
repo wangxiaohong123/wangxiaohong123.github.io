@@ -120,7 +120,7 @@
 &lt;tr&gt;
 &lt;td&gt;buf剩余长度&lt;/td&gt;
 &lt;td&gt;buf使用长度&lt;/td&gt;
-&lt;td&gt;字符数组，最后一位是&amp;rsquo;\0'&lt;/td&gt;
+&lt;td&gt;字符数组，最后一位是'\0'&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -465,14 +465,14 @@
 &lt;p&gt;绑核：每个CPU有多个运行核心，叫做物理核，每个物理核都有私有的L1和L2，每个CPU的所有物理核共享一个L3，L1和L2一般都是几k左右，三级缓存会有百兆左右，这也叫NUMA架构，跨核后操作延迟不相等。每个物理核一般会有两个逻辑核，因为如果是多核的情况，一个redis程序运行在了多个CPU socket上，这样数据要通过缓存传递，说白了就是减少上下文的切换。首先使用lscpu查看所有逻辑核，以及每个核的编号和对应的cpu socket，使用&lt;strong&gt;taskset -c 0,3 ./redis-server&lt;/strong&gt;把redis和0核和3核绑定绑定，一般都是绑两个逻辑核，一个用来异步处理，但是这两个逻辑核要在同一个物理核下。&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;使用**./redis-cli &amp;ndash;intrinsic-latency 120**查看redis120s内的延迟。&lt;/p&gt;
+&lt;p&gt;使用**./redis-cli --intrinsic-latency 120**查看redis120s内的延迟。&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;什么时候横向扩容？&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;先找到进程号**$ redis-cli info | grep process_id**&lt;/li&gt;
 &lt;li&gt;cd /proc/[进程号]&lt;/li&gt;
-&lt;li&gt;cat smaps | egrep &amp;lsquo;^(Swap|Size)&amp;rsquo;，检查swap数值，如果很大就需要扩容了&lt;/li&gt;
+&lt;li&gt;cat smaps | egrep '^(Swap|Size)'，检查swap数值，如果很大就需要扩容了&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;

@@ -148,7 +148,7 @@
 &lt;p&gt;除了@Bean注解产生的类或者ImportBeanDefinitionRegistrar的实现类，其他的Bean都是配置类！&lt;/p&gt;
 &lt;h6 id="1spring中存在多个扫描器"&gt;1.Spring中存在多个扫描器&lt;/h6&gt;
 &lt;p&gt;容器启动的时候会创建一个ClassPathBeanDefinitionScanner，当ConfigurationClassPostProcessor扫描类的时候又会在方法里创建一个局部的ClassPathBeanDefinitionScanner，这两个有什么区别？&lt;/p&gt;
-&lt;p&gt;第一个scanner是负责处理我们手动设置的扫描路径context.scan(&amp;ldquo;包名&amp;rdquo;)，这里要注意如果我们手动设置扫描路径实例化容器的时候是不能传配置类的，因为传进去一个配置类，容器会自动调用refresh()方法，这个时候我们在调用context.scan(&amp;ldquo;包名&amp;rdquo;)就不生效，因为容器已经启动了，设置完之后需要手动调用refresh()方法。&lt;/p&gt;
+&lt;p&gt;第一个scanner是负责处理我们手动设置的扫描路径context.scan(&amp;quot;包名&amp;quot;)，这里要注意如果我们手动设置扫描路径实例化容器的时候是不能传配置类的，因为传进去一个配置类，容器会自动调用refresh()方法，这个时候我们在调用context.scan(&amp;quot;包名&amp;quot;)就不生效，因为容器已经启动了，设置完之后需要手动调用refresh()方法。&lt;/p&gt;
 &lt;p&gt;第二个scanner是负责处理@ComponentScan注解的。&lt;/p&gt;
 &lt;p&gt;修改第一个名字生成器需要再调用applicationContext.setBeanNameGenerator()，修改第二个生成器需要再@ComponentScan注解里设置nameGenerator属性。&lt;strong&gt;注意&lt;/strong&gt;修改scanner1的时候他会把生成器放到单例池中，这个时候scanner2也会被修改，也就是说通过applicationContext.setBeanNameGenerator()设置的名字生成器是全局的，所有名字生成器都会使用设置的这个。&lt;/p&gt;
 &lt;h6 id="2为什么spring在加载类的时候不是通过反射而是使用了asm技术"&gt;2.为什么Spring在加载类的时候不是通过反射，而是使用了ASM技术？&lt;/h6&gt;
@@ -220,7 +220,7 @@
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-java" data-lang="java"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;beanFactory.&lt;span style="color:#50fa7b"&gt;preInstantiateSingletons&lt;/span&gt;();
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;这个类里先校验，然后把name前面拼上&amp;quot;&amp;amp;&amp;ldquo;去调用getBean()方法，这个方法中会判断如果单例池中没有这个Bean回去创建：&lt;/p&gt;
+&lt;/div&gt;&lt;p&gt;这个类里先校验，然后把name前面拼上&amp;quot;&amp;amp;&amp;quot;去调用getBean()方法，这个方法中会判断如果单例池中没有这个Bean回去创建：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 1

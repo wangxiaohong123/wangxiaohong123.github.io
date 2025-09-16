@@ -123,7 +123,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;不管是log4j还是logback，他们都有自己独立的api，所以开发的时候可能由于个人喜好出现多种日志框架，所以需要一个日志的API框架，比如apache的commons-loggin，slf4j，apache的几年前已经不维护了，现在使用最多的就是slf4j。slf4j会有很多适配包，根据我们引入的不同依赖去适配。如果按照logback的类编程，在以后需要换日志框架的时候很麻烦，如果按照slf4j的接口编程，以后换日志框架可能直接改个依赖就可以了。&lt;/p&gt;</description></item><item><title>spring-boot-2.源码</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/spring-boot/%E6%BA%90%E7%A0%81/</link><pubDate>Tue, 19 Jan 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/spring-boot/%E6%BA%90%E7%A0%81/</guid><description>&lt;p&gt;Spring boot的源码和spring的代码耦合的很多，所以看的时候不能看细节，一细就会进到spring的源码里，所以查看主要功能的思路就可以，比如自动装配。&lt;/p&gt;
-&lt;p&gt;源码都在spring-boot-project模块里，直接进到SpringApplication的run(Class&lt;!-- raw HTML omitted --&gt;[] primarySources, String[] args)方法里，这个也是我们启动服务的入口：&lt;/p&gt;
+&lt;p&gt;源码都在spring-boot-project模块里，直接进到SpringApplication的run(Class&lt;?&gt;[] primarySources, String[] args)方法里，这个也是我们启动服务的入口：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
@@ -501,7 +501,7 @@
 &lt;p&gt;除了@Bean注解产生的类或者ImportBeanDefinitionRegistrar的实现类，其他的Bean都是配置类！&lt;/p&gt;
 &lt;h6 id="1spring中存在多个扫描器"&gt;1.Spring中存在多个扫描器&lt;/h6&gt;
 &lt;p&gt;容器启动的时候会创建一个ClassPathBeanDefinitionScanner，当ConfigurationClassPostProcessor扫描类的时候又会在方法里创建一个局部的ClassPathBeanDefinitionScanner，这两个有什么区别？&lt;/p&gt;
-&lt;p&gt;第一个scanner是负责处理我们手动设置的扫描路径context.scan(&amp;ldquo;包名&amp;rdquo;)，这里要注意如果我们手动设置扫描路径实例化容器的时候是不能传配置类的，因为传进去一个配置类，容器会自动调用refresh()方法，这个时候我们在调用context.scan(&amp;ldquo;包名&amp;rdquo;)就不生效，因为容器已经启动了，设置完之后需要手动调用refresh()方法。&lt;/p&gt;
+&lt;p&gt;第一个scanner是负责处理我们手动设置的扫描路径context.scan(&amp;quot;包名&amp;quot;)，这里要注意如果我们手动设置扫描路径实例化容器的时候是不能传配置类的，因为传进去一个配置类，容器会自动调用refresh()方法，这个时候我们在调用context.scan(&amp;quot;包名&amp;quot;)就不生效，因为容器已经启动了，设置完之后需要手动调用refresh()方法。&lt;/p&gt;
 &lt;p&gt;第二个scanner是负责处理@ComponentScan注解的。&lt;/p&gt;
 &lt;p&gt;修改第一个名字生成器需要再调用applicationContext.setBeanNameGenerator()，修改第二个生成器需要再@ComponentScan注解里设置nameGenerator属性。&lt;strong&gt;注意&lt;/strong&gt;修改scanner1的时候他会把生成器放到单例池中，这个时候scanner2也会被修改，也就是说通过applicationContext.setBeanNameGenerator()设置的名字生成器是全局的，所有名字生成器都会使用设置的这个。&lt;/p&gt;
 &lt;h6 id="2为什么spring在加载类的时候不是通过反射而是使用了asm技术"&gt;2.为什么Spring在加载类的时候不是通过反射，而是使用了ASM技术？&lt;/h6&gt;
@@ -573,7 +573,7 @@
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-java" data-lang="java"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;beanFactory.&lt;span style="color:#50fa7b"&gt;preInstantiateSingletons&lt;/span&gt;();
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;这个类里先校验，然后把name前面拼上&amp;quot;&amp;amp;&amp;ldquo;去调用getBean()方法，这个方法中会判断如果单例池中没有这个Bean回去创建：&lt;/p&gt;
+&lt;/div&gt;&lt;p&gt;这个类里先校验，然后把name前面拼上&amp;quot;&amp;amp;&amp;quot;去调用getBean()方法，这个方法中会判断如果单例池中没有这个Bean回去创建：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 1
@@ -1337,7 +1337,7 @@
 &lt;p&gt;byteTCC可以实现tcc事务和saga事务，在tcc事务中，try和cancel是对应起来的，如果confirm失败会一直重试，cancel失败也会一直重试，而在saga事务中，没有confirm，try就是执行业务逻辑，cancel提供对应的反向数据操作。&lt;/p&gt;
 &lt;h3 id="bytetcc源码"&gt;byteTCC源码&lt;/h3&gt;
 &lt;p&gt;首先使用byteTCC需要在dataSource组件加入注解：&lt;strong&gt;@Import(SpringCloudConfiguration.class)&lt;/strong&gt;，SpringCloudConfiguration.class里面是对cloud的组件比如feign创建了自己的动态代理，实现自己的逻辑。&lt;/p&gt;
-&lt;p&gt;启动类上添加注解**@ImportResource({ &amp;ldquo;classpath:bytetcc-supports-springcloud.xml&amp;rdquo; }) **，这个xml配置了很多bean。&lt;/p&gt;
+&lt;p&gt;启动类上添加注解**@ImportResource({ &amp;quot;classpath:bytetcc-supports-springcloud.xml&amp;quot; }) **，这个xml配置了很多bean。&lt;/p&gt;
 &lt;p&gt;服务之间的事务上下文都是通过request的header传递。&lt;/p&gt;
 &lt;p&gt;bytejta表中如果只有一条记录，说明try执行完了，confirm或者cancel还没执行成功，正常来说一个事务会对应两条记录。&lt;/p&gt;
 &lt;p&gt;CompensableWork会定时（60s）重试失败的confirm或者cancel，也是调用CompensableCoordinatorController中的接口，同时在刚启动的时候他也会去恢复没执行的事务。&lt;/p&gt;
@@ -1419,7 +1419,7 @@
 &lt;p&gt;但是一些操作比如调三方可能需要延迟或者降级的操作，比如发送短信一个三方发送失败就去调另一个三方执行降级逻辑，所以框架还要有延迟、降级功能。&lt;/p&gt;
 &lt;p&gt;如果重试到了最大次数还是失败怎么办？此时可能需要一个报警通知的功能。&lt;/p&gt;
 &lt;p&gt;整体流程如下：
-&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h116soskhoj20u01p0n24.jpg" style="zoom:100%;" /&gt;&lt;/p&gt;
 &lt;h5 id="数据库结构"&gt;数据库结构：&lt;/h5&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;

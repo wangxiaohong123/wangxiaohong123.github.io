@@ -395,7 +395,7 @@
 &lt;ul&gt;
 &lt;li&gt;一个有效的数独（部分已被填充）不一定是可解的。&lt;/li&gt;
 &lt;li&gt;只需要根据以上规则，验证已经填入的数字是否有效即可。&lt;/li&gt;
-&lt;li&gt;空白格用 &amp;lsquo;.&amp;rsquo; 表示。&lt;/li&gt;
+&lt;li&gt;空白格用 '.' 表示。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id="题解"&gt;题解&lt;/h3&gt;
 &lt;p&gt;判断数独是否有效不难，因为他不需要判断是否可解，挑战的点可能就是判断[i][j]属于第几个小矩阵：$ (i / 3) * 3 + j / 3$&lt;/p&gt;
@@ -2039,7 +2039,7 @@ ScalaCompileOptions.metaClass.useCompileDaemon = false
 &lt;p&gt;越里层，越是核心能力，并且外圆只能依赖内圆，基础资源除外，或者说最外层除外。在DDD中4层架构的功能边界如下：&lt;/p&gt;
 &lt;p&gt;&lt;img alt="006_图解四层架构功能边界" loading="lazy" src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/006_%E5%9B%BE%E8%A7%A3%E5%9B%9B%E5%B1%82%E6%9E%B6%E6%9E%84%E5%8A%9F%E8%83%BD%E8%BE%B9%E7%95%8C.jpg"&gt;&lt;/p&gt;
 &lt;p&gt;传统4层架构的调用方式看起来像下面这样：&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/Xnip2023-05-08_08-24-36.png" alt="Xnip2023-05-08_08-24-36" style="zoom:50%;" /&gt;
 &lt;p&gt;就很怪，为什么接口可以直接调用基础层，数据库什么的都在这里？？？&lt;/p&gt;
 &lt;h5 id="六边形架构"&gt;六边形架构&lt;/h5&gt;
 &lt;p&gt;也叫端口适配器架构，红框内是核心逻辑，核心逻辑不变采用适配器适配不同端，同理和基础架构的交互也是使用了依赖倒置，置于为什么叫6边型，是为了形容一套逻辑可以适配多个端口。&lt;/p&gt;
@@ -2492,7 +2492,7 @@ ScalaCompileOptions.metaClass.useCompileDaemon = false
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;不管是log4j还是logback，他们都有自己独立的api，所以开发的时候可能由于个人喜好出现多种日志框架，所以需要一个日志的API框架，比如apache的commons-loggin，slf4j，apache的几年前已经不维护了，现在使用最多的就是slf4j。slf4j会有很多适配包，根据我们引入的不同依赖去适配。如果按照logback的类编程，在以后需要换日志框架的时候很麻烦，如果按照slf4j的接口编程，以后换日志框架可能直接改个依赖就可以了。&lt;/p&gt;</description></item><item><title>spring-boot-2.源码</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/spring-boot/%E6%BA%90%E7%A0%81/</link><pubDate>Tue, 19 Jan 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/spring-boot/%E6%BA%90%E7%A0%81/</guid><description>&lt;p&gt;Spring boot的源码和spring的代码耦合的很多，所以看的时候不能看细节，一细就会进到spring的源码里，所以查看主要功能的思路就可以，比如自动装配。&lt;/p&gt;
-&lt;p&gt;源码都在spring-boot-project模块里，直接进到SpringApplication的run(Class&lt;!-- raw HTML omitted --&gt;[] primarySources, String[] args)方法里，这个也是我们启动服务的入口：&lt;/p&gt;
+&lt;p&gt;源码都在spring-boot-project模块里，直接进到SpringApplication的run(Class&lt;?&gt;[] primarySources, String[] args)方法里，这个也是我们启动服务的入口：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
@@ -2720,41 +2720,7 @@ ScalaCompileOptions.metaClass.useCompileDaemon = false
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;refreshContext(context);时已知这个context是AnnotationConfigServletWebServerApplicationContext，refresh()方法会走到他的父类&lt;strong&gt;ServletWebServerApplicationContext&lt;/strong&gt;的refresh()方法。&lt;/p&gt;</description></item><item><title/><link>https://wangxiaohong123.github.io/posts/deepspeed%E7%AC%94%E8%AE%B0/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/deepspeed%E7%AC%94%E8%AE%B0/</guid><description>&lt;h5 id="1环境搭建"&gt;1.环境搭建&lt;/h5&gt;
-&lt;p&gt;安装conda：https://www.anaconda.com/products/distribution&lt;/p&gt;
-&lt;p&gt;安装成功后执行以下命令安装webUI运行环境：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
-&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
-&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
-&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;conda create --name py_SD1 &lt;span style="color:#8be9fd;font-style:italic"&gt;python&lt;/span&gt;&lt;span style="color:#ff79c6"&gt;=&lt;/span&gt;3.10
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;安装成功后会提示以下信息：&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
-&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
-&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;2
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;3
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;4
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;5
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;6
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;7
-&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;8
-&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
-&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
-&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-shell" data-lang="shell"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;#&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# To activate this environment, use&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;#&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# $ conda activate py_SD1&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;#&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# To deactivate an active environment, use&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;#&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#6272a4"&gt;# $ conda deactivate&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
-&lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;执行上面给的命令&lt;code&gt;conda activate py_SD1&lt;/code&gt;切换环境。&lt;/p&gt;</description></item><item><title/><link>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E7%BC%93%E5%AD%98%E6%9E%B6%E6%9E%84/1.%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E7%BC%93%E5%AD%98%E6%9E%B6%E6%9E%84/1.%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</guid><description>&lt;h3 id="虚拟机安装"&gt;虚拟机安装&lt;/h3&gt;
+&lt;/div&gt;&lt;p&gt;refreshContext(context);时已知这个context是AnnotationConfigServletWebServerApplicationContext，refresh()方法会走到他的父类&lt;strong&gt;ServletWebServerApplicationContext&lt;/strong&gt;的refresh()方法。&lt;/p&gt;</description></item><item><title/><link>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E7%BC%93%E5%AD%98%E6%9E%B6%E6%9E%84/1.%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/%E7%BC%93%E5%AD%98%E6%9E%B6%E6%9E%84/1.%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</guid><description>&lt;h3 id="虚拟机安装"&gt;虚拟机安装&lt;/h3&gt;
 &lt;p&gt;虚拟机管理软件：virtual box；&lt;/p&gt;
 &lt;p&gt;虚拟机镜像版本：CentOS-7-x86_64-Everything-1810；&lt;/p&gt;
 &lt;p&gt;安装完成后启动配置固定ip，由于不知道那些ip可以分配，所以先设置成动态获取，在把获取的ip设成固定的：&lt;/p&gt;
@@ -4800,7 +4766,7 @@ $$
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;因为total-vm过大，而网关进程已经被杀死，防止不是堆内存问题导致的操作系统OOM到时候可以使用&lt;strong&gt;jcmd pid VM.native_memory detail scale=MB &amp;gt;temp.txt&lt;/strong&gt;查看内存分布。&lt;/p&gt;
 &lt;p&gt;果然没过几天突然收到内存报警，还是网关，使用top命令查看内存使用已经快6个G了：
-&lt;!-- raw HTML omitted --&gt;
+&lt;img src="https://tva1.sinaimg.cn/large/008i3skNly1gz9ehe6wnwj30yy09sdj5.jpg" /&gt;
 virt是申请的大小，res是实际使用的大小，这两个不管那个都很大，然后我使用一下命令把内存分布输出到文件里:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
@@ -5371,7 +5337,7 @@ M 1000
 &lt;/div&gt;
 &lt;/div&gt;&lt;h5 id="2位集合翻转"&gt;2.位集合翻转&lt;/h5&gt;
 &lt;p&gt;和整数翻转一样的思路，把拿到的数得每一位放到集合中，这样只需要我相对应的位进行调换(比如第32位和第1位交换)，在把集合转成整数就可以了：&lt;/p&gt;</description></item><item><title>16.位1的个数</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/leecode/16.%E4%BD%8D1%E7%9A%84%E4%B8%AA%E6%95%B0/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/leecode/16.%E4%BD%8D1%E7%9A%84%E4%B8%AA%E6%95%B0/</guid><description>&lt;h3 id="题目"&gt;题目&lt;/h3&gt;
-&lt;p&gt;编写一个函数，输入是一个无符号整数（以二进制串的形式），返回其二进制表达式中数字位数为'1&amp;rsquo;的个数（也被称为汉明重量）。&lt;/p&gt;
+&lt;p&gt;编写一个函数，输入是一个无符号整数（以二进制串的形式），返回其二进制表达式中数字位数为'1'的个数（也被称为汉明重量）。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;提示：&lt;/strong&gt;&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;请注意，在某些语言（如 Java）中，没有无符号整数类型。在这种情况下，输入和输出都将被指定为有符号整数类型，并且不应影响您的实现，因为无论整数是有符号的还是无符号的，其内部的二进制表示形式都是相同的。&lt;/li&gt;
@@ -5668,7 +5634,7 @@ $$
 &lt;/div&gt;&lt;p&gt;上面的代码监听ApplicationListener事件，但是却没有指定事件，这就会导致isSpringStartUp变量的赋值在@PostConstruct方法之前，所以上面代码中的lazyStart()并没有lazy，定时任务也会在服务启动中就开始执行，由于定时任务是个没有终止条件的&lt;code&gt;while (true)&lt;/code&gt;循环，当服务启动失败的时候循环不会退出，导致问题二，修改后的代码：&lt;/p&gt;</description></item><item><title>2.Dart基础</title><link>https://wangxiaohong123.github.io/posts/flutter/2.dart%E5%9F%BA%E7%A1%80/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/flutter/2.dart%E5%9F%BA%E7%A1%80/</guid><description>&lt;p&gt;&lt;strong&gt;Dart是单线程模型，他的核心是基于Isolate（隔离单元）的并发模型&lt;/strong&gt;&lt;/p&gt;
 &lt;h3 id="1-空安全"&gt;1 空安全&lt;/h3&gt;
 &lt;p&gt;Dart在2.12版本之后支持了空安全，空安全就是避免null引起的崩溃。&lt;/p&gt;
-&lt;p&gt;在变量类型后出现问号&amp;rsquo;?&amp;lsquo;表示变量允许为空，比如&lt;code&gt;String? name&lt;/code&gt;，对于可以为空的变量在使用时也需要增加问号。&lt;/p&gt;
+&lt;p&gt;在变量类型后出现问号'?'表示变量允许为空，比如&lt;code&gt;String? name&lt;/code&gt;，对于可以为空的变量在使用时也需要增加问号。&lt;/p&gt;
 &lt;p&gt;启用空安全后类的成员变量是不允许为空的，初始化的方式可以为：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
@@ -5700,7 +5666,7 @@ $$
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;叹号&amp;rsquo;!&amp;lsquo;表示取反或者空值的断言。&lt;/p&gt;</description></item><item><title>2.dubbo-provider启动源码</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/dubbo/2.provider%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/dubbo/2.provider%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B/</guid><description>&lt;h4 id="启动"&gt;启动&lt;/h4&gt;
+&lt;/div&gt;&lt;p&gt;叹号'!'表示取反或者空值的断言。&lt;/p&gt;</description></item><item><title>2.dubbo-provider启动源码</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/dubbo/2.provider%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/dubbo/2.provider%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B/</guid><description>&lt;h4 id="启动"&gt;启动&lt;/h4&gt;
 &lt;p&gt;进到ServiceConfig的export()方法中，看到3.0的代码把服务启动的代码都放到了ModuleDeployer中，猜测是在start方法中做的启动准备工作，有的版本调用的不是start()方法，而是prepare()方法。&lt;/p&gt;
 &lt;p&gt;然后在下面加了一个锁再去判断服务的export状态，&lt;strong&gt;首先不明白这里为什么要加锁，然后下面有初始化也有发布，但是还有个刷新，这里在刷新什么？&lt;/strong&gt;&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
@@ -6474,10 +6440,10 @@ $$
 &lt;h6 id="3311-归一化"&gt;3.3.1.1 归一化&lt;/h6&gt;
 &lt;p&gt;把原始数据映射到某个区间内，默认0~1。计算公式为：
 $$
-X&amp;rsquo; = \frac {x - min}{max - min}\&lt;/p&gt;
-&lt;p&gt;X&amp;rsquo;&amp;rsquo; = X&amp;rsquo; * (mx - mi) + mi
+X' = \frac {x - min}{max - min}\&lt;/p&gt;
+&lt;p&gt;X'' = X' * (mx - mi) + mi
 $$
-上面的公式中，X&amp;rsquo;&amp;lsquo;就是归一化处理后的特征值，max和min表示初始特征值的最大值和最小值，mx和mi表示想要将特征值映射到区间的最大值和最小值。&lt;/p&gt;
+上面的公式中，X''就是归一化处理后的特征值，max和min表示初始特征值的最大值和最小值，mx和mi表示想要将特征值映射到区间的最大值和最小值。&lt;/p&gt;
 &lt;p&gt;归一化的时候如果出现一条特征统计不正确，比如有1条数据比其他的大了很多倍或者小了很多倍，这种情况对其他数据的影响很大，所以这种方法鲁棒性较差，只适合精确小数据场景。&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
@@ -6532,7 +6498,7 @@ $$
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;print&lt;/span&gt;(&lt;span style="color:#f1fa8c"&gt;&amp;#34;每一列的平均值为:&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;\n&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;&amp;#34;&lt;/span&gt;, transfer&lt;span style="color:#ff79c6"&gt;.&lt;/span&gt;mean_)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;第一步就是去均值，将平均值变成0，然后在比上标准差，这样能让所有维度的数相差不大：$X&amp;rsquo; = \frac{x - avg}{\sigma}$。&lt;/p&gt;</description></item><item><title>2.注入相关</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/framework/2.%E6%B3%A8%E5%85%A5%E7%9B%B8%E5%85%B3/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/framework/2.%E6%B3%A8%E5%85%A5%E7%9B%B8%E5%85%B3/</guid><description>&lt;h5 id="1自动注入和手动注入"&gt;1.自动注入和手动注入&lt;/h5&gt;
+&lt;/div&gt;&lt;p&gt;第一步就是去均值，将平均值变成0，然后在比上标准差，这样能让所有维度的数相差不大：$X' = \frac{x - avg}{\sigma}$。&lt;/p&gt;</description></item><item><title>2.注入相关</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/framework/2.%E6%B3%A8%E5%85%A5%E7%9B%B8%E5%85%B3/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/framework/2.%E6%B3%A8%E5%85%A5%E7%9B%B8%E5%85%B3/</guid><description>&lt;h5 id="1自动注入和手动注入"&gt;1.自动注入和手动注入&lt;/h5&gt;
 &lt;p&gt;手动注入就是通过xml方式，要么是&amp;lt;property/&amp;gt;标签通过set方法注入，要么提供&amp;lt;constructor-arg/&amp;gt;标签通过构造方法注入。&lt;/p&gt;
 &lt;p&gt;自动注入就是设置bean得注入方式并提供对应得set方法或者构造方法，spring就会自己分析方法完成注入。&lt;/p&gt;
 &lt;p&gt;在AbstractBeanDefinition中有一个属性叫&lt;strong&gt;autowireModel&lt;/strong&gt;，他有4个值可选：&lt;/p&gt;
@@ -6654,7 +6620,7 @@ $$
 &lt;/div&gt;
 &lt;/div&gt;&lt;h5 id="2双指针"&gt;2.双指针&lt;/h5&gt;
 &lt;p&gt;上面的解法中，入参head是没用到的，可以用它存储三指针中的某一个指针，其实随便替换一个就行，因为cur指针在每一步都用到了，所以我选择替换cur：&lt;/p&gt;</description></item><item><title>22.最长公共前缀</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/leecode/22.%E6%9C%80%E9%95%BF%E5%85%AC%E5%85%B1%E5%89%8D%E7%BC%80/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/leecode/22.%E6%9C%80%E9%95%BF%E5%85%AC%E5%85%B1%E5%89%8D%E7%BC%80/</guid><description>&lt;h3 id="题目"&gt;题目&lt;/h3&gt;
-&lt;p&gt;编写一个函数来查找字符串数组中的最长公共前缀。如果不存在公共前缀，返回空字符串 &amp;ldquo;&amp;quot;。&lt;/p&gt;
+&lt;p&gt;编写一个函数来查找字符串数组中的最长公共前缀。如果不存在公共前缀，返回空字符串 &amp;quot;&amp;quot;。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;示例 1：&lt;/strong&gt;&lt;/p&gt;
 &lt;pre tabindex="0"&gt;&lt;code&gt;输入：strs = [&amp;#34;flower&amp;#34;,&amp;#34;flow&amp;#34;,&amp;#34;flight&amp;#34;]
 输出：&amp;#34;fl&amp;#34;
@@ -6743,7 +6709,7 @@ $$&lt;/p&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;h5 id="2分治法"&gt;2.分治法&lt;/h5&gt;
 &lt;p&gt;上面的横向对比可以改成分治的写法：&lt;/p&gt;</description></item><item><title>23.有效的括号</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/leecode/23.%E6%9C%89%E6%95%88%E7%9A%84%E6%8B%AC%E5%8F%B7/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/leecode/23.%E6%9C%89%E6%95%88%E7%9A%84%E6%8B%AC%E5%8F%B7/</guid><description>&lt;h3 id="题目"&gt;题目&lt;/h3&gt;
-&lt;p&gt;给定一个只包括 &amp;lsquo;(&amp;rsquo;，&amp;rsquo;)&amp;rsquo;，&amp;rsquo;{&amp;rsquo;，&amp;rsquo;}&amp;rsquo;，&amp;rsquo;[&amp;rsquo;，&amp;rsquo;]&amp;rsquo; 的字符串 s ，判断字符串是否有效。&lt;/p&gt;
+&lt;p&gt;给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串 s ，判断字符串是否有效。&lt;/p&gt;
 &lt;p&gt;有效字符串需满足：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;左括号必须用相同类型的右括号闭合。&lt;/li&gt;
@@ -7040,7 +7006,7 @@ AB -&amp;gt; 28
 &lt;ul&gt;
 &lt;li&gt;1 &amp;lt;= columnTitle.length &amp;lt;= 7&lt;/li&gt;
 &lt;li&gt;columnTitle 仅由大写英文组成&lt;/li&gt;
-&lt;li&gt;columnTitle 在范围 [&amp;ldquo;A&amp;rdquo;, &amp;ldquo;FXSHRXW&amp;rdquo;] 内&lt;/li&gt;
+&lt;li&gt;columnTitle 在范围 [&amp;quot;A&amp;quot;, &amp;quot;FXSHRXW&amp;quot;] 内&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id="题解"&gt;题解&lt;/h3&gt;
 &lt;p&gt;这个问题就是27进制转10进制，因为没有0。A的ASCII码是65，就是说位数的ASCII码 - 64就是这个这位对应的数字。&lt;/p&gt;
@@ -8262,7 +8228,7 @@ AB -&amp;gt; 28
 &lt;ol&gt;
 &lt;li&gt;欧式距离：两个点就是勾股定理，n个点就开根号n；&lt;/li&gt;
 &lt;li&gt;曼哈顿距离：曼哈顿距离是当两个点不能练成直线时的距离，计算公式：$\sum_{k=1}^n\vert X_{k}-X_{k-1} \vert$；&lt;/li&gt;
-&lt;li&gt;切比雪夫距离：类比于国际象棋中的国王走棋的方式，国王可以在一个步长内向任何方向移动，两点的距离公式为$D(P,Q)=max(\vert x_1−x_2\vert,\vert y_1−y_2\vert,&amp;hellip;,\vert x_n−x_{n+1}\vert)$​；&lt;/li&gt;
+&lt;li&gt;切比雪夫距离：类比于国际象棋中的国王走棋的方式，国王可以在一个步长内向任何方向移动，两点的距离公式为$D(P,Q)=max(\vert x_1−x_2\vert,\vert y_1−y_2\vert,...,\vert x_n−x_{n+1}\vert)$​；&lt;/li&gt;
 &lt;li&gt;闵氏距离：闵氏距离是将上面3个变成了1个公式，当p=1的时候是曼哈顿距离，p=2的时候是欧式距离，p&amp;gt;=3的时候是切比雪夫距离&lt;/li&gt;
 &lt;/ol&gt;
 &lt;h3 id="1-k近邻算法"&gt;1 K近邻算法&lt;/h3&gt;
@@ -8965,7 +8931,7 @@ AB -&amp;gt; 28
 &lt;p&gt;除了@Bean注解产生的类或者ImportBeanDefinitionRegistrar的实现类，其他的Bean都是配置类！&lt;/p&gt;
 &lt;h6 id="1spring中存在多个扫描器"&gt;1.Spring中存在多个扫描器&lt;/h6&gt;
 &lt;p&gt;容器启动的时候会创建一个ClassPathBeanDefinitionScanner，当ConfigurationClassPostProcessor扫描类的时候又会在方法里创建一个局部的ClassPathBeanDefinitionScanner，这两个有什么区别？&lt;/p&gt;
-&lt;p&gt;第一个scanner是负责处理我们手动设置的扫描路径context.scan(&amp;ldquo;包名&amp;rdquo;)，这里要注意如果我们手动设置扫描路径实例化容器的时候是不能传配置类的，因为传进去一个配置类，容器会自动调用refresh()方法，这个时候我们在调用context.scan(&amp;ldquo;包名&amp;rdquo;)就不生效，因为容器已经启动了，设置完之后需要手动调用refresh()方法。&lt;/p&gt;
+&lt;p&gt;第一个scanner是负责处理我们手动设置的扫描路径context.scan(&amp;quot;包名&amp;quot;)，这里要注意如果我们手动设置扫描路径实例化容器的时候是不能传配置类的，因为传进去一个配置类，容器会自动调用refresh()方法，这个时候我们在调用context.scan(&amp;quot;包名&amp;quot;)就不生效，因为容器已经启动了，设置完之后需要手动调用refresh()方法。&lt;/p&gt;
 &lt;p&gt;第二个scanner是负责处理@ComponentScan注解的。&lt;/p&gt;
 &lt;p&gt;修改第一个名字生成器需要再调用applicationContext.setBeanNameGenerator()，修改第二个生成器需要再@ComponentScan注解里设置nameGenerator属性。&lt;strong&gt;注意&lt;/strong&gt;修改scanner1的时候他会把生成器放到单例池中，这个时候scanner2也会被修改，也就是说通过applicationContext.setBeanNameGenerator()设置的名字生成器是全局的，所有名字生成器都会使用设置的这个。&lt;/p&gt;
 &lt;h6 id="2为什么spring在加载类的时候不是通过反射而是使用了asm技术"&gt;2.为什么Spring在加载类的时候不是通过反射，而是使用了ASM技术？&lt;/h6&gt;
@@ -9116,7 +9082,7 @@ AB -&amp;gt; 28
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-java" data-lang="java"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;beanFactory.&lt;span style="color:#50fa7b"&gt;preInstantiateSingletons&lt;/span&gt;();
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;这个类里先校验，然后把name前面拼上&amp;quot;&amp;amp;&amp;ldquo;去调用getBean()方法，这个方法中会判断如果单例池中没有这个Bean回去创建：&lt;/p&gt;
+&lt;/div&gt;&lt;p&gt;这个类里先校验，然后把name前面拼上&amp;quot;&amp;amp;&amp;quot;去调用getBean()方法，这个方法中会判断如果单例池中没有这个Bean回去创建：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 1
@@ -9543,7 +9509,7 @@ AB -&amp;gt; 28
 &lt;p&gt;神经网络就是把多个线性回归和逻辑回归组合到一起。由一个输入层、一个输出层和n个隐藏层组成，第n层的每个神经元和第n-1层的所有神经元相连，第n-1层的输出就是第n层的输入。每个隐藏层有n个神经元，每个神经元都有一个非线性激活函数。&lt;/p&gt;
 &lt;p&gt;神经网络的精度高，效果好；但是训练时间长，小数据集上表现不好。他的本质是摆脱人为干预的特征提取(&lt;strong&gt;黑盒&lt;/strong&gt;)，我们只负责输入，查看输出，这就是端对端模型(end-to-end)，深度学习中只有极小值没有极大值。&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;正向传播：从输入层&amp;ndash;&amp;gt;隐藏层&amp;ndash;&amp;gt;输出层的过程，是根据数据损失函数和激活函数&lt;strong&gt;得到模型的输出结果和损失函数的值&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;正向传播：从输入层--&amp;gt;隐藏层--&amp;gt;输出层的过程，是根据数据损失函数和激活函数&lt;strong&gt;得到模型的输出结果和损失函数的值&lt;/strong&gt;。&lt;/li&gt;
 &lt;li&gt;反向传播：从损失函数开始，逐层向后传播误差(链式法则)，并计算每个参数的梯度的过程，然后用优化器更新权重和偏置，让损失主键减小。&lt;/li&gt;
 &lt;li&gt;计算图：描述张量之间运算关系的有向无环图，节点是变量（输入、权重、偏置、激活函数、输出），边是数学运算（加法、乘法、激活函数等）。为了高效计算梯度的。&lt;/li&gt;
 &lt;/ul&gt;
@@ -9786,8 +9752,8 @@ AB -&amp;gt; 28
 &lt;/ol&gt;
 &lt;h6 id="1内置分词器"&gt;1.内置分词器：&lt;/h6&gt;
 &lt;ul&gt;
-&lt;li&gt;standard analyzer：默认的分词器。可以大小写转换、去符号，但是没拆&amp;rsquo;_&amp;rsquo;；&lt;/li&gt;
-&lt;li&gt;simple analyzer：大小写转换、去符号，也能去&amp;rsquo;_&amp;rsquo;；&lt;/li&gt;
+&lt;li&gt;standard analyzer：默认的分词器。可以大小写转换、去符号，但是没拆'_'；&lt;/li&gt;
+&lt;li&gt;simple analyzer：大小写转换、去符号，也能去'_'；&lt;/li&gt;
 &lt;li&gt;whitespace analyzer：什么都不干，大小写都不转，只按照空格拆；&lt;/li&gt;
 &lt;li&gt;language analyzer：特定语言分词器，比如英语分词器，他可以把单词转成近义词、大小写、去符号、时态转换、去掉没意义的词；&lt;/li&gt;
 &lt;/ul&gt;
@@ -10517,7 +10483,7 @@ $$
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;时间复杂度的话是log^m^，m是输入的数字大小。&lt;/p&gt;</description></item><item><title>AQS</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/</guid><description>&lt;h3 id="谈谈对aqs的理解"&gt;谈谈对AQS的理解&lt;/h3&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;img src="https://tva1.sinaimg.cn/large/007S8ZIlly1gib4srczezj30iu08uaae.jpg" style="zoom:150%;" /&gt;
 &lt;hr&gt;
 &lt;h3 id="reentrantlock"&gt;ReentrantLock&lt;/h3&gt;
 &lt;p&gt;全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的&lt;/p&gt;
@@ -12439,7 +12405,7 @@ $$
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;ls是list的意思。链接就是有多少文件名链接到了这个节点(inode)。文件大小的默认单位是byte。如果文件名前面多个[.]表示隐藏文件。&lt;/p&gt;
-&lt;p&gt;ls的更多更多用法使用&lt;strong&gt;ls &amp;ndash;help&lt;/strong&gt;或者&lt;strong&gt;man ls&lt;/strong&gt;或者&lt;strong&gt;info ls&lt;/strong&gt;查看。&lt;/p&gt;
+&lt;p&gt;ls的更多更多用法使用&lt;strong&gt;ls --help&lt;/strong&gt;或者&lt;strong&gt;man ls&lt;/strong&gt;或者&lt;strong&gt;info ls&lt;/strong&gt;查看。&lt;/p&gt;
 &lt;h5 id="文件类型"&gt;文件类型&lt;/h5&gt;
 &lt;ul&gt;
 &lt;li&gt;常规文件：[-]表示常规文件，按照文件内容可以分成3类：
@@ -12690,7 +12656,7 @@ $$
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;xfs系统相比ext2、ext3、ext4来说多了两个区，他的数据区(data section)可以理解成ext系列的所有区块，但是不包括ext3和ext4的日志，xfs的文件系统活动区(log section)就是用日志用来记录文件的变化，xfs的实时运行区(realtime section)是用来实时分配inode和区块的，这也是他和ext系列系统的最大区别。可以使用&lt;strong&gt;xfs_info 挂载点/设备文件名&lt;/strong&gt;命令查看xfs文件系统信息。&lt;/p&gt;</description></item><item><title>linux-4.vi</title><link>https://wangxiaohong123.github.io/posts/linux/4.vi/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/linux/4.vi/</guid><description>&lt;p&gt;比vi好用的编辑器有很多，比如nano，但是不是所有发行版都内置除vi意外的编辑器。最重要的是很多软件的编辑接口都会主动调用vi，比如crontab、visudo，所以vi是最重要的。vim是vi的升级版，他会根据文件的扩展名和文件内的开头信息显示对应的语法样式，其实感觉就是多个颜色、下划线等样式，缩进啥的还是很痛苦。&lt;/p&gt;
-&lt;p&gt;大部分的发行版都用vim替换vi了，如果输入&lt;strong&gt;alias&lt;/strong&gt;时出现**alias vi=&amp;lsquo;vim&amp;rsquo;**表示执行vi就是在执行vim，否则还是要手动执行vim。&lt;/p&gt;
+&lt;p&gt;大部分的发行版都用vim替换vi了，如果输入&lt;strong&gt;alias&lt;/strong&gt;时出现**alias vi='vim'**表示执行vi就是在执行vim，否则还是要手动执行vim。&lt;/p&gt;
 &lt;p&gt;vi分为3中模式：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;一般命令模式：vi 文件名 就进入一般命令模式了，简称一般模式，在这个模式里可以使用上下左右移动光标，删除字符或者删除整行，也可以使用复制粘贴；&lt;/li&gt;
@@ -12970,7 +12936,7 @@ $$
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;:! command&lt;/td&gt;
-&lt;td&gt;暂时退出vi到命令模式下执行command的显示结果&lt;!-- raw HTML omitted --&gt;例如【:! ls /home】就是在vi中查看/home下面以ls输出文件信息&lt;/td&gt;
+&lt;td&gt;暂时退出vi到命令模式下执行command的显示结果&lt;br /&gt;例如【:! ls /home】就是在vi中查看/home下面以ls输出文件信息&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;:set nu(针对vim)&lt;/td&gt;
@@ -12984,7 +12950,7 @@ $$
 &lt;/table&gt;
 &lt;h5 id="vim的缓存"&gt;vim的缓存&lt;/h5&gt;
 &lt;p&gt;vim防止某些原因导致的程序异常退出的情况会在编辑文件时创建一个.filename.swp的文件，这个文件里缓存了对filename的操作，如果打开文件之前出现了.swp文件就会报错，说什么found a swap file之类的，出现这个错误可能有两种情况：第一个就是多人维护同一个文件，第二个就是异常退出了。&lt;/p&gt;</description></item><item><title>linux-5.bash</title><link>https://wangxiaohong123.github.io/posts/linux/5.bash/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/linux/5.bash/</guid><description>&lt;h5 id="bash是shell的一种"&gt;bash是shell的一种&lt;/h5&gt;
-&lt;p&gt;操作系统就是一组软件，通过这组软件来管理硬件和监控，如果这组软件能被用户随意使用，那么操作系统就很容易崩溃，但是又不能不让用户使用操作系统，所以就有了操作系统之上的一层程序，通过这层程序指挥内核，然后内核再去操作硬件。现在关系变成了应用程序&amp;ndash;&amp;gt;内核&amp;ndash;&amp;gt;硬件，这样一层一层的关系，我理解的就是硬件像蛋黄，内核是蛋清，应用程序是蛋壳，所以叫shell(壳程序)。壳程序的功能是提供用户操作系统的一个界面。&lt;/p&gt;
+&lt;p&gt;操作系统就是一组软件，通过这组软件来管理硬件和监控，如果这组软件能被用户随意使用，那么操作系统就很容易崩溃，但是又不能不让用户使用操作系统，所以就有了操作系统之上的一层程序，通过这层程序指挥内核，然后内核再去操作硬件。现在关系变成了应用程序--&amp;gt;内核--&amp;gt;硬件，这样一层一层的关系，我理解的就是硬件像蛋黄，内核是蛋清，应用程序是蛋壳，所以叫shell(壳程序)。壳程序的功能是提供用户操作系统的一个界面。&lt;/p&gt;
 &lt;p&gt;也就是说只要能操作内核程序的软件都叫壳程序，比如图形界面的软件(视频播放器这种)，比如bash，我们可以在bash中运行操作内核的命令，比如man、chmod等等。&lt;/p&gt;
 &lt;h5 id="shell有很多个"&gt;shell有很多个&lt;/h5&gt;
 &lt;p&gt;最开始的时候UNIX有很多的发展者，就会对应多个shell的版本，比如Bourne shell(sh)，Sun里的C shell，商用的K shell，TCSH(增强版C shell)。Linux使用的是Bouren Again Shell(bash)，是Bourne shell的增强版本，在/etc/shells里可以看到能够使用的shell：&lt;/p&gt;
@@ -13103,18 +13069,54 @@ $$
 &lt;li&gt;classifier：定义工程的附属项目，&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id="dependency"&gt;dependency&lt;/h3&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;：引入的类型，一般不用写，如果依赖的工程的打包方式写上pom，这块也应该写pom；&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;：maven有三种classpath，编译、测试和打包，scope标注了引用的jar包在那个classpath下可用，有四个选项：&lt;/p&gt;
+&lt;groupId&gt;
+&lt;artifactId&gt;
+&lt;version&gt;
+&lt;p&gt;&lt;type&gt;：引入的类型，一般不用写，如果依赖的工程的打包方式写上pom，这块也应该写pom；&lt;/p&gt;
+&lt;p&gt;&lt;scope&gt;：maven有三种classpath，编译、测试和打包，scope标注了引用的jar包在那个classpath下可用，有四个选项：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;compile：默认的，三个classpath都可以用；&lt;/li&gt;
 &lt;li&gt;test：测试范围有效，一般就是测试的框架使用；&lt;/li&gt;
 &lt;li&gt;runtime：测试和打包有效，写代码（编译）的时候没有；&lt;/li&gt;
 &lt;li&gt;provided：测试和编译有效，但是打包的时候是没有的；&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;比如说我们引入的junit，写上&lt;!-- raw HTML omitted --&gt;test&lt;!-- raw HTML omitted --&gt;之后，不能在正常的代码中使用@Test注解，只能在test包下使用。&lt;/p&gt;</description></item><item><title>maven统一版本号修改</title><link>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</guid><description>&lt;p&gt;引入 &lt;strong&gt;versions-maven-plugin&lt;/strong&gt; 插件&lt;/p&gt;
+&lt;p&gt;比如说我们引入的junit，写上&lt;scope&gt;test&lt;/scope&gt;之后，不能在正常的代码中使用@Test注解，只能在test包下使用。&lt;/p&gt;
+&lt;p&gt;&lt;optional&gt;：可选依赖，会让依赖传递失效，比如A依赖B，B依赖C，但是B中对C声明了optional，那么A就不会依赖C&lt;/p&gt;
+&lt;h4 id="传递性依赖"&gt;传递性依赖&lt;/h4&gt;
+&lt;p&gt;maven会下载你依赖中依赖的其他jar包，会把所有的依赖链下完，自动下载。传递性依赖就是我们依赖了A，A自己依赖了B，如果我们对A的scope是compile，A对B是runtime，那么我们对B也是runtime。&lt;/p&gt;
+&lt;h4 id="依赖调解"&gt;依赖调解&lt;/h4&gt;
+&lt;p&gt;依赖链条可能会很长，当简介引用了相同的项目，但是版本不一样，就会选用最近的依赖版本，如果长度相等，就使用先声明的。&lt;/p&gt;
+&lt;h4 id="既然有依赖调解为什么还会有依赖冲突"&gt;既然有依赖调解为什么还会有依赖冲突？&lt;/h4&gt;
+&lt;p&gt;这是因为maven选择了错误的版本，如果发生了冲突一般就选择最新的版本，因为正常的开源项目高版本都会兼容低版本，如果不兼容赶紧换插件，太垃圾了。&lt;/p&gt;
+&lt;p&gt;运行mvn dependency:tree，然后他会分析版本，找到最新的是哪个依赖引用的，然后把其他引用冲突的依赖给排除。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;2
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;3
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;4
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;5
+&lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%"&gt;
+&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-xml" data-lang="xml"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;groupId&amp;gt;&amp;lt;/groupId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;artifactId&amp;gt;&amp;lt;/artifactId&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff79c6"&gt;&amp;lt;/exclusion&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff79c6"&gt;&amp;lt;/exclusions&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id="仓库"&gt;仓库&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;本地仓库：本地的仓库&lt;/li&gt;
+&lt;li&gt;私服：有的公司由于安全性不会让你使用外网，或者自己开发的中间件需要在别的项目使用，就要用到私服，只有私服连外网或者私服上有自己开发的中间件；&lt;/li&gt;
+&lt;li&gt;其他仓库：比如Jboss仓库、Google仓库，私服上和中央仓库上都没有就可以去其他仓库找找；&lt;/li&gt;
+&lt;li&gt;镜像仓库：由于中央仓库在国外，所以下载非常慢，阿里云的镜像仓库差不多和中央仓库一样，由于在国内，下载jar包非常快，镜像仓库没有再去中央仓库上找；&lt;/li&gt;
+&lt;li&gt;中央仓库：maven的超父pom中定义的仓库地址；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h5 id="私仓"&gt;私仓&lt;/h5&gt;
+&lt;p&gt;使用nexus就可以搭建自己的私仓，挺简单的，用的时候百度一下，主要有三种仓库。&lt;/p&gt;</description></item><item><title>maven统一版本号修改</title><link>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/maven/maven%E7%BB%9F%E4%B8%80%E7%89%88%E6%9C%AC%E5%8F%B7%E4%BF%AE%E6%94%B9/</guid><description>&lt;p&gt;引入 &lt;strong&gt;versions-maven-plugin&lt;/strong&gt; 插件&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
@@ -13545,8 +13547,8 @@ $$
 &lt;ul&gt;
 &lt;li&gt;全值匹配：查询条件和索引的字段完全相同，如果是组合索引，顺序不同优化器也会优化成组合和索引相同的顺序。&lt;/li&gt;
 &lt;li&gt;最左侧列匹配：在组合索引中，正常排序只是按照左侧第一个，如果相同，就用左侧第二个排序，以此类推，最左侧列匹配就是查询条件中有索引包含的列的时候，查询条件必须包含这个列所在的索引的左面所有的列，查询才会走索引。&lt;/li&gt;
-&lt;li&gt;最左前缀匹配：就是左侧第一个列使用like%，一定只能是在右侧放%，比如class_name like &amp;lsquo;3&amp;rsquo;%。&lt;/li&gt;
-&lt;li&gt;范围查找：也是左侧第一个列的范围，比如 &amp;lsquo;3&amp;rsquo; &amp;lt; class_name and class_name &amp;lt; &amp;lsquo;5&amp;rsquo;。&lt;/li&gt;
+&lt;li&gt;最左前缀匹配：就是左侧第一个列使用like%，一定只能是在右侧放%，比如class_name like '3'%。&lt;/li&gt;
+&lt;li&gt;范围查找：也是左侧第一个列的范围，比如 '3' &amp;lt; class_name and class_name &amp;lt; '5'。&lt;/li&gt;
 &lt;li&gt;等值匹配加范围匹配：范围匹配最多只能有一个，因为等值匹配可以确定下一列是有序的，按照范围查找很容易，但是第一个范围查找结束后，数据对于下一索引列是无序得了，所以只能有一个范围匹配。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id="order-by的索引使用"&gt;order by的索引使用&lt;/h3&gt;
@@ -13562,8 +13564,10 @@ $$
 &lt;p&gt;如果字段的值很大，那么可以只是用前几个字符当做索引，不过这种索引在order by或者group by中就不生效了；&lt;/p&gt;
 &lt;p&gt;避免聚簇索引频繁页分裂，应该使用自增主键；&lt;/p&gt;
 &lt;p&gt;避免二级索引过多，因为在增删改查的时候是要维护索引的B+树的，索引太多会让增删改变慢，两三个组合索引能覆盖大部分查询就可以；&lt;/p&gt;
-&lt;p&gt;当where和order by和limit一起使用但是不能同时满足索引时，优先满足where的索引；&lt;!-- raw HTML omitted --&gt;
-当我们使用复核索引查询时，可能有些字段没用上，这样的话还是不会走索引的，如果没用上的列时字典类型，那么可以用加一个in（字典的所有状态），比如一个复合索引，城市+性别+最近七天登录+年龄，当查询语句是where city=&amp;lsquo;哈尔滨&amp;rsquo; and 21 &amp;lt; age &amp;lt; 25时是不会走索引的，可以改成where city=&amp;lsquo;哈尔滨&amp;rsquo; and sex in(0, 1) and does_login_in_7_days in(0, 1) and 21 &amp;lt; age &amp;lt; 25，这样就可以正常走索引了；&lt;/p&gt;</description></item><item><title>MySQL优化</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/</guid><description>&lt;h3 id="参数优化"&gt;参数优化：&lt;/h3&gt;
+&lt;p&gt;当where和order by和limit一起使用但是不能同时满足索引时，优先满足where的索引；&lt;br&gt;
+当我们使用复核索引查询时，可能有些字段没用上，这样的话还是不会走索引的，如果没用上的列时字典类型，那么可以用加一个in（字典的所有状态），比如一个复合索引，城市+性别+最近七天登录+年龄，当查询语句是where city='哈尔滨' and 21 &amp;lt; age &amp;lt; 25时是不会走索引的，可以改成where city='哈尔滨' and sex in(0, 1) and does_login_in_7_days in(0, 1) and 21 &amp;lt; age &amp;lt; 25，这样就可以正常走索引了；&lt;/p&gt;
+&lt;p&gt;还有比如简单查询加order by的时候，可以把where条件和order by放到一个索引中，这样是可以只走一个B+索引树的；&lt;br&gt;
+尽量让每个查询都用上索引是SQL一种优化技巧，仅仅是一种。&lt;/p&gt;</description></item><item><title>MySQL优化</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/</guid><description>&lt;h3 id="参数优化"&gt;参数优化：&lt;/h3&gt;
 &lt;h5 id="1buffer-pool参数优化"&gt;1）buffer pool参数优化&lt;/h5&gt;
 &lt;ul&gt;
 &lt;li&gt;
@@ -13713,7 +13717,7 @@ $$
 &lt;li&gt;ref：普通二级索引，而且条件必须是全值匹配，有个例外，当查询条件是主键 is not null时，也是ref；&lt;/li&gt;
 &lt;li&gt;res_or_null：这个是说查询使用二级索引的全值匹配，但是有个条件是 is not null；&lt;/li&gt;
 &lt;li&gt;range：这个也是用了索引，但是是范围查询；&lt;/li&gt;
-&lt;li&gt;index：这个意思是查询条件没用索引，但是遍历的是索引的B+树，比如有一个联合索引 x1 + x2 + x3，执行语句select x1, x2, x3 from table where name=&amp;lsquo;大叔大&amp;rsquo;，查询的字段都在索引中，遍历索引的B+树要比遍历数据页快，不过他还是类似全表扫描；&lt;/li&gt;
+&lt;li&gt;index：这个意思是查询条件没用索引，但是遍历的是索引的B+树，比如有一个联合索引 x1 + x2 + x3，执行语句select x1, x2, x3 from table where name='大叔大'，查询的字段都在索引中，遍历索引的B+树要比遍历数据页快，不过他还是类似全表扫描；&lt;/li&gt;
 &lt;li&gt;index_merge：单表查询时，使用了多个索引，然后把结果合并；&lt;/li&gt;
 &lt;li&gt;all：全表扫描；&lt;/li&gt;
 &lt;/ol&gt;
@@ -13722,7 +13726,7 @@ $$
 &lt;p&gt;成本就是需要消耗的资源，MySQL定义把数据页加载到内存消耗IO成本是1.0，在内存中计算比如排序、分组、验证符合条件消耗CPU成本是0.2。&lt;/p&gt;
 &lt;p&gt;使用二级索引扫描的时候粗略的认为一个范围区间就是一个数据页&lt;/p&gt;
 &lt;h4 id="计算全表扫描的成本"&gt;计算全表扫描的成本&lt;/h4&gt;
-&lt;p&gt;使用show table status lie &amp;lsquo;表名&amp;rsquo;可以查看表的相关信息，比如rows：有多少行数据（innodb的估计值）；data_length：聚簇索引占的字节数，使用data_length/1024/16差不多是有多少个数据页，那么全表扫描的成本 = (data_length / 1024 / 16) * 1.0 + rows * 0.2&lt;/p&gt;
+&lt;p&gt;使用show table status lie '表名'可以查看表的相关信息，比如rows：有多少行数据（innodb的估计值）；data_length：聚簇索引占的字节数，使用data_length/1024/16差不多是有多少个数据页，那么全表扫描的成本 = (data_length / 1024 / 16) * 1.0 + rows * 0.2&lt;/p&gt;
 &lt;h4 id="计算二级索引扫描成本"&gt;计算二级索引扫描成本&lt;/h4&gt;
 &lt;p&gt;比如说使用25 &amp;lt; name &amp;lt; 100 or 150 &amp;lt; name &amp;lt; 200，name是个索引，这是两个区间，可以近似成两个数据页，IO成本就是2 * 1.0，比如查到了100条数据，这100条数据的CPU成本就是100 * 0.2，而且还需要回表，回表的时候暴力认为一条数据需要对应数据页，那回表把数据页加载到内存的IO成本就是100 * 1.0，内存的CPU成本是100 * 0.2，这个查询的成本就是2 + 20 + 100 + 20 = 142。&lt;/p&gt;</description></item><item><title>nacos-1.集群搭建</title><link>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/1.%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/1.%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA/</guid><description>&lt;p&gt;官网推荐vip模式集群，VIP是指虚拟ip，单点故障的时候会自动漂移到可用节点。 三台机器分别安装keepalived和nacos：&lt;/p&gt;
 &lt;p&gt;先整个jdk；&lt;/p&gt;
@@ -14229,7 +14233,7 @@ $$
 &lt;tr&gt;
 &lt;td&gt;buf剩余长度&lt;/td&gt;
 &lt;td&gt;buf使用长度&lt;/td&gt;
-&lt;td&gt;字符数组，最后一位是&amp;rsquo;\0'&lt;/td&gt;
+&lt;td&gt;字符数组，最后一位是'\0'&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -14574,14 +14578,14 @@ $$
 &lt;p&gt;绑核：每个CPU有多个运行核心，叫做物理核，每个物理核都有私有的L1和L2，每个CPU的所有物理核共享一个L3，L1和L2一般都是几k左右，三级缓存会有百兆左右，这也叫NUMA架构，跨核后操作延迟不相等。每个物理核一般会有两个逻辑核，因为如果是多核的情况，一个redis程序运行在了多个CPU socket上，这样数据要通过缓存传递，说白了就是减少上下文的切换。首先使用lscpu查看所有逻辑核，以及每个核的编号和对应的cpu socket，使用&lt;strong&gt;taskset -c 0,3 ./redis-server&lt;/strong&gt;把redis和0核和3核绑定绑定，一般都是绑两个逻辑核，一个用来异步处理，但是这两个逻辑核要在同一个物理核下。&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;使用**./redis-cli &amp;ndash;intrinsic-latency 120**查看redis120s内的延迟。&lt;/p&gt;
+&lt;p&gt;使用**./redis-cli --intrinsic-latency 120**查看redis120s内的延迟。&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;什么时候横向扩容？&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;先找到进程号**$ redis-cli info | grep process_id**&lt;/li&gt;
 &lt;li&gt;cd /proc/[进程号]&lt;/li&gt;
-&lt;li&gt;cat smaps | egrep &amp;lsquo;^(Swap|Size)&amp;rsquo;，检查swap数值，如果很大就需要扩容了&lt;/li&gt;
+&lt;li&gt;cat smaps | egrep '^(Swap|Size)'，检查swap数值，如果很大就需要扩容了&lt;/li&gt;
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;
@@ -15054,7 +15058,7 @@ $$
 &lt;p&gt;大部分情况的提示次其实就一个字，抄，去c站找到目标图片查看他的提示次和模型……&lt;/p&gt;
 &lt;p&gt;正向提示次：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;普通关键词使用&amp;rsquo;,&amp;lsquo;分割，不同顺序会导致不一样的出图结果；&lt;/li&gt;
+&lt;li&gt;普通关键词使用','分割，不同顺序会导致不一样的出图结果；&lt;/li&gt;
 &lt;li&gt;小括号表示赋权，比如(blue hair:1.5)表示蓝色头发权重1.5；&lt;/li&gt;
 &lt;li&gt;中括号表示关键词参与采样步数占比，比如采样步数为20时，[blue hair:0.5]和[blue hair::10]都表示关键词参与前10步的采样；&lt;/li&gt;
 &lt;/ul&gt;
@@ -15362,7 +15366,7 @@ $$
 &lt;p&gt;byteTCC可以实现tcc事务和saga事务，在tcc事务中，try和cancel是对应起来的，如果confirm失败会一直重试，cancel失败也会一直重试，而在saga事务中，没有confirm，try就是执行业务逻辑，cancel提供对应的反向数据操作。&lt;/p&gt;
 &lt;h3 id="bytetcc源码"&gt;byteTCC源码&lt;/h3&gt;
 &lt;p&gt;首先使用byteTCC需要在dataSource组件加入注解：&lt;strong&gt;@Import(SpringCloudConfiguration.class)&lt;/strong&gt;，SpringCloudConfiguration.class里面是对cloud的组件比如feign创建了自己的动态代理，实现自己的逻辑。&lt;/p&gt;
-&lt;p&gt;启动类上添加注解**@ImportResource({ &amp;ldquo;classpath:bytetcc-supports-springcloud.xml&amp;rdquo; }) **，这个xml配置了很多bean。&lt;/p&gt;
+&lt;p&gt;启动类上添加注解**@ImportResource({ &amp;quot;classpath:bytetcc-supports-springcloud.xml&amp;quot; }) **，这个xml配置了很多bean。&lt;/p&gt;
 &lt;p&gt;服务之间的事务上下文都是通过request的header传递。&lt;/p&gt;
 &lt;p&gt;bytejta表中如果只有一条记录，说明try执行完了，confirm或者cancel还没执行成功，正常来说一个事务会对应两条记录。&lt;/p&gt;
 &lt;p&gt;CompensableWork会定时（60s）重试失败的confirm或者cancel，也是调用CompensableCoordinatorController中的接口，同时在刚启动的时候他也会去恢复没执行的事务。&lt;/p&gt;
@@ -16211,7 +16215,7 @@ $$
 &lt;p&gt;Git是把仓库的版本快照都放在本地，和SVN不一样，如果仓库服务器卡了，SVN是提不了代码的，Git可以生成新的版本快照存在本地，然后在推到服务器，如果仓库服务坏了，代码丢了，SVN就废了，Git就不一样了，他把快照放在本地，服务器用不了还可以把本地的快照推到新服务器就好了。&lt;/p&gt;
 &lt;h3 id="创建项目"&gt;创建项目&lt;/h3&gt;
 &lt;p&gt;执行init就可以把一个项目交给Git管理，会创建一个.git的隐藏目录，需要提交代码的时候先add在commit就好了，不过这样commit会把所有改变都提交上去，有些文件比如intellij的.idea文件我们不想提上去就要创建一个.gitignore文件，把不想提的代码写进去，commit之后只是在本地的Git更新了版本。&lt;/p&gt;
-&lt;p&gt;windows在git init之前需要先执行git config &amp;ndash;global core.autocrlf false，Mac不需要。&lt;/p&gt;
+&lt;p&gt;windows在git init之前需要先执行git config --global core.autocrlf false，Mac不需要。&lt;/p&gt;
 &lt;p&gt;存放代码的地方叫做工作区，.git文件中分为暂存区和仓库，当执行add命令的时候会把工作区的代码放到暂存区，commit的时候会把缓存区的代码变更放到仓库中。&lt;/p&gt;
 &lt;h3 id="术语"&gt;术语&lt;/h3&gt;
 &lt;p&gt;tracked：提交到暂存区或者仓库中的文件；&lt;/p&gt;
@@ -16257,13 +16261,13 @@ $$
 &lt;/ul&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;把缓存区的代码按功能分次提交：&lt;code&gt;git add -i&lt;/code&gt;进入交互模式，选择部分文件从缓存区中还原到unchecked状态，就是选择revert，然后选择文件，然后先把缓存区中的文件提交，在把剩下的文件add &amp;ndash;all……；&lt;/p&gt;
+&lt;p&gt;把缓存区的代码按功能分次提交：&lt;code&gt;git add -i&lt;/code&gt;进入交互模式，选择部分文件从缓存区中还原到unchecked状态，就是选择revert，然后选择文件，然后先把缓存区中的文件提交，在把剩下的文件add --all……；&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;暂存代码：比如说你正在开发，突然说线上的代码有bug，这时候你需要创建bugfix分支去修改bug，但是切换分支要提交代码，提交开发一半的代码就很low，这个时候可以用暂存功能。执行&lt;code&gt;git stash&lt;/code&gt;，就会把代码暂存，然后你修改的代码会恢复到上次提交状态，修改的代码不见了，这个时候就可以去修复bug了，改完了之后切换回这个分支执行&lt;code&gt;git stash apply&lt;/code&gt;，把之前暂存的代码恢复然后继续开发。&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;对commit的备注和代码调整（本地）：git commit &amp;ndash;amend，对上次的commit修改备注，然后:wq退出就修改了备注；如果想在提交之后补充代码，直接改代码，然后git add &amp;ndash;all .然后在执行git commit &amp;ndash;amend，就可以；&lt;/p&gt;</description></item><item><title>常用命令</title><link>https://wangxiaohong123.github.io/posts/git/%E5%91%BD%E4%BB%A4/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/git/%E5%91%BD%E4%BB%A4/</guid><description>&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
+&lt;p&gt;对commit的备注和代码调整（本地）：git commit --amend，对上次的commit修改备注，然后:wq退出就修改了备注；如果想在提交之后补充代码，直接改代码，然后git add --all .然后在执行git commit --amend，就可以；&lt;/p&gt;</description></item><item><title>常用命令</title><link>https://wangxiaohong123.github.io/posts/git/%E5%91%BD%E4%BB%A4/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/git/%E5%91%BD%E4%BB%A4/</guid><description>&lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 1
 &lt;/span&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt; 2
@@ -16781,7 +16785,7 @@ $$
 &lt;p&gt;但是一些操作比如调三方可能需要延迟或者降级的操作，比如发送短信一个三方发送失败就去调另一个三方执行降级逻辑，所以框架还要有延迟、降级功能。&lt;/p&gt;
 &lt;p&gt;如果重试到了最大次数还是失败怎么办？此时可能需要一个报警通知的功能。&lt;/p&gt;
 &lt;p&gt;整体流程如下：
-&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;img src="https://tva1.sinaimg.cn/large/e6c9d24ely1h116soskhoj20u01p0n24.jpg" style="zoom:100%;" /&gt;&lt;/p&gt;
 &lt;h5 id="数据库结构"&gt;数据库结构：&lt;/h5&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
@@ -17281,7 +17285,7 @@ ABAC的优缺点&lt;/p&gt;</description></item><item><title>消息队列</title>
 &lt;p&gt;爬虫的时候只要不破坏网站、不侵犯用户隐私时不犯法的。&lt;/p&gt;
 &lt;p&gt;robots协议(君子协议):一般网站的主url后拼接robots.txt输出的内容为不允许爬的，爬的时候需要遵守。&lt;/p&gt;
 &lt;h3 id="一-爬虫用到的模块"&gt;一 爬虫用到的模块&lt;/h3&gt;
-&lt;p&gt;有的时候我们拿到的资源是部分url，需要自己拼域名，不过部分url前面会出现有斜线&amp;rsquo;/&amp;lsquo;和没斜线的情况，有斜线的拼主域名就可以，没有斜线的是相对路径，需要把当前路的访问url取然后在拼接，非常麻烦，使用urllib就很简单：&lt;/p&gt;
+&lt;p&gt;有的时候我们拿到的资源是部分url，需要自己拼域名，不过部分url前面会出现有斜线'/'和没斜线的情况，有斜线的拼主域名就可以，没有斜线的是相对路径，需要把当前路的访问url取然后在拼接，非常麻烦，使用urllib就很简单：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
 &lt;pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code&gt;&lt;span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"&gt;1
@@ -17522,7 +17526,7 @@ ABAC的优缺点&lt;/p&gt;</description></item><item><title>消息队列</title>
 &lt;/div&gt;&lt;p&gt;或者直接使用find命令把大文件筛选出来&lt;/p&gt;</description></item><item><title>线程</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/1.%E7%BA%BF%E7%A8%8B/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/1.%E7%BA%BF%E7%A8%8B/</guid><description>&lt;ul&gt;
 &lt;li&gt;工作线程：main方法就是一个线程，在main线程中在启动一个线程，线程中是一个死循环，比如定时发送心跳，这时候就算main执行完成，jvm也不会退出，因为有一个非后台的工作线程在一直运行。&lt;/li&gt;
 &lt;li&gt;daemon线程：非工作线程就是daemon线程，如果说所有的工作线程都停止了，daemon线程会跟着jvm一起退出了。使用**setDaemon(true)**将工作线程设置成daemon线程，什么时候需要设置成daemon线程呢？比如说有一个后台的监控线程，在工作线程都结束之后，后台的监控也没用了，jvm就可以退出了，不让监控线程影响jvm的退出就要把监控线程设置成daemon线程。&lt;/li&gt;
-&lt;li&gt;ThreadGroup：线程是有父子概念的，比如在main中创建一个线程，那main就是创建线程的父线程，如果没指明线程组，会被分配到父线程所在的线程组中。main线程的名字就是main，平时创建的线程可以使用**setName(&amp;ldquo;ServiceAliveMonitor&amp;rdquo;)**设置线程名。手动创建线程组&lt;/li&gt;
+&lt;li&gt;ThreadGroup：线程是有父子概念的，比如在main中创建一个线程，那main就是创建线程的父线程，如果没指明线程组，会被分配到父线程所在的线程组中。main线程的名字就是main，平时创建的线程可以使用**setName(&amp;quot;ServiceAliveMonitor&amp;quot;)**设置线程名。手动创建线程组&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
@@ -18593,7 +18597,7 @@ ABAC的优缺点&lt;/p&gt;</description></item><item><title>消息队列</title>
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;一般就是controller层分为面向app、面向h5、面向web的，通过适配调用同一个应用服务。其他情况最好是优先考虑重构接口，统一风格，避免问题扩大，不到万不得已不用adapter。&lt;/p&gt;</description></item><item><title>结构型-门面模式</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B/%E9%97%A8%E9%9D%A2%E6%A8%A1%E5%BC%8F/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E7%BB%93%E6%9E%84%E5%9E%8B/%E9%97%A8%E9%9D%A2%E6%A8%A1%E5%BC%8F/</guid><description>&lt;p&gt;门面模式也叫外观模式，他是为系统中的一组接口定义一个高层接口，通过高层接口调用这一组接口，让系统更加易用。&lt;/p&gt;
 &lt;p&gt;外观模式类图：
-&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;img src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/外观模式.png" alt="外观模式" style="zoom:50%;" /&gt;&lt;/p&gt;
 &lt;p&gt;demo：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
@@ -20124,7 +20128,7 @@ ABAC的优缺点&lt;/p&gt;</description></item><item><title>消息队列</title>
 &lt;h5 id="类和接口"&gt;类和接口&lt;/h5&gt;
 &lt;p&gt;矩形表示类或者接口，接口分2层，第一层是类名，类名的上方使用&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;标记，图里最下面是接口的另一种画法，棒棒糖表示法，圆圈表示接口，下面的文字是接口名，棒棒糖的另一端是指向实现类。&lt;/p&gt;
 &lt;p&gt;类可以是3层也可以是两层，第一层是类名，斜体表示抽象类，第二层是变量，第三层是方法。&lt;/p&gt;
-&lt;p&gt;类和接口的变量或者方法前面如果是&amp;rsquo;+&amp;lsquo;表示public，&amp;rsquo;-&amp;lsquo;表示private，&amp;rsquo;#&amp;lsquo;表示protected。&lt;/p&gt;
+&lt;p&gt;类和接口的变量或者方法前面如果是'+'表示public，'-'表示private，'#'表示protected。&lt;/p&gt;
 &lt;h5 id="关系表示"&gt;关系表示&lt;/h5&gt;
 &lt;ol&gt;
 &lt;li&gt;
@@ -20200,7 +20204,7 @@ ABAC的优缺点&lt;/p&gt;</description></item><item><title>消息队列</title>
 &lt;/ul&gt;
 &lt;p&gt;抽象类：名称前加上Abstract。&lt;/p&gt;
 &lt;h5 id="注释"&gt;注释&lt;/h5&gt;
-&lt;p&gt;命名有长度限制，不一定能把所有东西都表达出来，所以注释很重要，一般要写上方法或者类主要功能，具体思路，有必要在加上如何用，对于逻辑复杂的函数，可以使用总结性注释，就是在一段代码上写&amp;rsquo;// 这一段代码的思路总结'&lt;/p&gt;
+&lt;p&gt;命名有长度限制，不一定能把所有东西都表达出来，所以注释很重要，一般要写上方法或者类主要功能，具体思路，有必要在加上如何用，对于逻辑复杂的函数，可以使用总结性注释，就是在一段代码上写'// 这一段代码的思路总结'&lt;/p&gt;
 &lt;h3 id="代码风格"&gt;代码风格&lt;/h3&gt;
 &lt;h5 id="函数长度"&gt;函数长度&lt;/h5&gt;
 &lt;p&gt;网上说最好不要超过显示屏高度，我觉有点道理，超过显示屏高度来回翻就很烦，当函数中设计几个逻辑，调用这个方法时，发现总有不同的几个逻辑处理用不到，就说明这个函数过长。&lt;/p&gt;
@@ -20556,7 +20560,7 @@ es：原理，分词器的二次开发，现有数据的导入优化。&lt;/p&gt
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;如何在dubbo启动provider成功之后发送邮件通知&lt;/p&gt;
-&lt;p&gt;自定义一个类实现ExporterListener接口，类上添加注解@Activity(group = &amp;ldquo;provider&amp;rdquo;)，在exported方法中编写发送邮件逻辑。&lt;/p&gt;
+&lt;p&gt;自定义一个类实现ExporterListener接口，类上添加注解@Activity(group = &amp;quot;provider&amp;quot;)，在exported方法中编写发送邮件逻辑。&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
 &lt;p&gt;手撸带权重的轮询算法&lt;/p&gt;
@@ -20790,7 +20794,7 @@ es：原理，分词器的二次开发，现有数据的导入优化。&lt;/p&gt
 &lt;h6 id="2分布式session方案"&gt;2.分布式session方案&lt;/h6&gt;
 &lt;p&gt;1.使用spring session + redis。2.jwt。&lt;/p&gt;
 &lt;h6 id="3什么是jwt"&gt;3.什么是jwt&lt;/h6&gt;
-&lt;p&gt;jwt是基于token的跨域认证解决方案。jwt由3个base64编码字符串以&amp;rsquo;.&amp;lsquo;拼接组成：&lt;/p&gt;
+&lt;p&gt;jwt是基于token的跨域认证解决方案。jwt由3个base64编码字符串以'.'拼接组成：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;header：定义签名算法、token类型。&lt;/li&gt;
 &lt;li&gt;payload：实际数据。&lt;/li&gt;

@@ -379,8 +379,8 @@
 &lt;ul&gt;
 &lt;li&gt;全值匹配：查询条件和索引的字段完全相同，如果是组合索引，顺序不同优化器也会优化成组合和索引相同的顺序。&lt;/li&gt;
 &lt;li&gt;最左侧列匹配：在组合索引中，正常排序只是按照左侧第一个，如果相同，就用左侧第二个排序，以此类推，最左侧列匹配就是查询条件中有索引包含的列的时候，查询条件必须包含这个列所在的索引的左面所有的列，查询才会走索引。&lt;/li&gt;
-&lt;li&gt;最左前缀匹配：就是左侧第一个列使用like%，一定只能是在右侧放%，比如class_name like &amp;lsquo;3&amp;rsquo;%。&lt;/li&gt;
-&lt;li&gt;范围查找：也是左侧第一个列的范围，比如 &amp;lsquo;3&amp;rsquo; &amp;lt; class_name and class_name &amp;lt; &amp;lsquo;5&amp;rsquo;。&lt;/li&gt;
+&lt;li&gt;最左前缀匹配：就是左侧第一个列使用like%，一定只能是在右侧放%，比如class_name like '3'%。&lt;/li&gt;
+&lt;li&gt;范围查找：也是左侧第一个列的范围，比如 '3' &amp;lt; class_name and class_name &amp;lt; '5'。&lt;/li&gt;
 &lt;li&gt;等值匹配加范围匹配：范围匹配最多只能有一个，因为等值匹配可以确定下一列是有序的，按照范围查找很容易，但是第一个范围查找结束后，数据对于下一索引列是无序得了，所以只能有一个范围匹配。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id="order-by的索引使用"&gt;order by的索引使用&lt;/h3&gt;
@@ -396,8 +396,10 @@
 &lt;p&gt;如果字段的值很大，那么可以只是用前几个字符当做索引，不过这种索引在order by或者group by中就不生效了；&lt;/p&gt;
 &lt;p&gt;避免聚簇索引频繁页分裂，应该使用自增主键；&lt;/p&gt;
 &lt;p&gt;避免二级索引过多，因为在增删改查的时候是要维护索引的B+树的，索引太多会让增删改变慢，两三个组合索引能覆盖大部分查询就可以；&lt;/p&gt;
-&lt;p&gt;当where和order by和limit一起使用但是不能同时满足索引时，优先满足where的索引；&lt;!-- raw HTML omitted --&gt;
-当我们使用复核索引查询时，可能有些字段没用上，这样的话还是不会走索引的，如果没用上的列时字典类型，那么可以用加一个in（字典的所有状态），比如一个复合索引，城市+性别+最近七天登录+年龄，当查询语句是where city=&amp;lsquo;哈尔滨&amp;rsquo; and 21 &amp;lt; age &amp;lt; 25时是不会走索引的，可以改成where city=&amp;lsquo;哈尔滨&amp;rsquo; and sex in(0, 1) and does_login_in_7_days in(0, 1) and 21 &amp;lt; age &amp;lt; 25，这样就可以正常走索引了；&lt;/p&gt;</description></item><item><title>MySQL优化</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/</guid><description>&lt;h3 id="参数优化"&gt;参数优化：&lt;/h3&gt;
+&lt;p&gt;当where和order by和limit一起使用但是不能同时满足索引时，优先满足where的索引；&lt;br&gt;
+当我们使用复核索引查询时，可能有些字段没用上，这样的话还是不会走索引的，如果没用上的列时字典类型，那么可以用加一个in（字典的所有状态），比如一个复合索引，城市+性别+最近七天登录+年龄，当查询语句是where city='哈尔滨' and 21 &amp;lt; age &amp;lt; 25时是不会走索引的，可以改成where city='哈尔滨' and sex in(0, 1) and does_login_in_7_days in(0, 1) and 21 &amp;lt; age &amp;lt; 25，这样就可以正常走索引了；&lt;/p&gt;
+&lt;p&gt;还有比如简单查询加order by的时候，可以把where条件和order by放到一个索引中，这样是可以只走一个B+索引树的；&lt;br&gt;
+尽量让每个查询都用上索引是SQL一种优化技巧，仅仅是一种。&lt;/p&gt;</description></item><item><title>MySQL优化</title><link>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/</guid><description>&lt;h3 id="参数优化"&gt;参数优化：&lt;/h3&gt;
 &lt;h5 id="1buffer-pool参数优化"&gt;1）buffer pool参数优化&lt;/h5&gt;
 &lt;ul&gt;
 &lt;li&gt;
@@ -547,7 +549,7 @@
 &lt;li&gt;ref：普通二级索引，而且条件必须是全值匹配，有个例外，当查询条件是主键 is not null时，也是ref；&lt;/li&gt;
 &lt;li&gt;res_or_null：这个是说查询使用二级索引的全值匹配，但是有个条件是 is not null；&lt;/li&gt;
 &lt;li&gt;range：这个也是用了索引，但是是范围查询；&lt;/li&gt;
-&lt;li&gt;index：这个意思是查询条件没用索引，但是遍历的是索引的B+树，比如有一个联合索引 x1 + x2 + x3，执行语句select x1, x2, x3 from table where name=&amp;lsquo;大叔大&amp;rsquo;，查询的字段都在索引中，遍历索引的B+树要比遍历数据页快，不过他还是类似全表扫描；&lt;/li&gt;
+&lt;li&gt;index：这个意思是查询条件没用索引，但是遍历的是索引的B+树，比如有一个联合索引 x1 + x2 + x3，执行语句select x1, x2, x3 from table where name='大叔大'，查询的字段都在索引中，遍历索引的B+树要比遍历数据页快，不过他还是类似全表扫描；&lt;/li&gt;
 &lt;li&gt;index_merge：单表查询时，使用了多个索引，然后把结果合并；&lt;/li&gt;
 &lt;li&gt;all：全表扫描；&lt;/li&gt;
 &lt;/ol&gt;
@@ -556,6 +558,6 @@
 &lt;p&gt;成本就是需要消耗的资源，MySQL定义把数据页加载到内存消耗IO成本是1.0，在内存中计算比如排序、分组、验证符合条件消耗CPU成本是0.2。&lt;/p&gt;
 &lt;p&gt;使用二级索引扫描的时候粗略的认为一个范围区间就是一个数据页&lt;/p&gt;
 &lt;h4 id="计算全表扫描的成本"&gt;计算全表扫描的成本&lt;/h4&gt;
-&lt;p&gt;使用show table status lie &amp;lsquo;表名&amp;rsquo;可以查看表的相关信息，比如rows：有多少行数据（innodb的估计值）；data_length：聚簇索引占的字节数，使用data_length/1024/16差不多是有多少个数据页，那么全表扫描的成本 = (data_length / 1024 / 16) * 1.0 + rows * 0.2&lt;/p&gt;
+&lt;p&gt;使用show table status lie '表名'可以查看表的相关信息，比如rows：有多少行数据（innodb的估计值）；data_length：聚簇索引占的字节数，使用data_length/1024/16差不多是有多少个数据页，那么全表扫描的成本 = (data_length / 1024 / 16) * 1.0 + rows * 0.2&lt;/p&gt;
 &lt;h4 id="计算二级索引扫描成本"&gt;计算二级索引扫描成本&lt;/h4&gt;
 &lt;p&gt;比如说使用25 &amp;lt; name &amp;lt; 100 or 150 &amp;lt; name &amp;lt; 200，name是个索引，这是两个区间，可以近似成两个数据页，IO成本就是2 * 1.0，比如查到了100条数据，这100条数据的CPU成本就是100 * 0.2，而且还需要回表，回表的时候暴力认为一条数据需要对应数据页，那回表把数据页加载到内存的IO成本就是100 * 1.0，内存的CPU成本是100 * 0.2，这个查询的成本就是2 + 20 + 100 + 20 = 142。&lt;/p&gt;</description></item></channel></rss>

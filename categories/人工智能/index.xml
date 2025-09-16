@@ -103,10 +103,10 @@
 &lt;h6 id="3311-归一化"&gt;3.3.1.1 归一化&lt;/h6&gt;
 &lt;p&gt;把原始数据映射到某个区间内，默认0~1。计算公式为：
 $$
-X&amp;rsquo; = \frac {x - min}{max - min}\&lt;/p&gt;
-&lt;p&gt;X&amp;rsquo;&amp;rsquo; = X&amp;rsquo; * (mx - mi) + mi
+X' = \frac {x - min}{max - min}\&lt;/p&gt;
+&lt;p&gt;X'' = X' * (mx - mi) + mi
 $$
-上面的公式中，X&amp;rsquo;&amp;lsquo;就是归一化处理后的特征值，max和min表示初始特征值的最大值和最小值，mx和mi表示想要将特征值映射到区间的最大值和最小值。&lt;/p&gt;
+上面的公式中，X''就是归一化处理后的特征值，max和min表示初始特征值的最大值和最小值，mx和mi表示想要将特征值映射到区间的最大值和最小值。&lt;/p&gt;
 &lt;p&gt;归一化的时候如果出现一条特征统计不正确，比如有1条数据比其他的大了很多倍或者小了很多倍，这种情况对其他数据的影响很大，所以这种方法鲁棒性较差，只适合精确小数据场景。&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;
 &lt;table style="border-spacing:0;padding:0;margin:0;border:0;"&gt;&lt;tr&gt;&lt;td style="vertical-align:top;padding:0;margin:0;border:0;"&gt;
@@ -161,7 +161,7 @@ $$
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8be9fd;font-style:italic"&gt;print&lt;/span&gt;(&lt;span style="color:#f1fa8c"&gt;&amp;#34;每一列的平均值为:&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;\n&lt;/span&gt;&lt;span style="color:#f1fa8c"&gt;&amp;#34;&lt;/span&gt;, transfer&lt;span style="color:#ff79c6"&gt;.&lt;/span&gt;mean_)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;第一步就是去均值，将平均值变成0，然后在比上标准差，这样能让所有维度的数相差不大：$X&amp;rsquo; = \frac{x - avg}{\sigma}$。&lt;/p&gt;</description></item><item><title>3.机器学习算法</title><link>https://wangxiaohong123.github.io/posts/ai/3.%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/ai/3.%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95/</guid><description>&lt;h5 id="距离度量"&gt;距离度量&lt;/h5&gt;
+&lt;/div&gt;&lt;p&gt;第一步就是去均值，将平均值变成0，然后在比上标准差，这样能让所有维度的数相差不大：$X' = \frac{x - avg}{\sigma}$。&lt;/p&gt;</description></item><item><title>3.机器学习算法</title><link>https://wangxiaohong123.github.io/posts/ai/3.%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/ai/3.%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E7%AE%97%E6%B3%95/</guid><description>&lt;h5 id="距离度量"&gt;距离度量&lt;/h5&gt;
 &lt;p&gt;一些算法会需要距离度量，比如K近邻、SVM、聚类等，距离有4个特性：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;非负性：两点的距离不能小于0；&lt;/li&gt;
@@ -173,7 +173,7 @@ $$
 &lt;ol&gt;
 &lt;li&gt;欧式距离：两个点就是勾股定理，n个点就开根号n；&lt;/li&gt;
 &lt;li&gt;曼哈顿距离：曼哈顿距离是当两个点不能练成直线时的距离，计算公式：$\sum_{k=1}^n\vert X_{k}-X_{k-1} \vert$；&lt;/li&gt;
-&lt;li&gt;切比雪夫距离：类比于国际象棋中的国王走棋的方式，国王可以在一个步长内向任何方向移动，两点的距离公式为$D(P,Q)=max(\vert x_1−x_2\vert,\vert y_1−y_2\vert,&amp;hellip;,\vert x_n−x_{n+1}\vert)$​；&lt;/li&gt;
+&lt;li&gt;切比雪夫距离：类比于国际象棋中的国王走棋的方式，国王可以在一个步长内向任何方向移动，两点的距离公式为$D(P,Q)=max(\vert x_1−x_2\vert,\vert y_1−y_2\vert,...,\vert x_n−x_{n+1}\vert)$​；&lt;/li&gt;
 &lt;li&gt;闵氏距离：闵氏距离是将上面3个变成了1个公式，当p=1的时候是曼哈顿距离，p=2的时候是欧式距离，p&amp;gt;=3的时候是切比雪夫距离&lt;/li&gt;
 &lt;/ol&gt;
 &lt;h3 id="1-k近邻算法"&gt;1 K近邻算法&lt;/h3&gt;
@@ -298,7 +298,7 @@ $$
 &lt;p&gt;神经网络就是把多个线性回归和逻辑回归组合到一起。由一个输入层、一个输出层和n个隐藏层组成，第n层的每个神经元和第n-1层的所有神经元相连，第n-1层的输出就是第n层的输入。每个隐藏层有n个神经元，每个神经元都有一个非线性激活函数。&lt;/p&gt;
 &lt;p&gt;神经网络的精度高，效果好；但是训练时间长，小数据集上表现不好。他的本质是摆脱人为干预的特征提取(&lt;strong&gt;黑盒&lt;/strong&gt;)，我们只负责输入，查看输出，这就是端对端模型(end-to-end)，深度学习中只有极小值没有极大值。&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;正向传播：从输入层&amp;ndash;&amp;gt;隐藏层&amp;ndash;&amp;gt;输出层的过程，是根据数据损失函数和激活函数&lt;strong&gt;得到模型的输出结果和损失函数的值&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;正向传播：从输入层--&amp;gt;隐藏层--&amp;gt;输出层的过程，是根据数据损失函数和激活函数&lt;strong&gt;得到模型的输出结果和损失函数的值&lt;/strong&gt;。&lt;/li&gt;
 &lt;li&gt;反向传播：从损失函数开始，逐层向后传播误差(链式法则)，并计算每个参数的梯度的过程，然后用优化器更新权重和偏置，让损失主键减小。&lt;/li&gt;
 &lt;li&gt;计算图：描述张量之间运算关系的有向无环图，节点是变量（输入、权重、偏置、激活函数、输出），边是数学运算（加法、乘法、激活函数等）。为了高效计算梯度的。&lt;/li&gt;
 &lt;/ul&gt;

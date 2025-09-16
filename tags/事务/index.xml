@@ -123,7 +123,7 @@
 &lt;p&gt;byteTCC可以实现tcc事务和saga事务，在tcc事务中，try和cancel是对应起来的，如果confirm失败会一直重试，cancel失败也会一直重试，而在saga事务中，没有confirm，try就是执行业务逻辑，cancel提供对应的反向数据操作。&lt;/p&gt;
 &lt;h3 id="bytetcc源码"&gt;byteTCC源码&lt;/h3&gt;
 &lt;p&gt;首先使用byteTCC需要在dataSource组件加入注解：&lt;strong&gt;@Import(SpringCloudConfiguration.class)&lt;/strong&gt;，SpringCloudConfiguration.class里面是对cloud的组件比如feign创建了自己的动态代理，实现自己的逻辑。&lt;/p&gt;
-&lt;p&gt;启动类上添加注解**@ImportResource({ &amp;ldquo;classpath:bytetcc-supports-springcloud.xml&amp;rdquo; }) **，这个xml配置了很多bean。&lt;/p&gt;
+&lt;p&gt;启动类上添加注解**@ImportResource({ &amp;quot;classpath:bytetcc-supports-springcloud.xml&amp;quot; }) **，这个xml配置了很多bean。&lt;/p&gt;
 &lt;p&gt;服务之间的事务上下文都是通过request的header传递。&lt;/p&gt;
 &lt;p&gt;bytejta表中如果只有一条记录，说明try执行完了，confirm或者cancel还没执行成功，正常来说一个事务会对应两条记录。&lt;/p&gt;
 &lt;p&gt;CompensableWork会定时（60s）重试失败的confirm或者cancel，也是调用CompensableCoordinatorController中的接口，同时在刚启动的时候他也会去恢复没执行的事务。&lt;/p&gt;
