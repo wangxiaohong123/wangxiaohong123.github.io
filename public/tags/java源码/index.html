@@ -1,26 +1,256 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>Java源码 | 王小红的笔记</title><meta name=keywords content><meta name=description content><meta name=author content><link rel=canonical href=https://wangxiaohong123.github.io/tags/java%E6%BA%90%E7%A0%81/><link crossorigin=anonymous href=/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as=style><link rel=icon href=https://wangxiaohong123.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://wangxiaohong123.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://wangxiaohong123.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://wangxiaohong123.github.io/apple-touch-icon.png><link rel=mask-icon href=https://wangxiaohong123.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate type=application/rss+xml href=https://wangxiaohong123.github.io/tags/java%E6%BA%90%E7%A0%81/index.xml><link rel=alternate hreflang=en href=https://wangxiaohong123.github.io/tags/java%E6%BA%90%E7%A0%81/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><meta property="og:url" content="https://wangxiaohong123.github.io/tags/java%E6%BA%90%E7%A0%81/"><meta property="og:site_name" content="王小红的笔记"><meta property="og:title" content="Java源码"><meta property="og:locale" content="zh-CN"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content="Java源码"><meta name=twitter:description content></head><body class=list id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://wangxiaohong123.github.io/ accesskey=h title="王小红的笔记 (Alt + H)">王小红的笔记</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
-<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://wangxiaohong123.github.io/posts/ title=笔记><span>笔记</span></a></li><li><a href=https://wangxiaohong123.github.io/tags/ title=标签><span>标签</span></a></li><li><a href=https://wangxiaohong123.github.io/categories/ title=分类><span>分类</span></a></li></ul></nav></header><main class=main><header class=page-header><h1>Java源码</h1></header><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>AQS</h2></header><div class=entry-content><p>谈谈对AQS的理解 ReentrantLock 全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Java源码 | 王小红的笔记</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/tags/java%E6%BA%90%E7%A0%81/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css" integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/tags/java%E6%BA%90%E7%A0%81/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/tags/java%E6%BA%90%E7%A0%81/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false},
+        {left: "\\(", right: "\\)", display: false},
+        {left: "\\[", right: "\\]", display: true}
+      ]
+    });
+  });
+</script>
+
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="王小红的笔记 (Alt + H)">王小红的笔记</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="笔记">
+                    <span>笔记</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    Java源码
+  </h1>
+</header>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">AQS
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>谈谈对AQS的理解 ReentrantLock 全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的
 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 // 一些状态，共享锁、排它锁 static final Node SHARED = new Node(); static final Node EXCLUSIVE = null; static final int CANCELLED = 1; static final int SIGNAL = -1; static final int CONDITION = -2; static final int PROPAGATE = -3; volatile int waitStatus; // 前一个线程 volatile Node prev; // 后一个线程 volatile Node next; // 当前线程 volatile Thread thread; // 如果是排它锁，nextWaiter就是null，否则就是Node Node nextWaiter; 非公平锁的加锁
-...</p></div><footer class=entry-footer>5 min</footer><a class=entry-link aria-label="post link to AQS" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>ArrayList</h2></header><div class=entry-content><p>使用默认的构造函数，ArrayList会把数组的长度设置为10（DEFAULT_CAPACITY）。
+...</p>
+  </div>
+  <footer class="entry-footer">5 min</footer>
+  <a class="entry-link" aria-label="post link to AQS" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">ArrayList
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>使用默认的构造函数，ArrayList会把数组的长度设置为10（DEFAULT_CAPACITY）。
 插入数据很简单，首先判断是否需要扩容ensureCapacityInternal()，如果添加完元素的长度大于现在的长度就扩容成1.5倍。然后把数组赋值。
-1 2 3 4 5 public boolean add(E e) { ensureCapacityInternal(size + 1); // Increments modCount!! elementData[size++] = e; return true; } 1 2 3 4 5 6 7 8 9 10 11 12 public void add(int index, E element) { // 判断是否数组越界 rangeCheckForAdd(index); // 判断是否扩容 ensureCapacityInternal(size + 1); // Increments modCount!! // 拷贝数组，向后移1位 System.arraycopy(elementData, index, elementData, index + 1, size - index); // 设置最新值 elementData[index] = element; // 数组大小加1 size++; } 1 2 3 4 5 6 7 8 9 public E set(int index, E element) { // 判断是否数组越界 rangeCheck(index); // 获取index位置的元素的值 E oldValue = elementData(index); // 设置index为新值 elementData[index] = element; return oldValue; } set不是把元素往后挤，而是替换。
-...</p></div><footer class=entry-footer>2 min</footer><a class=entry-link aria-label="post link to ArrayList" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/1.arraylist/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>ConcurrentHashMap</h2></header><div class=entry-content><p>1.8中使用了分段加锁，刚开始是CAS，hash冲突在使用synchronized
+1 2 3 4 5 public boolean add(E e) { ensureCapacityInternal(size &#43; 1); // Increments modCount!! elementData[size&#43;&#43;] = e; return true; } 1 2 3 4 5 6 7 8 9 10 11 12 public void add(int index, E element) { // 判断是否数组越界 rangeCheckForAdd(index); // 判断是否扩容 ensureCapacityInternal(size &#43; 1); // Increments modCount!! // 拷贝数组，向后移1位 System.arraycopy(elementData, index, elementData, index &#43; 1, size - index); // 设置最新值 elementData[index] = element; // 数组大小加1 size&#43;&#43;; } 1 2 3 4 5 6 7 8 9 public E set(int index, E element) { // 判断是否数组越界 rangeCheck(index); // 获取index位置的元素的值 E oldValue = elementData(index); // 设置index为新值 elementData[index] = element; return oldValue; } set不是把元素往后挤，而是替换。
+...</p>
+  </div>
+  <footer class="entry-footer">2 min</footer>
+  <a class="entry-link" aria-label="post link to ArrayList" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/1.arraylist/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">ConcurrentHashMap
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>1.8中使用了分段加锁，刚开始是CAS，hash冲突在使用synchronized
 put
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 // 计算hash值 int hash = spread(key.hashCode()); for (Node&lt;K,V>[] tab = table;;) { // 如果是第一次添加，初始化数组，因为是死循环，这块直接退出了 if (tab == null || (n = tab.length) == 0) tab = initTable(); // 如果数组这个索引没有元素，使用乐观锁添加，只有一个线程能添加成功 // 因为是死循环，所以多线程来添加，失败的线程会在进来重新添加 else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) { if (casTabAt(tab, i, null, new Node&lt;K,V>(hash, key, value, null))) break; // no lock when adding to empty bin } else if ((fh = f.hash) == MOVED) tab = helpTransfer(tab, f); else { V oldVal = null; // 加锁，只锁数组当前索引的元素 synchronized (f) { if (tabAt(tab, i) == f) { if (fh >= 0) { binCount = 1; // binCount是链表的节点数量 for (Node&lt;K,V> e = f;; ++binCount) { K ek; // 判断key是否相同，相同就覆盖value if (e.hash == hash && ((ek = e.key) == key || (ek != null && key.equals(ek)))) { oldVal = e.val; if (!onlyIfAbsent) e.val = value; break; } Node&lt;K,V> pred = e; // 在链表后面追加 if ((e = e.next) == null) { pred.next = new Node&lt;K,V>(hash, key, value, null); break; } } } // 红黑树添加元素 else if (f instanceof TreeBin) { Node&lt;K,V> p; binCount = 2; if ((p = ((TreeBin&lt;K,V>)f).putTreeVal(hash, key, value)) != null) { oldVal = p.val; if (!onlyIfAbsent) p.val = value; } } } } if (binCount != 0) { // 如果链表节点数量大于8，就转成红黑树 if (binCount >= TREEIFY_THRESHOLD) treeifyBin(tab, i); if (oldVal != null) return oldVal; break; } } } // 在这里进行扩容 addCount(1L, binCount); get的时候使用的UnSafe类的volatile读，volatile会加上Load内存屏障，这样会保证独到的是最新值。
-...</p></div><footer class=entry-footer>2 min</footer><a class=entry-link aria-label="post link to ConcurrentHashMap" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/8.concurrenthashmap/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>ConcurrentLinkedQueue</h2></header><div class=entry-content><p>concurrentLinkedQueue是线程安全的无界队列，里面有两个指针，head和tail，还有一个单向链表Node。
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 // 计算hash值 int hash = spread(key.hashCode()); for (Node&lt;K,V&gt;[] tab = table;;) { // 如果是第一次添加，初始化数组，因为是死循环，这块直接退出了 if (tab == null || (n = tab.length) == 0) tab = initTable(); // 如果数组这个索引没有元素，使用乐观锁添加，只有一个线程能添加成功 // 因为是死循环，所以多线程来添加，失败的线程会在进来重新添加 else if ((f = tabAt(tab, i = (n - 1) &amp; hash)) == null) { if (casTabAt(tab, i, null, new Node&lt;K,V&gt;(hash, key, value, null))) break; // no lock when adding to empty bin } else if ((fh = f.hash) == MOVED) tab = helpTransfer(tab, f); else { V oldVal = null; // 加锁，只锁数组当前索引的元素 synchronized (f) { if (tabAt(tab, i) == f) { if (fh &gt;= 0) { binCount = 1; // binCount是链表的节点数量 for (Node&lt;K,V&gt; e = f;; &#43;&#43;binCount) { K ek; // 判断key是否相同，相同就覆盖value if (e.hash == hash &amp;&amp; ((ek = e.key) == key || (ek != null &amp;&amp; key.equals(ek)))) { oldVal = e.val; if (!onlyIfAbsent) e.val = value; break; } Node&lt;K,V&gt; pred = e; // 在链表后面追加 if ((e = e.next) == null) { pred.next = new Node&lt;K,V&gt;(hash, key, value, null); break; } } } // 红黑树添加元素 else if (f instanceof TreeBin) { Node&lt;K,V&gt; p; binCount = 2; if ((p = ((TreeBin&lt;K,V&gt;)f).putTreeVal(hash, key, value)) != null) { oldVal = p.val; if (!onlyIfAbsent) p.val = value; } } } } if (binCount != 0) { // 如果链表节点数量大于8，就转成红黑树 if (binCount &gt;= TREEIFY_THRESHOLD) treeifyBin(tab, i); if (oldVal != null) return oldVal; break; } } } // 在这里进行扩容 addCount(1L, binCount); get的时候使用的UnSafe类的volatile读，volatile会加上Load内存屏障，这样会保证独到的是最新值。
+...</p>
+  </div>
+  <footer class="entry-footer">2 min</footer>
+  <a class="entry-link" aria-label="post link to ConcurrentHashMap" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/8.concurrenthashmap/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">ConcurrentLinkedQueue
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>concurrentLinkedQueue是线程安全的无界队列，里面有两个指针，head和tail，还有一个单向链表Node。
 offer()，看这个代码能看出来链表中只有一个元素的时候，tail指向是null的。
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 public boolean offer(E e) { // 如果是空就抛出异常 checkNotNull(e); final Node&lt;E> newNode = new Node&lt;E>(e); for (Node&lt;E> t = tail, p = t;;) { Node&lt;E> q = p.next; // 如果tail的next是空，就把tail的next指向newNode if (q == null) { // cas写，如果写失败了还会在进循环 if (p.casNext(null, newNode)) { if (p != t) casTail(t, newNode); return true; } // Lost CAS race to another thread; re-read next } else if (p == q) p = (t != (t = tail)) ? t : head; // tail有值的时候会走到这里，移动p的指针，然后继续走循环，就会走到第一个if中 else p = (p != t && t != (t = tail)) ? t : q; } } poll
-...</p></div><footer class=entry-footer>2 min</footer><a class=entry-link aria-label="post link to ConcurrentLinkedQueue" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/10.concurrentlinkedqueue/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>CopyOnWriteArrayList</h2></header><div class=entry-content><p>底层还是一个数组，被volatile修饰了，这样可以保证多线程读写的可见性。
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 public boolean offer(E e) { // 如果是空就抛出异常 checkNotNull(e); final Node&lt;E&gt; newNode = new Node&lt;E&gt;(e); for (Node&lt;E&gt; t = tail, p = t;;) { Node&lt;E&gt; q = p.next; // 如果tail的next是空，就把tail的next指向newNode if (q == null) { // cas写，如果写失败了还会在进循环 if (p.casNext(null, newNode)) { if (p != t) casTail(t, newNode); return true; } // Lost CAS race to another thread; re-read next } else if (p == q) p = (t != (t = tail)) ? t : head; // tail有值的时候会走到这里，移动p的指针，然后继续走循环，就会走到第一个if中 else p = (p != t &amp;&amp; t != (t = tail)) ? t : q; } } poll
+...</p>
+  </div>
+  <footer class="entry-footer">2 min</footer>
+  <a class="entry-link" aria-label="post link to ConcurrentLinkedQueue" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/10.concurrentlinkedqueue/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">CopyOnWriteArrayList
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>底层还是一个数组，被volatile修饰了，这样可以保证多线程读写的可见性。
 add()
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 public boolean add(E e) { final ReentrantLock lock = this.lock; // 可重入锁进行加锁 lock.lock(); try { Object[] elements = getArray(); // 获取长度 int len = elements.length; // 把底层的数组复制到新数组，同时长度增加1 Object[] newElements = Arrays.copyOf(elements, len + 1); // 设置新元素 newElements[len] = e; // 赋值数组 setArray(newElements); return true; } finally { lock.unlock(); } } set和add一样的。
-...</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to CopyOnWriteArrayList" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/9.copyonwritearraylist/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>fail fast</h2></header><div class=entry-content><p>fail fast就是说，在迭代器遍历的时候，其他线程过来修改集合，迭代器就会报错，concurrentModificationException。
-之前看的集合源码中的增删改操作都会有个操作，modCount++，在初始化迭代器的时候会把modCount赋值给迭代器的exceptedModCount。
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 public boolean add(E e) { final ReentrantLock lock = this.lock; // 可重入锁进行加锁 lock.lock(); try { Object[] elements = getArray(); // 获取长度 int len = elements.length; // 把底层的数组复制到新数组，同时长度增加1 Object[] newElements = Arrays.copyOf(elements, len &#43; 1); // 设置新元素 newElements[len] = e; // 赋值数组 setArray(newElements); return true; } finally { lock.unlock(); } } set和add一样的。
+...</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to CopyOnWriteArrayList" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/9.copyonwritearraylist/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">fail fast
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>fail fast就是说，在迭代器遍历的时候，其他线程过来修改集合，迭代器就会报错，concurrentModificationException。
+之前看的集合源码中的增删改操作都会有个操作，modCount&#43;&#43;，在初始化迭代器的时候会把modCount赋值给迭代器的exceptedModCount。
 1 int expectedModCount = ArrayList.this.modCount; 在执行next()的时候会执行checkForComodification方法，如果不相等就抛出异常。
-1 2 3 4 final void checkForComodification() { if (expectedModCount != ArrayList.this.modCount) throw new ConcurrentModificationException(); }</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to fail fast" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/7.fail-fast%E6%9C%BA%E5%88%B6/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>HashMap</h2></header><div class=entry-content><p>HashMap是采用数组存储元素，计算key的hash值，用hash值对数组长度取模，在对应的索引放入元素，如果存在hash冲突，就会使用单向链表，如果链表的长度超过8，链表可能会变成红黑树，为什么是可能，因为在转红黑树的时候会先判断数组的长度是不是小于64，如果是就进行扩容不转红黑树。红黑树的查询复杂度是O(lg^n^)。
+1 2 3 4 final void checkForComodification() { if (expectedModCount != ArrayList.this.modCount) throw new ConcurrentModificationException(); } </p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to fail fast" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/7.fail-fast%E6%9C%BA%E5%88%B6/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">HashMap
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>HashMap是采用数组存储元素，计算key的hash值，用hash值对数组长度取模，在对应的索引放入元素，如果存在hash冲突，就会使用单向链表，如果链表的长度超过8，链表可能会变成红黑树，为什么是可能，因为在转红黑树的时候会先判断数组的长度是不是小于64，如果是就进行扩容不转红黑树。红黑树的查询复杂度是O(lg^n^)。
 HashMap的元素属性：
-1 2 3 4 5 6 7 8 9 10 11 12 13 static class Node&lt;K,V> implements Map.Entry&lt;K,V> { final int hash; final K key; V value; Node&lt;K,V> next; Node(int hash, K key, V value, Node&lt;K,V> next) { this.hash = hash; this.key = key; this.value = value; this.next = next; } } 底层数组：
-...</p></div><footer class=entry-footer>5 min</footer><a class=entry-link aria-label="post link to HashMap" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/4.hashmap/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>JIT</h2></header><div class=entry-content><p>一个java文件在被JVM加载之前需要通过JDK自带的javac工具编译成.class文件，但是机器不能运行java的字节文件，需要在运行时再次编译，将字节码转换成机器码，所以在运行时是使用Interpreter将.class文件边解释编执行。不直接编译成机器码是因为Java支持动态加载类，最主要的原因是使用.class文件解释执行可以跨平台。
+1 2 3 4 5 6 7 8 9 10 11 12 13 static class Node&lt;K,V&gt; implements Map.Entry&lt;K,V&gt; { final int hash; final K key; V value; Node&lt;K,V&gt; next; Node(int hash, K key, V value, Node&lt;K,V&gt; next) { this.hash = hash; this.key = key; this.value = value; this.next = next; } } 底层数组：
+...</p>
+  </div>
+  <footer class="entry-footer">5 min</footer>
+  <a class="entry-link" aria-label="post link to HashMap" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/4.hashmap/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">JIT
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>一个java文件在被JVM加载之前需要通过JDK自带的javac工具编译成.class文件，但是机器不能运行java的字节文件，需要在运行时再次编译，将字节码转换成机器码，所以在运行时是使用Interpreter将.class文件边解释编执行。不直接编译成机器码是因为Java支持动态加载类，最主要的原因是使用.class文件解释执行可以跨平台。
 为了优化执行速度，当虚拟机发现某个方法或者代码块执行的特别频繁，就认为这段代码是热点代码，JIT会对热点代码进行优化编译成机器码存到内存中。
 即时编译器 在Java8，HotSpot内置两个JIT：
 C1：客户端编译器，优化局部； C2：服务端编译器，位长期运行的服务端做性能调优； 在java7之前需要指定JIT；在java8之后默认开启分层编译，如果想只开启C2可以使用参数-XX:-TieredCompilation，如果想只开启C1可以使用参数-XX:TieredStopAtLevel=1。
@@ -29,12 +259,117 @@ Java10，JIT编译器新增一个Graal，Graal可以实现运行时动态即时�
 分层编译 第 0 层：程序解释执行，默认开启性能监控功能（Profiling），如果不开启，可触发第二层编译； 第 1 层：可称为 C1 编译，将字节码编译为本地代码，进行简单、可靠的优化，不开启 Profiling； 第 2 层：也称为 C1 编译，开启 Profiling，仅执行带方法调用次数和循环回边执行次数 profiling 的 C1 编译； 第 3 层：也称为 C1 编译，执行所有带 Profiling 的 C1 编译； 第 4 层：可称为 C2 编译，也是将字节码编译为本地代码，但是会启用一些编译耗时较长的优化，甚至会根据性能监控信息进行一些不可靠的激进优化。 热点探测 HotSpot中使用热点探测来做位JIT优化的条件，虚拟机为每个方法建立两个计数器，统计方法被调用次数，这两个技术区有一个达到阈值就会触发JIT编译：
 方法调用计数器：统计方法被调用次数； 回边计数器：统计循环体代码的执行次数，字节码中遇到控制流向后跳转的指令成为回边，就是这次循环执行结束跳到开头执行下次循环； JIT优化技术 方法内联 在调用别的方法的时候会记录信息，执行结束后再恢复，这样会浪费一些空间和时间，所以如果热点方法的代码不是很大会直接将热点方法内联到调用方法中，默认情况下方法体大小小于325字节都会内联优化，可以使用-XX:MaxFreqInlineSize=N设置大小值；
 逃逸分析 使用逃逸分析分析方法是否被外部方法或线程使用，根据结果进行优化。
-栈上分配：逃逸分析如果发现对象只在方法中使用就会将对象分配在栈上（现在还没有这个优化）； 锁消除：如果不存在线程安全问题JIT编译时会把锁去掉； 标量替换：如果逃逸分析发现一个对象不能被外部访问，并且对象可被拆分，那么JIT可能不会创建这个对象，而是创建这个对象被拆分出来的变量，这样就不用在堆中创建对象，创建在栈或寄存器上； 1 2 3 4 5 6 7 8 9 10 11 12 # 开启逃逸分析（jdk1.8默认开启，其它版本未测试） -XX:+DoEscapeAnalysis # 关闭逃逸分析 -XX:-DoEscapeAnalysis # 开启锁消除（jdk1.8默认开启，其它版本未测试） -XX:+EliminateLocks # 关闭锁消除 -XX:-EliminateLocks # 开启标量替换（jdk1.8默认开启，其它版本未测试） -XX:+EliminateAllocations # 关闭标量替换 -XX:-EliminateAllocations</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to JIT" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/jit/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>LinkedBlockingQueue</h2></header><div class=entry-content><p>一个有界队列，初始化的时候如果传capacity就会设置成参数大小，如果没有就设置成int的最大值。他有两把可重入锁，一个putLock，一个takeLock，这两个lock还对应着两个condition，为什么叫阻塞队列呢？因为当put的时候，如果链表的大小等于capacity，会把线程放到锁的wait队列中去，这样不就是阻塞的了吗。take也是一样的，capacity是0的时候就会阻塞住。
+栈上分配：逃逸分析如果发现对象只在方法中使用就会将对象分配在栈上（现在还没有这个优化）； 锁消除：如果不存在线程安全问题JIT编译时会把锁去掉； 标量替换：如果逃逸分析发现一个对象不能被外部访问，并且对象可被拆分，那么JIT可能不会创建这个对象，而是创建这个对象被拆分出来的变量，这样就不用在堆中创建对象，创建在栈或寄存器上； 1 2 3 4 5 6 7 8 9 10 11 12 # 开启逃逸分析（jdk1.8默认开启，其它版本未测试） -XX:&#43;DoEscapeAnalysis # 关闭逃逸分析 -XX:-DoEscapeAnalysis # 开启锁消除（jdk1.8默认开启，其它版本未测试） -XX:&#43;EliminateLocks # 关闭锁消除 -XX:-EliminateLocks # 开启标量替换（jdk1.8默认开启，其它版本未测试） -XX:&#43;EliminateAllocations # 关闭标量替换 -XX:-EliminateAllocations </p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to JIT" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/jit/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">LinkedBlockingQueue
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>一个有界队列，初始化的时候如果传capacity就会设置成参数大小，如果没有就设置成int的最大值。他有两把可重入锁，一个putLock，一个takeLock，这两个lock还对应着两个condition，为什么叫阻塞队列呢？因为当put的时候，如果链表的大小等于capacity，会把线程放到锁的wait队列中去，这样不就是阻塞的了吗。take也是一样的，capacity是0的时候就会阻塞住。
 put
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 public void put(E e) throws InterruptedException { if (e == null) throw new NullPointerException(); // Note: convention in all put/take/etc is to preset local var // holding count negative to indicate failure unless set. int c = -1; Node&lt;E> node = new Node&lt;E>(e); final ReentrantLock putLock = this.putLock; // count就是链表的节点数量，使用AtomicInteger保证并发安全 final AtomicInteger count = this.count; // 加锁，lockInterruptibly在加锁成功之前是可以被中断的 putLock.lockInterruptibly(); try { while (count.get() == capacity) { notFull.await(); } // 入队，就是修改一下last的指针 enqueue(node); // 节点数量增加 c = count.getAndIncrement(); if (c + 1 &lt; capacity) // 唤醒等待put的线程 notFull.signal(); } finally { putLock.unlock(); } // 在这里应该是添加加成功了的， // 因为数量自增使用的getAndIncrement，所以当链表中没有元素，然后添加第一个元素走到这里 // 此时count是1，c是0，也是就是put之前，在这里判断，如果put之前链表没有元素，name可能有线程take被阻塞了 // 所以唤醒take的wait线程 if (c == 0) signalNotEmpty(); } 他的Iterator的next和remove是把putLock和takeLock都锁上。
-...</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to LinkedBlockingQueue" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/11.linkedblockingqueue/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>LinkedHashMap</h2></header><div class=entry-content><p>LinkedHashMap就是有序的。他是HashMap的子类，正常的LinkedHashMap操作都会走到HashMap中去，LinkedHashMap重写了newNode的方法：
-1 2 3 4 5 6 7 Node&lt;K,V> newNode(int hash, K key, V value, Node&lt;K,V> e) { LinkedHashMap.Entry&lt;K,V> p = new LinkedHashMap.Entry&lt;K,V>(hash, key, value, e); // 在链表结尾插入 linkNodeLast(p); return p; } TreeMap TreeMap就是一个红黑树，默认按照key排序，可以指定Comparator指定排序。</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to LinkedHashMap" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/5.linkedhashmap/></a></article><footer class=page-footer><nav class=pagination><a class=next href=https://wangxiaohong123.github.io/tags/java%E6%BA%90%E7%A0%81/page/2/>Next&nbsp;&nbsp;»</a></nav></footer></main><footer class=footer><span>&copy; 2025 <a href=https://wangxiaohong123.github.io/>王小红的笔记</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 public void put(E e) throws InterruptedException { if (e == null) throw new NullPointerException(); // Note: convention in all put/take/etc is to preset local var // holding count negative to indicate failure unless set. int c = -1; Node&lt;E&gt; node = new Node&lt;E&gt;(e); final ReentrantLock putLock = this.putLock; // count就是链表的节点数量，使用AtomicInteger保证并发安全 final AtomicInteger count = this.count; // 加锁，lockInterruptibly在加锁成功之前是可以被中断的 putLock.lockInterruptibly(); try { while (count.get() == capacity) { notFull.await(); } // 入队，就是修改一下last的指针 enqueue(node); // 节点数量增加 c = count.getAndIncrement(); if (c &#43; 1 &lt; capacity) // 唤醒等待put的线程 notFull.signal(); } finally { putLock.unlock(); } // 在这里应该是添加加成功了的， // 因为数量自增使用的getAndIncrement，所以当链表中没有元素，然后添加第一个元素走到这里 // 此时count是1，c是0，也是就是put之前，在这里判断，如果put之前链表没有元素，name可能有线程take被阻塞了 // 所以唤醒take的wait线程 if (c == 0) signalNotEmpty(); } 他的Iterator的next和remove是把putLock和takeLock都锁上。
+...</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to LinkedBlockingQueue" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/11.linkedblockingqueue/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">LinkedHashMap
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>LinkedHashMap就是有序的。他是HashMap的子类，正常的LinkedHashMap操作都会走到HashMap中去，LinkedHashMap重写了newNode的方法：
+1 2 3 4 5 6 7 Node&lt;K,V&gt; newNode(int hash, K key, V value, Node&lt;K,V&gt; e) { LinkedHashMap.Entry&lt;K,V&gt; p = new LinkedHashMap.Entry&lt;K,V&gt;(hash, key, value, e); // 在链表结尾插入 linkNodeLast(p); return p; } TreeMap TreeMap就是一个红黑树，默认按照key排序，可以指定Comparator指定排序。
+</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to LinkedHashMap" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/5.linkedhashmap/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="next" href="http://localhost:1313/tags/java%E6%BA%90%E7%A0%81/page/2/">Next&nbsp;&nbsp;»
+    </a>
+  </nav>
+</footer>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">王小红的笔记</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

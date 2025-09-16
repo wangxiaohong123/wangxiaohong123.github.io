@@ -1,7 +1,166 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>分库分表 | 王小红的笔记</title><meta name=keywords content><meta name=description content><meta name=author content><link rel=canonical href=https://wangxiaohong123.github.io/tags/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/><link crossorigin=anonymous href=/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as=style><link rel=icon href=https://wangxiaohong123.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://wangxiaohong123.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://wangxiaohong123.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://wangxiaohong123.github.io/apple-touch-icon.png><link rel=mask-icon href=https://wangxiaohong123.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate type=application/rss+xml href=https://wangxiaohong123.github.io/tags/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/index.xml><link rel=alternate hreflang=en href=https://wangxiaohong123.github.io/tags/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><meta property="og:url" content="https://wangxiaohong123.github.io/tags/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/"><meta property="og:site_name" content="王小红的笔记"><meta property="og:title" content="分库分表"><meta property="og:locale" content="zh-CN"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content="分库分表"><meta name=twitter:description content></head><body class=list id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://wangxiaohong123.github.io/ accesskey=h title="王小红的笔记 (Alt + H)">王小红的笔记</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
-<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://wangxiaohong123.github.io/posts/ title=笔记><span>笔记</span></a></li><li><a href=https://wangxiaohong123.github.io/tags/ title=标签><span>标签</span></a></li><li><a href=https://wangxiaohong123.github.io/categories/ title=分类><span>分类</span></a></li></ul></nav></header><main class=main><header class=page-header><h1>分库分表</h1></header><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>1.分库分表-sharding_sphere</h2></header><div class=entry-content><p>sharding-sphere仅仅是一个框架，业务引入依赖就可以使用了，通过一些配置，他就会根据指定sharding字段路由，执行SQL，[官网][https://shardingsphere.apache.org/index_zh.html]。现在sharding-sphere也有proxy server模式了，它还支持主键生成、事务(最终一致性、XA)、数据迁移、数据可视化链路追踪、扩容等，就是说基本上除了垮裤跨表的复杂查询，分库分表用到的功能他基本上都有了，最早是当当开源出来的。
-mycat是proxy server模式，需要独立部署server端，然后在业务引入client依赖，所有SQL通过client发送到server</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to 1.分库分表-sharding_sphere" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/2.sharding-sphere/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>1.分库分表-介绍</h2></header><div class=entry-content><p>1.怎么拆 分库分表之前要考虑怎么拆分，一般都是先垂直后水平，首先垂直拆分把表的列按模块尽可能分到不同的库中，这样可能会解决读写并发压力过大的问题和单条数据过大导致磁盘瓶颈问题，然后在考虑水平拆分。
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>分库分表 | 王小红的笔记</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/tags/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css" integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/tags/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/tags/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false},
+        {left: "\\(", right: "\\)", display: false},
+        {left: "\\[", right: "\\]", display: true}
+      ]
+    });
+  });
+</script>
+
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="王小红的笔记 (Alt + H)">王小红的笔记</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="笔记">
+                    <span>笔记</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    分库分表
+  </h1>
+</header>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">1.分库分表-sharding_sphere
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>sharding-sphere仅仅是一个框架，业务引入依赖就可以使用了，通过一些配置，他就会根据指定sharding字段路由，执行SQL，[官网][https://shardingsphere.apache.org/index_zh.html]。现在sharding-sphere也有proxy server模式了，它还支持主键生成、事务(最终一致性、XA)、数据迁移、数据可视化链路追踪、扩容等，就是说基本上除了垮裤跨表的复杂查询，分库分表用到的功能他基本上都有了，最早是当当开源出来的。
+mycat是proxy server模式，需要独立部署server端，然后在业务引入client依赖，所有SQL通过client发送到server
+</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to 1.分库分表-sharding_sphere" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/2.sharding-sphere/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">1.分库分表-介绍
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>1.怎么拆 分库分表之前要考虑怎么拆分，一般都是先垂直后水平，首先垂直拆分把表的列按模块尽可能分到不同的库中，这样可能会解决读写并发压力过大的问题和单条数据过大导致磁盘瓶颈问题，然后在考虑水平拆分。
 然后在考虑用什么技术，一般就是sharding-sphere和mcat。
 2.唯一id 使用leaf
 3.多场景不同条件查询 比如电商的订单，用户可以查询自己的id获取订单记录，商家可以根据自己的id获取订单记录，这个时候是以用户id路由，保证同一个用户的订单分到了同一张表还是以商家id路由，如果不考虑存储空间就都做，这样数据量会变成原来的两倍，如果考虑存储空间就以经常访问的业务作为路有条件，其他的可以二次路由。
@@ -10,13 +169,100 @@ mycat是proxy server模式，需要独立部署server端，然后在业务引入
 6.读写分离 使用一主多从分摊大部分的查询请求，这样一主多从抗住80%的crud，es抗住20%的复杂查询。
 7.物理架构的规划 一般表就是1024张，库的话需要根据写并发和数据大小做出规划，比如高峰时这个库有多少tps，未来是否会增长，然后每天增长多少数据，计算主库和从库的配置，分几台主库，es要几台服务器，几个分片，保证分库之后可以抗几年。
 8.数据迁移 首先开发一个数据同步加检测的程序，同步就一直在同步，检测也是一直在检测，保证某一个时间点时之后旧库和新库的数据完全一致。 然后在开发新系统，数据的crud全部打到新数据库中。 进行双写，比如使用nginx把一个请求分发到两套系统里，停掉数据同步，只开启数据检测。 运行一段时间后如果检测没有问题修改nginx，把请求只打到新程序中，停掉旧程序完成数据迁移。 9.控制台 分库分表之前需要操作控制台实现大量的DDL操作，不能每个表拆成1024张都手动去操作吧，以后新业务需要新表新库的时候也不能手动操作吧，太没效率了，在分库分表之后还需要监控每个库表的性能、负载，还需要知道每张物理表的数据量，占用空间，1024张物理表组成的大逻辑表一共有多少数据等等。
-10.扩容问题 之前创建的1024张表在扩容时可以直接移动表，不需要重新把路由数据，但是在迁移表的时候还要考虑迁移的时候数据写入问题、迁移之后数据库配置，这也是很麻烦的，可以编写一套脚本，然后在控制台控制执行，在来一个配置中心，也可以是控制台，修改数据库连接之类的。</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to 1.分库分表-介绍" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/1.%E4%BB%8B%E7%BB%8D/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>3.分库分表-经验</h2></header><div class=entry-content><p>shard key 分库分表后首先要考虑的就是分片key的设计，比如单号和用户关联，订单号使用类型(10表示正向下单，20表示退单)+flicker+用户id后3位，这样订单就和用户关联起来，查询用户的订单会路由到同一个库的同一张表中，查询订单明细也会路由到同一个库的同一张表中
+10.扩容问题 之前创建的1024张表在扩容时可以直接移动表，不需要重新把路由数据，但是在迁移表的时候还要考虑迁移的时候数据写入问题、迁移之后数据库配置，这也是很麻烦的，可以编写一套脚本，然后在控制台控制执行，在来一个配置中心，也可以是控制台，修改数据库连接之类的。
+</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to 1.分库分表-介绍" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/1.%E4%BB%8B%E7%BB%8D/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">3.分库分表-经验
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>shard key 分库分表后首先要考虑的就是分片key的设计，比如单号和用户关联，订单号使用类型(10表示正向下单，20表示退单)&#43;flicker&#43;用户id后3位，这样订单就和用户关联起来，查询用户的订单会路由到同一个库的同一张表中，查询订单明细也会路由到同一个库的同一张表中
 主键id 分库分表后的id一般都会使用雪花算法生成，保证不同表的id也没有重复，但是一般shard key不会采用id，这个id其实是没有查询意义的。
 默认策略 有的表不需要分库分表(比如seata)，有的表只要分库，有的表需要分库分表，不分库分表的会去走默认策略。有的业务需要一种每个库存储一样的数据，就要配置成广播表。
-配合其他数据库 分库分表的原因是数据量过大，一帮分库分表之后只靠MySQL是无法满足业务的，高频率的复杂查询和复杂查询+分页需要es的配合，低频率的大量数据可以使用MongoDB，还有一些更大数据量的低频查询数据可以使用HBase，他和MongoDB的区别是他可以对保存的数据进行列扩展，还可以对MySQL的一些数据做降级，需要注意HBase的查询只有根据rowkey才快，所以在rowkey的设计上需要一些技巧。
+配合其他数据库 分库分表的原因是数据量过大，一帮分库分表之后只靠MySQL是无法满足业务的，高频率的复杂查询和复杂查询&#43;分页需要es的配合，低频率的大量数据可以使用MongoDB，还有一些更大数据量的低频查询数据可以使用HBase，他和MongoDB的区别是他可以对保存的数据进行列扩展，还可以对MySQL的一些数据做降级，需要注意HBase的查询只有根据rowkey才快，所以在rowkey的设计上需要一些技巧。
 数据迁移 分库分表或者多种库异构存储就要涉及到数据迁移，数据迁移方案由两步组成，全量同步和增量同步，两步就有同步执行和串行执行，在执行数据迁移之前要把新版本的服务环境和服务运行起来，此时流量0%打到新系统上，启动数据迁移系统，然后启动canal监听老版本和新版本数据库的binlog，开启数据全量同步。
-全量和增量串行，如果是串行在全量同步的时候收到的增量变更只记录，不执行，等到全量同步完成后，遍历增量变更数据，根据变更时间和全量数据的查询时间，选择性刷新数据，在全量同步完成后，收到的增量变更不记录，直接刷新，然后修改分流方案，让流量全部打到新系统上，这个时候就服务就已经没用了，等到增量的topic全部消费完数据迁移服务也没用了。适合小数据量的数据迁移。 全量和增量并行，并行和串行类似，但是比串行快，同时迁移代码也更复杂，需要处理好并发问题。</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to 3.分库分表-经验" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/3.%E7%BB%8F%E9%AA%8C/></a></article></main><footer class=footer><span>&copy; 2025 <a href=https://wangxiaohong123.github.io/>王小红的笔记</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>
+全量和增量串行，如果是串行在全量同步的时候收到的增量变更只记录，不执行，等到全量同步完成后，遍历增量变更数据，根据变更时间和全量数据的查询时间，选择性刷新数据，在全量同步完成后，收到的增量变更不记录，直接刷新，然后修改分流方案，让流量全部打到新系统上，这个时候就服务就已经没用了，等到增量的topic全部消费完数据迁移服务也没用了。适合小数据量的数据迁移。 全量和增量并行，并行和串行类似，但是比串行快，同时迁移代码也更复杂，需要处理好并发问题。 </p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to 3.分库分表-经验" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/3.%E7%BB%8F%E9%AA%8C/"></a>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">王小红的笔记</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

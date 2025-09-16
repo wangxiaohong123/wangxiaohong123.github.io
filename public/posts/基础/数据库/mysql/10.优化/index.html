@@ -1,4 +1,13 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>MySQL优化 | 王小红的笔记</title><meta name=keywords content="MySQL"><meta name=description content="参数优化：
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>MySQL优化 | 王小红的笔记</title>
+<meta name="keywords" content="MySQL">
+<meta name="description" content="参数优化：
 1）buffer pool参数优化
 
 
@@ -20,324 +29,843 @@
 13
 
 
-mysql> show variables like '%innodb_buffer_pool_size%';
-+-------------------------+-----------+
+mysql&gt; show variables like &#39;%innodb_buffer_pool_size%&#39;;
+&#43;-------------------------&#43;-----------&#43;
 | Variable_name           | Value     |
-+-------------------------+-----------+
+&#43;-------------------------&#43;-----------&#43;
 | innodb_buffer_pool_size | 134217728 |
-+-------------------------+-----------+
+&#43;-------------------------&#43;-----------&#43;
 
-mysql> select 134217728 / 1024 / 1024;
-+-------------------------+
+mysql&gt; select 134217728 / 1024 / 1024;
+&#43;-------------------------&#43;
 | 134217728 / 1024 / 1024 |
-+-------------------------+
+&#43;-------------------------&#43;
 |            128.00000000 |
-+-------------------------+
+&#43;-------------------------&#43;
 
 
 
 
-在线调整InnoDB缓冲池大小"><meta name=author content><link rel=canonical href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/><link crossorigin=anonymous href=/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as=style><link rel=icon href=https://wangxiaohong123.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://wangxiaohong123.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://wangxiaohong123.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://wangxiaohong123.github.io/apple-touch-icon.png><link rel=mask-icon href=https://wangxiaohong123.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><meta property="og:url" content="https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/"><meta property="og:site_name" content="王小红的笔记"><meta property="og:title" content="MySQL优化"><meta property="og:description" content="参数优化： 1）buffer pool参数优化 查看缓冲池大小，一般可以调成服务器内存的70%。
-1 2 3 4 5 6 7 8 9 10 11 12 13 mysql> show variables like '%innodb_buffer_pool_size%'; +-------------------------+-----------+ | Variable_name | Value | +-------------------------+-----------+ | innodb_buffer_pool_size | 134217728 | +-------------------------+-----------+ mysql> select 134217728 / 1024 / 1024; +-------------------------+ | 134217728 / 1024 / 1024 | +-------------------------+ | 128.00000000 | +-------------------------+ 在线调整InnoDB缓冲池大小"><meta property="og:locale" content="zh-CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:tag" content="MySQL"><meta name=twitter:card content="summary"><meta name=twitter:title content="MySQL优化"><meta name=twitter:description content="参数优化：
-1）buffer pool参数优化
+在线调整InnoDB缓冲池大小">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css" integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false},
+        {left: "\\(", right: "\\)", display: false},
+        {left: "\\[", right: "\\]", display: true}
+      ]
+    });
+  });
+</script>
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="王小红的笔记 (Alt + H)">王小红的笔记</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="笔记">
+                    <span>笔记</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      MySQL优化
+    </h1>
+    <div class="post-meta">4 min
+
+</div>
+  </header> 
+  <div class="post-content"><h3 id="参数优化">参数优化：<a hidden class="anchor" aria-hidden="true" href="#参数优化">#</a></h3>
+<h5 id="1buffer-pool参数优化">1）buffer pool参数优化<a hidden class="anchor" aria-hidden="true" href="#1buffer-pool参数优化">#</a></h5>
+<ul>
+<li>
+<p>查看缓冲池大小，一般可以调成服务器内存的70%。</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> variables <span style="color:#ff79c6">like</span> <span style="color:#f1fa8c">&#39;%innodb_buffer_pool_size%&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+-----------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Variable_name           <span style="color:#ff79c6">|</span> Value     <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+-----------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> innodb_buffer_pool_size <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">134217728</span> <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+-----------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">select</span> <span style="color:#bd93f9">134217728</span> <span style="color:#ff79c6">/</span> <span style="color:#bd93f9">1024</span> <span style="color:#ff79c6">/</span> <span style="color:#bd93f9">1024</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> <span style="color:#bd93f9">134217728</span> <span style="color:#ff79c6">/</span> <span style="color:#bd93f9">1024</span> <span style="color:#ff79c6">/</span> <span style="color:#bd93f9">1024</span> <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span>            <span style="color:#bd93f9">128</span>.<span style="color:#bd93f9">00000000</span> <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>在线调整InnoDB缓冲池大小</p>
+<p>innodb_buffer_pool_size可以动态设置，允许在不重新启动服务器的情况下调整缓冲池的大小.</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">SET</span> <span style="color:#ff79c6">GLOBAL</span> innodb_buffer_pool_size <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">268435456</span>;
+</span></span><span style="display:flex;"><span>Query OK, <span style="color:#bd93f9">0</span> <span style="color:#ff79c6">rows</span> affected (<span style="color:#bd93f9">0</span>.<span style="color:#bd93f9">10</span> sec)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> variables <span style="color:#ff79c6">like</span> <span style="color:#f1fa8c">&#39;%innodb_buffer_pool_size%&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+-----------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Variable_name           <span style="color:#ff79c6">|</span> Value     <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+-----------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> innodb_buffer_pool_size <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">268435456</span> <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+-----------+
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>监控在线调整缓冲池的进度</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">SHOW</span> STATUS <span style="color:#ff79c6">WHERE</span> Variable_name<span style="color:#ff79c6">=</span><span style="color:#f1fa8c">&#39;InnoDB_buffer_pool_resize_status&#39;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">----------------------------------+----------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Variable_name                    <span style="color:#ff79c6">|</span> Value                                                        <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">----------------------------------+----------------------------------------------------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_resize_status <span style="color:#ff79c6">|</span> <span style="color:#ff79c6">Size</span> did <span style="color:#ff79c6">not</span> change (<span style="color:#ff79c6">old</span> <span style="color:#ff79c6">size</span> <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">new</span> <span style="color:#ff79c6">size</span> <span style="color:#ff79c6">=</span> <span style="color:#bd93f9">268435456</span>. <span style="color:#ff79c6">Nothing</span> <span style="color:#ff79c6">to</span> <span style="color:#ff79c6">do</span>. <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">----------------------------------+----------------------------------------------------------------------+
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<ul>
+<li>
+<p>设置多个buffer pool，多个buffer pool可以提交多线程读写的并发，通过下面的参数设置buffer pool个数，最多可以设置64个：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> variables <span style="color:#ff79c6">like</span> <span style="color:#f1fa8c">&#39;innodb_buffer_pool_instances&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Variable_name                <span style="color:#ff79c6">|</span> Value <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> innodb_buffer_pool_instances <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">1</span>     <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">------------------------------+-------+
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p>chunk大小优化</p>
+<p>buffer pool是由很多个chunk组成的，每个chunk都会存储一些描述数据和缓存页，每个chunk的大小默认是是128M，引入chunk是为了方便动态调整buffer pool的大小，调整buffer pool时是以chunk为单位进行拷贝的。通过下面的参数设置chunk的大小：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> variables <span style="color:#ff79c6">like</span> <span style="color:#f1fa8c">&#39;innodb_buffer_pool_chunk_size&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------------+-----------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Variable_name                 <span style="color:#ff79c6">|</span> Value     <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------------+-----------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> innodb_buffer_pool_chunk_size <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">134217728</span> <span style="color:#ff79c6">|</span> 
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------------+-----------+
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>缓冲池的大小 = n * (chunk_size * instances)</strong>，n是正整数，MySQL会动态调整。</p>
+</li>
+<li>
+<p>buffer pool参数评估</p>
+<p>通过下面的两个数据计算缓存命中率来判断buffer pool参数设置是否合理：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#6272a4"># innodb_buffer_pool_reads：表示InnoDB缓冲池无法满足的请求数。需要从磁盘中读取</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># innodb_buffer_pool_read_requests：表示从内存中读取页的请求数</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">命中率</span> <span style="color:#ff79c6">=</span> innodb_buffer_pool_read_requests / <span style="color:#ff79c6">(</span>innodb_buffer_pool_read_requests + innodb_buffer_pool_reads<span style="color:#ff79c6">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> status <span style="color:#ff79c6">like</span> <span style="color:#f1fa8c">&#39;innodb_buffer_pool_read%&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">---------------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Variable_name                         <span style="color:#ff79c6">|</span> Value <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">---------------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_read_ahead_rnd     <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">0</span>     <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_read_ahead         <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">0</span>     <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_read_ahead_evicted <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">0</span>     <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_read_requests      <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">12701</span> <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_reads              <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">455</span>   <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">---------------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">-- 此值低于90%，则可以考虑增加innodb_buffer_pool_size。
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">select</span> <span style="color:#bd93f9">12701</span> <span style="color:#ff79c6">/</span> (<span style="color:#bd93f9">455</span> <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">12701</span>) <span style="color:#ff79c6">*</span> <span style="color:#bd93f9">100</span> ;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-----------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> <span style="color:#bd93f9">12701</span> <span style="color:#ff79c6">/</span> (<span style="color:#bd93f9">455</span> <span style="color:#ff79c6">+</span> <span style="color:#bd93f9">12701</span>) <span style="color:#ff79c6">*</span> <span style="color:#bd93f9">100</span> <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-----------------------------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span>                     <span style="color:#bd93f9">96</span>.<span style="color:#bd93f9">5415</span> <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-----------------------------+
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+<h5 id="2page相关参数优化">2）page相关参数优化<a hidden class="anchor" aria-hidden="true" href="#2page相关参数优化">#</a></h5>
+<p>可以使用<code>innodb_page_size</code>设置page的大小，Page页管理状态相关参数：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> <span style="color:#ff79c6">global</span> status <span style="color:#ff79c6">like</span> <span style="color:#f1fa8c">&#39;%innodb_buffer_pool_pages%&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">----------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Variable_name                    <span style="color:#ff79c6">|</span> Value <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">----------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">#</span>  InnoDB缓冲池中包含数据的页数。 该数字包括脏页面和干净页面
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_pages_data    <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">515</span>   <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#</span> 显示在内存中修改但尚未写入数据文件的InnoDB缓冲池数据页的数量（脏页刷新）
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_pages_dirty   <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">0</span>     <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#</span> 表示从InnoDB缓冲池中刷新脏页的请求数
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_pages_flushed <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">334</span>   <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#</span> 显示InnoDB缓冲池中的空闲页面
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_pages_free    <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">15868</span> <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#</span> 缓存池中当前已经被用作管理用途或hash index而不能用作为普通数据页的数目
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_pages_misc    <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">0</span>     <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">#</span> 缓存池的页总数目。单位是page
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">|</span> Innodb_buffer_pool_pages_total   <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">16383</span> <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">----------------------------------+-------+
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>mysql5.7支持4k~64k的页面大小设置，一般来说16k或者更大适合扫描量大、批量更新多的场景，4k或者8k的页面更适合小操作。同时数据页大小会影响存储的数据量。</p>
+<h5 id="3change-buffer参数优化">3）change buffer参数优化<a hidden class="anchor" aria-hidden="true" href="#3change-buffer参数优化">#</a></h5>
+<p>写多读少的情况下，写完不会立即查询更适合调大change buffer，他原来叫insert buffer，只支持插入的二级索引优化，现在增删改都支持，页改名成change buffer。</p>
+<ul>
+<li>
+<p><strong>配置change buffer使用模式</strong></p>
+<p><strong>innodb_change_buffering</strong> 配置参数说明</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> variables <span style="color:#ff79c6">like</span> <span style="color:#f1fa8c">&#39;%innodb_change_buffering%&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Variable_name           <span style="color:#ff79c6">|</span> Value <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> innodb_change_buffering <span style="color:#ff79c6">|</span> <span style="color:#ff79c6">all</span>   <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------+-------+
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><table>
+  <thead>
+      <tr>
+          <th>选项</th>
+          <th>说明</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>inserts</td>
+          <td>插入缓冲</td>
+      </tr>
+      <tr>
+          <td>deletes</td>
+          <td>删除标记缓冲</td>
+      </tr>
+      <tr>
+          <td>changes</td>
+          <td>更新缓冲,由两个缓冲区组成</td>
+      </tr>
+      <tr>
+          <td>purges</td>
+          <td>缓冲在后台发生的物理删除操作</td>
+      </tr>
+      <tr>
+          <td>all</td>
+          <td>表示启用上面所有配置(默认)</td>
+      </tr>
+      <tr>
+          <td>none</td>
+          <td>表示不启用任何配置</td>
+      </tr>
+  </tbody>
+</table>
+</li>
+<li>
+<p><strong>配置change buffer 大小</strong></p>
+<p>ChangeBuffer占用BufferPool空间，默认占25%，最大允许占50%，可以根据下面参数进行调整：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> variables <span style="color:#ff79c6">like</span> <span style="color:#f1fa8c">&#39;innodb_change_buffer_max_size&#39;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> Variable_name                 <span style="color:#ff79c6">|</span> Value <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">|</span> innodb_change_buffer_max_size <span style="color:#ff79c6">|</span> <span style="color:#bd93f9">25</span>    <span style="color:#ff79c6">|</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff79c6">+</span><span style="color:#6272a4">-------------------------------+-------+
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#bd93f9">1</span> <span style="color:#ff79c6">row</span> <span style="color:#ff79c6">in</span> <span style="color:#ff79c6">set</span> (<span style="color:#bd93f9">0</span>.<span style="color:#bd93f9">00</span> sec)
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
+<li>
+<p><strong>查看change buffer的工作状态</strong></p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#ff79c6">show</span> engine innodb status;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">-------------------------------------
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span><span style="color:#ff79c6">INSERT</span> BUFFER <span style="color:#ff79c6">AND</span> ADAPTIVE HASH <span style="color:#ff79c6">INDEX</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">-------------------------------------
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>Ibuf: <span style="color:#ff79c6">size</span> <span style="color:#bd93f9">1</span>, <span style="color:#ff79c6">free</span> list len <span style="color:#bd93f9">0</span>, seg <span style="color:#ff79c6">size</span> <span style="color:#bd93f9">2</span>, <span style="color:#bd93f9">0</span> merges
+</span></span><span style="display:flex;"><span>merged operations:
+</span></span><span style="display:flex;"><span> <span style="color:#ff79c6">insert</span> <span style="color:#bd93f9">0</span>, <span style="color:#ff79c6">delete</span> mark <span style="color:#bd93f9">0</span>, <span style="color:#ff79c6">delete</span> <span style="color:#bd93f9">0</span>
+</span></span><span style="display:flex;"><span>discarded operations:
+</span></span><span style="display:flex;"><span> <span style="color:#ff79c6">insert</span> <span style="color:#bd93f9">0</span>, <span style="color:#ff79c6">delete</span> mark <span style="color:#bd93f9">0</span>, <span style="color:#ff79c6">delete</span> <span style="color:#bd93f9">0</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li>
+<p><strong>size:</strong> 表示已经合并到辅助索引页的数量；</p>
+</li>
+<li>
+<p><strong>free list len:</strong> 表示空闲列表长度；</p>
+</li>
+<li>
+<p>**seg size：**表示当前Change Buffer的大小，2*16KB；</p>
+</li>
+<li>
+<p><strong>merges</strong>：表示合并的次数；</p>
+</li>
+<li>
+<p>**merged operations：**表示每个具体操作合并的次数；</p>
+<ul>
+<li>insert：表示插入操作；</li>
+<li>delete mark：表示删除标记操作；</li>
+<li>delete：表示物理删除操作；</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h5 id="4日志缓冲区参数优化">4）日志缓冲区参数优化<a hidden class="anchor" aria-hidden="true" href="#4日志缓冲区参数优化">#</a></h5>
+<p>日志相关参数：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-properties" data-lang="properties"><span style="display:flex;"><span><span style="color:#6272a4"># 缓冲区大小，默认16M</span>
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">innodb_log_buffer_size</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># 每组的日志文件数</span>
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">innodb_log_files_in_group</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># 日志文件的大小，默认48M</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4"># 一组的所有日志文件总量不能超过512G</span>
+</span></span><span style="display:flex;"><span><span style="color:#50fa7b">innodb_log_file_size</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>日志文件太小会导致频繁切换日志文件还有可能出现大事务没执行完但是日志写满的情况，如果太大的话可能会导致恢复时间过长。</p>
+<p>官网建议的是日志文件大小最少应该承载1小时的日志量，所以可以估算1个小时的日志量来设置日志文件大小：</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#6272a4">-- pager分页工具, 只获取 sequence的信息
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4">-- MySQL中提供了一个sequence来统计产生多少日志，但是他从8704字节开始，
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>mysql<span style="color:#ff79c6">&gt;</span> pager grep sequence;
+</span></span><span style="display:flex;"><span>PAGER <span style="color:#ff79c6">set</span> <span style="color:#ff79c6">to</span> <span style="color:#f1fa8c">&#39;grep sequence&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">-- 查询状态,并倒计时一分钟
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> engine innodb status\<span style="color:#ff79c6">G</span> <span style="color:#ff79c6">select</span> sleep(<span style="color:#bd93f9">60</span>);
+</span></span><span style="display:flex;"><span>Log sequence <span style="color:#8be9fd;font-style:italic">number</span> <span style="color:#bd93f9">5399154</span>
+</span></span><span style="display:flex;"><span><span style="color:#bd93f9">1</span> <span style="color:#ff79c6">row</span> <span style="color:#ff79c6">in</span> <span style="color:#ff79c6">set</span> (<span style="color:#bd93f9">0</span>.<span style="color:#bd93f9">00</span> sec)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#bd93f9">1</span> <span style="color:#ff79c6">row</span> <span style="color:#ff79c6">in</span> <span style="color:#ff79c6">set</span> (<span style="color:#bd93f9">1</span> <span style="color:#ff79c6">min</span> <span style="color:#bd93f9">0</span>.<span style="color:#bd93f9">00</span> sec)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">-- 一分时间后的数据量 5406150
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>mysql<span style="color:#ff79c6">&gt;</span> <span style="color:#ff79c6">show</span> engine innodb status\<span style="color:#ff79c6">G</span> <span style="color:#ff79c6">select</span> sleep(<span style="color:#bd93f9">60</span>);
+</span></span><span style="display:flex;"><span>Log sequence <span style="color:#8be9fd;font-style:italic">number</span> <span style="color:#bd93f9">5406150</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">-- 关闭pager
+</span></span></span><span style="display:flex;"><span><span style="color:#6272a4"></span>mysql<span style="color:#ff79c6">&gt;</span> nopager;
+</span></span><span style="display:flex;"><span>PAGER <span style="color:#ff79c6">set</span> <span style="color:#ff79c6">to</span> <span style="color:#ff79c6">stdout</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>然后可以使用(5406150 - 5399154) / 1024 计算出1分钟产生多少k数据，就可以算出1小时产生多少日志，通过这个设置日志文件的大小。</p>
+<h3 id="sql优化">SQL优化<a hidden class="anchor" aria-hidden="true" href="#sql优化">#</a></h3>
+<p>sql的优化就是使用explain + sql查看优化器优化之后的查询计划，一般type控制在range之前，同时extra是using where的时候也需要看是否是索引失效或者全表扫描，rows越小越快。</p>
+<p>一般在压测前会统一创建索引，保证每条SQL都使用索引并且索引数不能超过4个并且更新非常频繁的字段需要衡量是否需要可以索引。</p>
+<ul>
+<li>MySQL会跟对联合索引从左到右进行排序，所以要左前缀法则才可以用到联合索引，这也可以解释like '%xxx'不能用到索引，在排好序的B+树上不能快速查找以xxx结尾的数据。</li>
+<li>需要注意对于类型转换(有一个容易忽略的点就是字符串类型的数字需要加单引号)和使用索引计算会导致索引失效。</li>
+<li>范围查询需要放到条件的最后，否则会导致范围查询后的字段哪怕是同一个联合索引也会导致索引会失效。</li>
+<li>使用is null 或者is not null或者!=或者or会导致索引失效。</li>
+<li>排序字段一定要用索引，因为索引本身就是排好序的。</li>
+<li>减少使用select *，第一因为这么查询数据量可能会很大，第二这么查一定会回表，当可以索引覆盖的时候不要使用这个写法。</li>
+</ul>
+<p>上线之后设置<code>slow_query_log=1</code>开启慢查询日志(默认关闭)，也可以设置slow_query_log_file设置慢查询日志文件位置，<code>long_query_time</code>用来设置慢查询的阈值，超过多少s算是慢查询。配合慢查询日志还需要打开一个参数<code>log_queries_not_using_indexes</code>，这个参数是说没有使用索引的查询不记录慢查询日志，这个一定要打开。</p>
+<h5 id="导致抖动的原因">导致抖动的原因：<a hidden class="anchor" aria-hidden="true" href="#导致抖动的原因">#</a></h5>
+<ol>
+<li>
+<p>锂电池充放电可以引起性能的抖动；</p>
+</li>
+<li>
+<p>脏页满了之后执行一个查询，这个查询需要大量的数据，此时就要把脏页的大量数据刷到磁盘上，也会产生性能的抖动；</p>
+<p>解决办法：使用SSD硬盘，脏页刷新是随机读，使用SSD的读写是非常快的，还有一个参数：innodb_io_capacity，这个是设置IO速率的，我们可以使用fio工具得到磁盘随机IO最大速率，然后把值给这个参数。</p>
+</li>
+<li>
+<p>redo log刷盘的时候，如果磁盘的redo log文件写满了，需要从第一个文件的头部开始覆盖，那这个时候就得把buffer pool中的缓存数据全都刷盘，因为持久化的redo log相当于是没有了，全部刷盘的时候也会让性能抖动；</p>
+</li>
+</ol>
+<h5 id="raid充放电性能抖动">RAID充放电性能抖动<a hidden class="anchor" aria-hidden="true" href="#raid充放电性能抖动">#</a></h5>
+<p>在使用RAID磁盘冗余阵列时，一般都会使用write_back方式写数据，意思是只写到缓存，慢慢输入磁盘，为了防止断电后，缓存中数据丢失，一般RAID卡都会有一块锂电池，在断电时，将缓存数据刷到磁盘中，此时写数据的方式变成直接写磁盘，为了保证锂电池的寿命，会自动过一段时间自己充放电，放电时直接写磁盘导致性能很低，可以修改放电时的写数据方式也是write_back，取消自动放电，改成脚本方式手动在凌晨时充放电。</p>
+<h5 id="文件句柄导致的最大连接数限制">文件句柄导致的最大连接数限制<a hidden class="anchor" aria-hidden="true" href="#文件句柄导致的最大连接数限制">#</a></h5>
+<p>Linux设计的初衷是防止一个进程耗尽所有资源，所以默认给进程的文件句柄、最大锁定内存、子进程数、网络缓存都有限制，可以使用ulimit -a 查看进程被限制的各种资源的量，比如MySQL默认的文件句柄只有1024，MySQL启动时会计算出最大连接数是214，这时你设置的最大连接数400是无效的，只能修改文件句柄ulimit -HSn 65535。</p>
+<h5 id="缓存页刷盘导致的性能抖动">缓存页刷盘导致的性能抖动<a hidden class="anchor" aria-hidden="true" href="#缓存页刷盘导致的性能抖动">#</a></h5>
+<p>当redo log文件写满时，因为会覆盖着写，所以要把buffer pool中的脏页全部刷盘，这个时候是比较耗时的，还有当加载很多数据页，buffer pool放不下时，也需要把一部分缓存页刷盘，遇到刷盘时，可能sql语句会比平时慢个刷盘的时间，解决：首先就是要用SSD，因为固态硬盘随机写比机械硬盘快，然后调整参数innodb_io_capacity的大小是硬盘随机写的速率，这样可以最大程度利用SSD的优势，还要把innodb_flush_neighbors设置成0，这样在刷盘时就不会把临近的数据页一起刷盘。这两个参数都是为了减少刷盘时间。</p>
+<h5 id="一个查询count耗费几秒问题">一个查询count耗费几秒问题<a hidden class="anchor" aria-hidden="true" href="#一个查询count耗费几秒问题">#</a></h5>
+<p>有一个圈子服务，在获取用户信息进行推送的时候，需要筛选最近登录的用户推送，推送之前根据推送厂商提供的接口，每次最多只能推送1500个设备，所以需要先查出count是多少，再决定使用limit查询，类似这样的sql select count(id) from user where id in (select user_id from user_extent_info where latest_login_time &lt; XXXX)，这个SQL每次执行会耗费几秒钟，使用explain查看发现会有三条计划，第二条主查询的描述信息里出现了join字样？？？？？并没有join的东西，就怀疑SQL自己优化出来的join，执行show warnings发现确实是SQL自己搞出来的半链接，可以使用 set optimizer_switch='semijoin=off'关闭一下半链接，在执行发现就用两百毫秒，可以确定只要不让他进行半链接优化这个语句就可以快速执行了，但是生产环境不能随意修改这种设置，所以只能修改SQL，一顿瞎猜之后发现在in条件后再加一个or 不成立的条件执行计划就变成了正常的了。</p>
+<h5 id="一个订单记录慢查询调优">一个订单记录慢查询调优<a hidden class="anchor" aria-hidden="true" href="#一个订单记录慢查询调优">#</a></h5>
+<p>订单中有一两百万条的数据，用户查询自己的订单记录，语句是这样的select * from order where status=1 and type='' order by id desc limit <strong>,</strong>。刚开始都好好的，突然查询就变成了几秒，查看执行计划发现posible_keys中有这个索引的，描述也写着using where，但是key用的是id，也就是说这个语句是从聚簇索引的B+树最后一条数据开始向前查询，知道查出满足条件的数据条数，使用select * from order where force index(索引名) status=1 and type='' order by id desc limit **,**这样就恢复正常了。分析原因可能有两个，一个开始数据量少，执行计划是二级索引，数据量多了之后MySQL推断where条件查完二级索引会有大量的数据回表，这样还不如直接全表扫描，另一个是可能最开始执行计划就是用id，但是数据量少，数据量多了之后，但是用户还没有订单，这时候每次查询都是每行数据都扫描，就很慢。</p>
 
 
-查看缓冲池大小，一般可以调成服务器内存的70%。
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/mysql/">MySQL</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/8.%E7%B4%A2%E5%BC%95/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>MySQL-8.索引</span>
+  </a>
+  <a class="next" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/%E5%8F%82%E6%95%B0/">
+    <span class="title">Next »</span>
+    <br>
+    <span>MySQL参数配置</span>
+  </a>
+</nav>
 
 
- 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MySQL优化 on x"
+            href="https://x.com/intent/tweet/?text=MySQL%e4%bc%98%e5%8c%96&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f&amp;hashtags=MySQL">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MySQL优化 on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f&amp;title=MySQL%e4%bc%98%e5%8c%96&amp;summary=MySQL%e4%bc%98%e5%8c%96&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MySQL优化 on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f&title=MySQL%e4%bc%98%e5%8c%96">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MySQL优化 on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MySQL优化 on whatsapp"
+            href="https://api.whatsapp.com/send?text=MySQL%e4%bc%98%e5%8c%96%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MySQL优化 on telegram"
+            href="https://telegram.me/share/url?text=MySQL%e4%bc%98%e5%8c%96&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MySQL优化 on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=MySQL%e4%bc%98%e5%8c%96&u=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
 
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">王小红的笔记</a></span> · 
 
-mysql> show variables like '%innodb_buffer_pool_size%';
-+-------------------------+-----------+
-| Variable_name           | Value     |
-+-------------------------+-----------+
-| innodb_buffer_pool_size | 134217728 |
-+-------------------------+-----------+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
 
-mysql> select 134217728 / 1024 / 1024;
-+-------------------------+
-| 134217728 / 1024 / 1024 |
-+-------------------------+
-|            128.00000000 |
-+-------------------------+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
 
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
 
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
 
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
 
-在线调整InnoDB缓冲池大小"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://wangxiaohong123.github.io/posts/"},{"@type":"ListItem","position":2,"name":"MySQL优化","item":"https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"MySQL优化","name":"MySQL优化","description":"参数优化： 1）buffer pool参数优化 查看缓冲池大小，一般可以调成服务器内存的70%。\n1 2 3 4 5 6 7 8 9 10 11 12 13 mysql\u0026gt; show variables like \u0026#39;%innodb_buffer_pool_size%\u0026#39;; +-------------------------+-----------+ | Variable_name | Value | +-------------------------+-----------+ | innodb_buffer_pool_size | 134217728 | +-------------------------+-----------+ mysql\u0026gt; select 134217728 / 1024 / 1024; +-------------------------+ | 134217728 / 1024 / 1024 | +-------------------------+ | 128.00000000 | +-------------------------+ 在线调整InnoDB缓冲池大小\n","keywords":["MySQL"],"articleBody":"参数优化： 1）buffer pool参数优化 查看缓冲池大小，一般可以调成服务器内存的70%。\n1 2 3 4 5 6 7 8 9 10 11 12 13 mysql\u003e show variables like '%innodb_buffer_pool_size%'; +-------------------------+-----------+ | Variable_name | Value | +-------------------------+-----------+ | innodb_buffer_pool_size | 134217728 | +-------------------------+-----------+ mysql\u003e select 134217728 / 1024 / 1024; +-------------------------+ | 134217728 / 1024 / 1024 | +-------------------------+ | 128.00000000 | +-------------------------+ 在线调整InnoDB缓冲池大小\ninnodb_buffer_pool_size可以动态设置，允许在不重新启动服务器的情况下调整缓冲池的大小.\n1 2 3 4 5 6 7 8 9 mysql\u003e SET GLOBAL innodb_buffer_pool_size = 268435456; Query OK, 0 rows affected (0.10 sec) mysql\u003e show variables like '%innodb_buffer_pool_size%'; +-------------------------+-----------+ | Variable_name | Value | +-------------------------+-----------+ | innodb_buffer_pool_size | 268435456 | +-------------------------+-----------+ 监控在线调整缓冲池的进度\n1 2 3 4 5 6 7 mysql\u003e SHOW STATUS WHERE Variable_name='InnoDB_buffer_pool_resize_status'; +----------------------------------+----------------------------------------------------------------------+ | Variable_name | Value | +----------------------------------+----------------------------------------------------------------------+ | Innodb_buffer_pool_resize_status | Size did not change (old size = new size = 268435456. Nothing to do. | +----------------------------------+----------------------------------------------------------------------+ 设置多个buffer pool，多个buffer pool可以提交多线程读写的并发，通过下面的参数设置buffer pool个数，最多可以设置64个：\n1 2 3 4 5 6 mysql\u003e show variables like 'innodb_buffer_pool_instances'; +------------------------------+-------+ | Variable_name | Value | +------------------------------+-------+ | innodb_buffer_pool_instances | 1 | +------------------------------+-------+ chunk大小优化\nbuffer pool是由很多个chunk组成的，每个chunk都会存储一些描述数据和缓存页，每个chunk的大小默认是是128M，引入chunk是为了方便动态调整buffer pool的大小，调整buffer pool时是以chunk为单位进行拷贝的。通过下面的参数设置chunk的大小：\n1 2 3 4 5 6 mysql\u003e show variables like 'innodb_buffer_pool_chunk_size'; +-------------------------------+-----------+ | Variable_name | Value | +-------------------------------+-----------+ | innodb_buffer_pool_chunk_size | 134217728 | +-------------------------------+-----------+ 缓冲池的大小 = n * (chunk_size * instances)，n是正整数，MySQL会动态调整。\nbuffer pool参数评估\n通过下面的两个数据计算缓存命中率来判断buffer pool参数设置是否合理：\n1 2 3 # innodb_buffer_pool_reads：表示InnoDB缓冲池无法满足的请求数。需要从磁盘中读取 # innodb_buffer_pool_read_requests：表示从内存中读取页的请求数 命中率 = innodb_buffer_pool_read_requests / (innodb_buffer_pool_read_requests + innodb_buffer_pool_reads) 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 mysql\u003e show status like 'innodb_buffer_pool_read%'; +---------------------------------------+-------+ | Variable_name | Value | +---------------------------------------+-------+ | Innodb_buffer_pool_read_ahead_rnd | 0 | | Innodb_buffer_pool_read_ahead | 0 | | Innodb_buffer_pool_read_ahead_evicted | 0 | | Innodb_buffer_pool_read_requests | 12701 | | Innodb_buffer_pool_reads | 455 | +---------------------------------------+-------+ -- 此值低于90%，则可以考虑增加innodb_buffer_pool_size。 mysql\u003e select 12701 / (455 + 12701) * 100 ; +-----------------------------+ | 12701 / (455 + 12701) * 100 | +-----------------------------+ | 96.5415 | +-----------------------------+ 2）page相关参数优化 可以使用innodb_page_size设置page的大小，Page页管理状态相关参数：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 mysql\u003e show global status like '%innodb_buffer_pool_pages%'; +----------------------------------+-------+ | Variable_name | Value | +----------------------------------+-------+ # InnoDB缓冲池中包含数据的页数。 该数字包括脏页面和干净页面 | Innodb_buffer_pool_pages_data | 515 | # 显示在内存中修改但尚未写入数据文件的InnoDB缓冲池数据页的数量（脏页刷新） | Innodb_buffer_pool_pages_dirty | 0 | # 表示从InnoDB缓冲池中刷新脏页的请求数 | Innodb_buffer_pool_pages_flushed | 334 | # 显示InnoDB缓冲池中的空闲页面 | Innodb_buffer_pool_pages_free | 15868 | # 缓存池中当前已经被用作管理用途或hash index而不能用作为普通数据页的数目 | Innodb_buffer_pool_pages_misc | 0 | # 缓存池的页总数目。单位是page | Innodb_buffer_pool_pages_total | 16383 | +----------------------------------+-------+ mysql5.7支持4k~64k的页面大小设置，一般来说16k或者更大适合扫描量大、批量更新多的场景，4k或者8k的页面更适合小操作。同时数据页大小会影响存储的数据量。\n3）change buffer参数优化 写多读少的情况下，写完不会立即查询更适合调大change buffer，他原来叫insert buffer，只支持插入的二级索引优化，现在增删改都支持，页改名成change buffer。\n配置change buffer使用模式\ninnodb_change_buffering 配置参数说明\n1 2 3 4 5 6 mysql\u003e show variables like '%innodb_change_buffering%'; +-------------------------+-------+ | Variable_name | Value | +-------------------------+-------+ | innodb_change_buffering | all | +-------------------------+-------+ 选项 说明 inserts 插入缓冲 deletes 删除标记缓冲 changes 更新缓冲,由两个缓冲区组成 purges 缓冲在后台发生的物理删除操作 all 表示启用上面所有配置(默认) none 表示不启用任何配置 配置change buffer 大小\nChangeBuffer占用BufferPool空间，默认占25%，最大允许占50%，可以根据下面参数进行调整：\n1 2 3 4 5 6 7 mysql\u003e show variables like 'innodb_change_buffer_max_size'; +-------------------------------+-------+ | Variable_name | Value | +-------------------------------+-------+ | innodb_change_buffer_max_size | 25 | +-------------------------------+-------+ 1 row in set (0.00 sec) 查看change buffer的工作状态\n1 2 3 4 5 6 7 8 9 10 show engine innodb status; ------------------------------------- INSERT BUFFER AND ADAPTIVE HASH INDEX ------------------------------------- Ibuf: size 1, free list len 0, seg size 2, 0 merges merged operations: insert 0, delete mark 0, delete 0 discarded operations: insert 0, delete mark 0, delete 0 size: 表示已经合并到辅助索引页的数量；\nfree list len: 表示空闲列表长度；\n**seg size：**表示当前Change Buffer的大小，2*16KB；\nmerges：表示合并的次数；\n**merged operations：**表示每个具体操作合并的次数；\ninsert：表示插入操作； delete mark：表示删除标记操作； delete：表示物理删除操作； 4）日志缓冲区参数优化 日志相关参数：\n1 2 3 4 5 6 7 # 缓冲区大小，默认16M innodb_log_buffer_size # 每组的日志文件数 innodb_log_files_in_group # 日志文件的大小，默认48M # 一组的所有日志文件总量不能超过512G innodb_log_file_size 日志文件太小会导致频繁切换日志文件还有可能出现大事务没执行完但是日志写满的情况，如果太大的话可能会导致恢复时间过长。\n官网建议的是日志文件大小最少应该承载1小时的日志量，所以可以估算1个小时的日志量来设置日志文件大小：\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 -- pager分页工具, 只获取 sequence的信息 -- MySQL中提供了一个sequence来统计产生多少日志，但是他从8704字节开始， mysql\u003e pager grep sequence; PAGER set to 'grep sequence' -- 查询状态,并倒计时一分钟 mysql\u003e show engine innodb status\\G select sleep(60); Log sequence number 5399154 1 row in set (0.00 sec) 1 row in set (1 min 0.00 sec) -- 一分时间后的数据量 5406150 mysql\u003e show engine innodb status\\G select sleep(60); Log sequence number 5406150 -- 关闭pager mysql\u003e nopager; PAGER set to stdout 然后可以使用(5406150 - 5399154) / 1024 计算出1分钟产生多少k数据，就可以算出1小时产生多少日志，通过这个设置日志文件的大小。\nSQL优化 sql的优化就是使用explain + sql查看优化器优化之后的查询计划，一般type控制在range之前，同时extra是using where的时候也需要看是否是索引失效或者全表扫描，rows越小越快。\n一般在压测前会统一创建索引，保证每条SQL都使用索引并且索引数不能超过4个并且更新非常频繁的字段需要衡量是否需要可以索引。\nMySQL会跟对联合索引从左到右进行排序，所以要左前缀法则才可以用到联合索引，这也可以解释like ‘%xxx’不能用到索引，在排好序的B+树上不能快速查找以xxx结尾的数据。 需要注意对于类型转换(有一个容易忽略的点就是字符串类型的数字需要加单引号)和使用索引计算会导致索引失效。 范围查询需要放到条件的最后，否则会导致范围查询后的字段哪怕是同一个联合索引也会导致索引会失效。 使用is null 或者is not null或者!=或者or会导致索引失效。 排序字段一定要用索引，因为索引本身就是排好序的。 减少使用select *，第一因为这么查询数据量可能会很大，第二这么查一定会回表，当可以索引覆盖的时候不要使用这个写法。 上线之后设置slow_query_log=1开启慢查询日志(默认关闭)，也可以设置slow_query_log_file设置慢查询日志文件位置，long_query_time用来设置慢查询的阈值，超过多少s算是慢查询。配合慢查询日志还需要打开一个参数log_queries_not_using_indexes，这个参数是说没有使用索引的查询不记录慢查询日志，这个一定要打开。\n导致抖动的原因： 锂电池充放电可以引起性能的抖动；\n脏页满了之后执行一个查询，这个查询需要大量的数据，此时就要把脏页的大量数据刷到磁盘上，也会产生性能的抖动；\n解决办法：使用SSD硬盘，脏页刷新是随机读，使用SSD的读写是非常快的，还有一个参数：innodb_io_capacity，这个是设置IO速率的，我们可以使用fio工具得到磁盘随机IO最大速率，然后把值给这个参数。\nredo log刷盘的时候，如果磁盘的redo log文件写满了，需要从第一个文件的头部开始覆盖，那这个时候就得把buffer pool中的缓存数据全都刷盘，因为持久化的redo log相当于是没有了，全部刷盘的时候也会让性能抖动；\nRAID充放电性能抖动 在使用RAID磁盘冗余阵列时，一般都会使用write_back方式写数据，意思是只写到缓存，慢慢输入磁盘，为了防止断电后，缓存中数据丢失，一般RAID卡都会有一块锂电池，在断电时，将缓存数据刷到磁盘中，此时写数据的方式变成直接写磁盘，为了保证锂电池的寿命，会自动过一段时间自己充放电，放电时直接写磁盘导致性能很低，可以修改放电时的写数据方式也是write_back，取消自动放电，改成脚本方式手动在凌晨时充放电。\n文件句柄导致的最大连接数限制 Linux设计的初衷是防止一个进程耗尽所有资源，所以默认给进程的文件句柄、最大锁定内存、子进程数、网络缓存都有限制，可以使用ulimit -a 查看进程被限制的各种资源的量，比如MySQL默认的文件句柄只有1024，MySQL启动时会计算出最大连接数是214，这时你设置的最大连接数400是无效的，只能修改文件句柄ulimit -HSn 65535。\n缓存页刷盘导致的性能抖动 当redo log文件写满时，因为会覆盖着写，所以要把buffer pool中的脏页全部刷盘，这个时候是比较耗时的，还有当加载很多数据页，buffer pool放不下时，也需要把一部分缓存页刷盘，遇到刷盘时，可能sql语句会比平时慢个刷盘的时间，解决：首先就是要用SSD，因为固态硬盘随机写比机械硬盘快，然后调整参数innodb_io_capacity的大小是硬盘随机写的速率，这样可以最大程度利用SSD的优势，还要把innodb_flush_neighbors设置成0，这样在刷盘时就不会把临近的数据页一起刷盘。这两个参数都是为了减少刷盘时间。\n一个查询count耗费几秒问题 有一个圈子服务，在获取用户信息进行推送的时候，需要筛选最近登录的用户推送，推送之前根据推送厂商提供的接口，每次最多只能推送1500个设备，所以需要先查出count是多少，再决定使用limit查询，类似这样的sql select count(id) from user where id in (select user_id from user_extent_info where latest_login_time \u003c XXXX)，这个SQL每次执行会耗费几秒钟，使用explain查看发现会有三条计划，第二条主查询的描述信息里出现了join字样？？？？？并没有join的东西，就怀疑SQL自己优化出来的join，执行show warnings发现确实是SQL自己搞出来的半链接，可以使用 set optimizer_switch=‘semijoin=off’关闭一下半链接，在执行发现就用两百毫秒，可以确定只要不让他进行半链接优化这个语句就可以快速执行了，但是生产环境不能随意修改这种设置，所以只能修改SQL，一顿瞎猜之后发现在in条件后再加一个or 不成立的条件执行计划就变成了正常的了。\n一个订单记录慢查询调优 订单中有一两百万条的数据，用户查询自己的订单记录，语句是这样的select * from order where status=1 and type=’’ order by id desc limit ,。刚开始都好好的，突然查询就变成了几秒，查看执行计划发现posible_keys中有这个索引的，描述也写着using where，但是key用的是id，也就是说这个语句是从聚簇索引的B+树最后一条数据开始向前查询，知道查出满足条件的数据条数，使用select * from order where force index(索引名) status=1 and type=’’ order by id desc limit **,**这样就恢复正常了。分析原因可能有两个，一个开始数据量少，执行计划是二级索引，数据量多了之后MySQL推断where条件查完二级索引会有大量的数据回表，这样还不如直接全表扫描，另一个是可能最开始执行计划就是用id，但是数据量少，数据量多了之后，但是用户还没有订单，这时候每次查询都是每行数据都扫描，就很慢。\n","wordCount":"736","inLanguage":"en","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/10.%E4%BC%98%E5%8C%96/"},"publisher":{"@type":"Organization","name":"王小红的笔记","logo":{"@type":"ImageObject","url":"https://wangxiaohong123.github.io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://wangxiaohong123.github.io/ accesskey=h title="王小红的笔记 (Alt + H)">王小红的笔记</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
-<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://wangxiaohong123.github.io/posts/ title=笔记><span>笔记</span></a></li><li><a href=https://wangxiaohong123.github.io/tags/ title=标签><span>标签</span></a></li><li><a href=https://wangxiaohong123.github.io/categories/ title=分类><span>分类</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">MySQL优化</h1><div class=post-meta>4 min</div></header><div class=post-content><h3 id=参数优化>参数优化：<a hidden class=anchor aria-hidden=true href=#参数优化>#</a></h3><h5 id=1buffer-pool参数优化>1）buffer pool参数优化<a hidden class=anchor aria-hidden=true href=#1buffer-pool参数优化>#</a></h5><ul><li><p>查看缓冲池大小，一般可以调成服务器内存的70%。</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> variables <span style=color:#ff79c6>like</span> <span style=color:#f1fa8c>&#39;%innodb_buffer_pool_size%&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+-----------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Variable_name           <span style=color:#ff79c6>|</span> Value     <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+-----------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> innodb_buffer_pool_size <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>134217728</span> <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+-----------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
-</span></span><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>select</span> <span style=color:#bd93f9>134217728</span> <span style=color:#ff79c6>/</span> <span style=color:#bd93f9>1024</span> <span style=color:#ff79c6>/</span> <span style=color:#bd93f9>1024</span>;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> <span style=color:#bd93f9>134217728</span> <span style=color:#ff79c6>/</span> <span style=color:#bd93f9>1024</span> <span style=color:#ff79c6>/</span> <span style=color:#bd93f9>1024</span> <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span>            <span style=color:#bd93f9>128</span>.<span style=color:#bd93f9>00000000</span> <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+
-</span></span></span></code></pre></td></tr></table></div></div></li><li><p>在线调整InnoDB缓冲池大小</p><p>innodb_buffer_pool_size可以动态设置，允许在不重新启动服务器的情况下调整缓冲池的大小.</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">9
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>SET</span> <span style=color:#ff79c6>GLOBAL</span> innodb_buffer_pool_size <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>268435456</span>;
-</span></span><span style=display:flex><span>Query OK, <span style=color:#bd93f9>0</span> <span style=color:#ff79c6>rows</span> affected (<span style=color:#bd93f9>0</span>.<span style=color:#bd93f9>10</span> sec)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> variables <span style=color:#ff79c6>like</span> <span style=color:#f1fa8c>&#39;%innodb_buffer_pool_size%&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+-----------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Variable_name           <span style=color:#ff79c6>|</span> Value     <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+-----------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> innodb_buffer_pool_size <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>268435456</span> <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+-----------+
-</span></span></span></code></pre></td></tr></table></div></div><p>监控在线调整缓冲池的进度</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>SHOW</span> STATUS <span style=color:#ff79c6>WHERE</span> Variable_name<span style=color:#ff79c6>=</span><span style=color:#f1fa8c>&#39;InnoDB_buffer_pool_resize_status&#39;</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>----------------------------------+----------------------------------------------------------------------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Variable_name                    <span style=color:#ff79c6>|</span> Value                                                        <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>----------------------------------+----------------------------------------------------------------------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_resize_status <span style=color:#ff79c6>|</span> <span style=color:#ff79c6>Size</span> did <span style=color:#ff79c6>not</span> change (<span style=color:#ff79c6>old</span> <span style=color:#ff79c6>size</span> <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> <span style=color:#ff79c6>size</span> <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>268435456</span>. <span style=color:#ff79c6>Nothing</span> <span style=color:#ff79c6>to</span> <span style=color:#ff79c6>do</span>. <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>----------------------------------+----------------------------------------------------------------------+
-</span></span></span></code></pre></td></tr></table></div></div></li></ul><ul><li><p>设置多个buffer pool，多个buffer pool可以提交多线程读写的并发，通过下面的参数设置buffer pool个数，最多可以设置64个：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> variables <span style=color:#ff79c6>like</span> <span style=color:#f1fa8c>&#39;innodb_buffer_pool_instances&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Variable_name                <span style=color:#ff79c6>|</span> Value <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> innodb_buffer_pool_instances <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>1</span>     <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>------------------------------+-------+
-</span></span></span></code></pre></td></tr></table></div></div></li><li><p>chunk大小优化</p><p>buffer pool是由很多个chunk组成的，每个chunk都会存储一些描述数据和缓存页，每个chunk的大小默认是是128M，引入chunk是为了方便动态调整buffer pool的大小，调整buffer pool时是以chunk为单位进行拷贝的。通过下面的参数设置chunk的大小：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> variables <span style=color:#ff79c6>like</span> <span style=color:#f1fa8c>&#39;innodb_buffer_pool_chunk_size&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------------+-----------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Variable_name                 <span style=color:#ff79c6>|</span> Value     <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------------+-----------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> innodb_buffer_pool_chunk_size <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>134217728</span> <span style=color:#ff79c6>|</span> 
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------------+-----------+
-</span></span></span></code></pre></td></tr></table></div></div><p><strong>缓冲池的大小 = n * (chunk_size * instances)</strong>，n是正整数，MySQL会动态调整。</p></li><li><p>buffer pool参数评估</p><p>通过下面的两个数据计算缓存命中率来判断buffer pool参数设置是否合理：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span><span style=color:#6272a4># innodb_buffer_pool_reads：表示InnoDB缓冲池无法满足的请求数。需要从磁盘中读取</span>
-</span></span><span style=display:flex><span><span style=color:#6272a4># innodb_buffer_pool_read_requests：表示从内存中读取页的请求数</span>
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>命中率</span> <span style=color:#ff79c6>=</span> innodb_buffer_pool_read_requests / <span style=color:#ff79c6>(</span>innodb_buffer_pool_read_requests + innodb_buffer_pool_reads<span style=color:#ff79c6>)</span>
-</span></span></code></pre></td></tr></table></div></div><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> status <span style=color:#ff79c6>like</span> <span style=color:#f1fa8c>&#39;innodb_buffer_pool_read%&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>---------------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Variable_name                         <span style=color:#ff79c6>|</span> Value <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>---------------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_read_ahead_rnd     <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>0</span>     <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_read_ahead         <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>0</span>     <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_read_ahead_evicted <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>0</span>     <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_read_requests      <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>12701</span> <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_reads              <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>455</span>   <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>---------------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>-- 此值低于90%，则可以考虑增加innodb_buffer_pool_size。
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>select</span> <span style=color:#bd93f9>12701</span> <span style=color:#ff79c6>/</span> (<span style=color:#bd93f9>455</span> <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>12701</span>) <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>100</span> ;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-----------------------------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> <span style=color:#bd93f9>12701</span> <span style=color:#ff79c6>/</span> (<span style=color:#bd93f9>455</span> <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>12701</span>) <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>100</span> <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-----------------------------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span>                     <span style=color:#bd93f9>96</span>.<span style=color:#bd93f9>5415</span> <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-----------------------------+
-</span></span></span></code></pre></td></tr></table></div></div></li></ul><h5 id=2page相关参数优化>2）page相关参数优化<a hidden class=anchor aria-hidden=true href=#2page相关参数优化>#</a></h5><p>可以使用<code>innodb_page_size</code>设置page的大小，Page页管理状态相关参数：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> <span style=color:#ff79c6>global</span> status <span style=color:#ff79c6>like</span> <span style=color:#f1fa8c>&#39;%innodb_buffer_pool_pages%&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>----------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Variable_name                    <span style=color:#ff79c6>|</span> Value <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>----------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>#</span>  InnoDB缓冲池中包含数据的页数。 该数字包括脏页面和干净页面
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_pages_data    <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>515</span>   <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>#</span> 显示在内存中修改但尚未写入数据文件的InnoDB缓冲池数据页的数量（脏页刷新）
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_pages_dirty   <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>0</span>     <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>#</span> 表示从InnoDB缓冲池中刷新脏页的请求数
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_pages_flushed <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>334</span>   <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>#</span> 显示InnoDB缓冲池中的空闲页面
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_pages_free    <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>15868</span> <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>#</span> 缓存池中当前已经被用作管理用途或hash index而不能用作为普通数据页的数目
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_pages_misc    <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>0</span>     <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>#</span> 缓存池的页总数目。单位是page
-</span></span><span style=display:flex><span><span style=color:#ff79c6>|</span> Innodb_buffer_pool_pages_total   <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>16383</span> <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>----------------------------------+-------+
-</span></span></span></code></pre></td></tr></table></div></div><p>mysql5.7支持4k~64k的页面大小设置，一般来说16k或者更大适合扫描量大、批量更新多的场景，4k或者8k的页面更适合小操作。同时数据页大小会影响存储的数据量。</p><h5 id=3change-buffer参数优化>3）change buffer参数优化<a hidden class=anchor aria-hidden=true href=#3change-buffer参数优化>#</a></h5><p>写多读少的情况下，写完不会立即查询更适合调大change buffer，他原来叫insert buffer，只支持插入的二级索引优化，现在增删改都支持，页改名成change buffer。</p><ul><li><p><strong>配置change buffer使用模式</strong></p><p><strong>innodb_change_buffering</strong> 配置参数说明</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> variables <span style=color:#ff79c6>like</span> <span style=color:#f1fa8c>&#39;%innodb_change_buffering%&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Variable_name           <span style=color:#ff79c6>|</span> Value <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> innodb_change_buffering <span style=color:#ff79c6>|</span> <span style=color:#ff79c6>all</span>   <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------+-------+
-</span></span></span></code></pre></td></tr></table></div></div><table><thead><tr><th>选项</th><th>说明</th></tr></thead><tbody><tr><td>inserts</td><td>插入缓冲</td></tr><tr><td>deletes</td><td>删除标记缓冲</td></tr><tr><td>changes</td><td>更新缓冲,由两个缓冲区组成</td></tr><tr><td>purges</td><td>缓冲在后台发生的物理删除操作</td></tr><tr><td>all</td><td>表示启用上面所有配置(默认)</td></tr><tr><td>none</td><td>表示不启用任何配置</td></tr></tbody></table></li><li><p><strong>配置change buffer 大小</strong></p><p>ChangeBuffer占用BufferPool空间，默认占25%，最大允许占50%，可以根据下面参数进行调整：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> variables <span style=color:#ff79c6>like</span> <span style=color:#f1fa8c>&#39;innodb_change_buffer_max_size&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> Variable_name                 <span style=color:#ff79c6>|</span> Value <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>|</span> innodb_change_buffer_max_size <span style=color:#ff79c6>|</span> <span style=color:#bd93f9>25</span>    <span style=color:#ff79c6>|</span>
-</span></span><span style=display:flex><span><span style=color:#ff79c6>+</span><span style=color:#6272a4>-------------------------------+-------+
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#bd93f9>1</span> <span style=color:#ff79c6>row</span> <span style=color:#ff79c6>in</span> <span style=color:#ff79c6>set</span> (<span style=color:#bd93f9>0</span>.<span style=color:#bd93f9>00</span> sec)
-</span></span></code></pre></td></tr></table></div></div></li><li><p><strong>查看change buffer的工作状态</strong></p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span><span style=color:#ff79c6>show</span> engine innodb status;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>-------------------------------------
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>INSERT</span> BUFFER <span style=color:#ff79c6>AND</span> ADAPTIVE HASH <span style=color:#ff79c6>INDEX</span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>-------------------------------------
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>Ibuf: <span style=color:#ff79c6>size</span> <span style=color:#bd93f9>1</span>, <span style=color:#ff79c6>free</span> list len <span style=color:#bd93f9>0</span>, seg <span style=color:#ff79c6>size</span> <span style=color:#bd93f9>2</span>, <span style=color:#bd93f9>0</span> merges
-</span></span><span style=display:flex><span>merged operations:
-</span></span><span style=display:flex><span> <span style=color:#ff79c6>insert</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>delete</span> mark <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>delete</span> <span style=color:#bd93f9>0</span>
-</span></span><span style=display:flex><span>discarded operations:
-</span></span><span style=display:flex><span> <span style=color:#ff79c6>insert</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>delete</span> mark <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>delete</span> <span style=color:#bd93f9>0</span>
-</span></span></code></pre></td></tr></table></div></div><ul><li><p><strong>size:</strong> 表示已经合并到辅助索引页的数量；</p></li><li><p><strong>free list len:</strong> 表示空闲列表长度；</p></li><li><p>**seg size：**表示当前Change Buffer的大小，2*16KB；</p></li><li><p><strong>merges</strong>：表示合并的次数；</p></li><li><p>**merged operations：**表示每个具体操作合并的次数；</p><ul><li>insert：表示插入操作；</li><li>delete mark：表示删除标记操作；</li><li>delete：表示物理删除操作；</li></ul></li></ul></li></ul><h5 id=4日志缓冲区参数优化>4）日志缓冲区参数优化<a hidden class=anchor aria-hidden=true href=#4日志缓冲区参数优化>#</a></h5><p>日志相关参数：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-properties data-lang=properties><span style=display:flex><span><span style=color:#6272a4># 缓冲区大小，默认16M</span>
-</span></span><span style=display:flex><span><span style=color:#50fa7b>innodb_log_buffer_size</span>
-</span></span><span style=display:flex><span><span style=color:#6272a4># 每组的日志文件数</span>
-</span></span><span style=display:flex><span><span style=color:#50fa7b>innodb_log_files_in_group</span>
-</span></span><span style=display:flex><span><span style=color:#6272a4># 日志文件的大小，默认48M</span>
-</span></span><span style=display:flex><span><span style=color:#6272a4># 一组的所有日志文件总量不能超过512G</span>
-</span></span><span style=display:flex><span><span style=color:#50fa7b>innodb_log_file_size</span>
-</span></span></code></pre></td></tr></table></div></div><p>日志文件太小会导致频繁切换日志文件还有可能出现大事务没执行完但是日志写满的情况，如果太大的话可能会导致恢复时间过长。</p><p>官网建议的是日志文件大小最少应该承载1小时的日志量，所以可以估算1个小时的日志量来设置日志文件大小：</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-sql data-lang=sql><span style=display:flex><span><span style=color:#6272a4>-- pager分页工具, 只获取 sequence的信息
-</span></span></span><span style=display:flex><span><span style=color:#6272a4>-- MySQL中提供了一个sequence来统计产生多少日志，但是他从8704字节开始，
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>mysql<span style=color:#ff79c6>&gt;</span> pager grep sequence;
-</span></span><span style=display:flex><span>PAGER <span style=color:#ff79c6>set</span> <span style=color:#ff79c6>to</span> <span style=color:#f1fa8c>&#39;grep sequence&#39;</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>-- 查询状态,并倒计时一分钟
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> engine innodb status\<span style=color:#ff79c6>G</span> <span style=color:#ff79c6>select</span> sleep(<span style=color:#bd93f9>60</span>);
-</span></span><span style=display:flex><span>Log sequence <span style=color:#8be9fd;font-style:italic>number</span> <span style=color:#bd93f9>5399154</span>
-</span></span><span style=display:flex><span><span style=color:#bd93f9>1</span> <span style=color:#ff79c6>row</span> <span style=color:#ff79c6>in</span> <span style=color:#ff79c6>set</span> (<span style=color:#bd93f9>0</span>.<span style=color:#bd93f9>00</span> sec)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#bd93f9>1</span> <span style=color:#ff79c6>row</span> <span style=color:#ff79c6>in</span> <span style=color:#ff79c6>set</span> (<span style=color:#bd93f9>1</span> <span style=color:#ff79c6>min</span> <span style=color:#bd93f9>0</span>.<span style=color:#bd93f9>00</span> sec)
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>-- 一分时间后的数据量 5406150
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>mysql<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>show</span> engine innodb status\<span style=color:#ff79c6>G</span> <span style=color:#ff79c6>select</span> sleep(<span style=color:#bd93f9>60</span>);
-</span></span><span style=display:flex><span>Log sequence <span style=color:#8be9fd;font-style:italic>number</span> <span style=color:#bd93f9>5406150</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>-- 关闭pager
-</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>mysql<span style=color:#ff79c6>&gt;</span> nopager;
-</span></span><span style=display:flex><span>PAGER <span style=color:#ff79c6>set</span> <span style=color:#ff79c6>to</span> <span style=color:#ff79c6>stdout</span>
-</span></span></code></pre></td></tr></table></div></div><p>然后可以使用(5406150 - 5399154) / 1024 计算出1分钟产生多少k数据，就可以算出1小时产生多少日志，通过这个设置日志文件的大小。</p><h3 id=sql优化>SQL优化<a hidden class=anchor aria-hidden=true href=#sql优化>#</a></h3><p>sql的优化就是使用explain + sql查看优化器优化之后的查询计划，一般type控制在range之前，同时extra是using where的时候也需要看是否是索引失效或者全表扫描，rows越小越快。</p><p>一般在压测前会统一创建索引，保证每条SQL都使用索引并且索引数不能超过4个并且更新非常频繁的字段需要衡量是否需要可以索引。</p><ul><li>MySQL会跟对联合索引从左到右进行排序，所以要左前缀法则才可以用到联合索引，这也可以解释like &lsquo;%xxx&rsquo;不能用到索引，在排好序的B+树上不能快速查找以xxx结尾的数据。</li><li>需要注意对于类型转换(有一个容易忽略的点就是字符串类型的数字需要加单引号)和使用索引计算会导致索引失效。</li><li>范围查询需要放到条件的最后，否则会导致范围查询后的字段哪怕是同一个联合索引也会导致索引会失效。</li><li>使用is null 或者is not null或者!=或者or会导致索引失效。</li><li>排序字段一定要用索引，因为索引本身就是排好序的。</li><li>减少使用select *，第一因为这么查询数据量可能会很大，第二这么查一定会回表，当可以索引覆盖的时候不要使用这个写法。</li></ul><p>上线之后设置<code>slow_query_log=1</code>开启慢查询日志(默认关闭)，也可以设置slow_query_log_file设置慢查询日志文件位置，<code>long_query_time</code>用来设置慢查询的阈值，超过多少s算是慢查询。配合慢查询日志还需要打开一个参数<code>log_queries_not_using_indexes</code>，这个参数是说没有使用索引的查询不记录慢查询日志，这个一定要打开。</p><h5 id=导致抖动的原因>导致抖动的原因：<a hidden class=anchor aria-hidden=true href=#导致抖动的原因>#</a></h5><ol><li><p>锂电池充放电可以引起性能的抖动；</p></li><li><p>脏页满了之后执行一个查询，这个查询需要大量的数据，此时就要把脏页的大量数据刷到磁盘上，也会产生性能的抖动；</p><p>解决办法：使用SSD硬盘，脏页刷新是随机读，使用SSD的读写是非常快的，还有一个参数：innodb_io_capacity，这个是设置IO速率的，我们可以使用fio工具得到磁盘随机IO最大速率，然后把值给这个参数。</p></li><li><p>redo log刷盘的时候，如果磁盘的redo log文件写满了，需要从第一个文件的头部开始覆盖，那这个时候就得把buffer pool中的缓存数据全都刷盘，因为持久化的redo log相当于是没有了，全部刷盘的时候也会让性能抖动；</p></li></ol><h5 id=raid充放电性能抖动>RAID充放电性能抖动<a hidden class=anchor aria-hidden=true href=#raid充放电性能抖动>#</a></h5><p>在使用RAID磁盘冗余阵列时，一般都会使用write_back方式写数据，意思是只写到缓存，慢慢输入磁盘，为了防止断电后，缓存中数据丢失，一般RAID卡都会有一块锂电池，在断电时，将缓存数据刷到磁盘中，此时写数据的方式变成直接写磁盘，为了保证锂电池的寿命，会自动过一段时间自己充放电，放电时直接写磁盘导致性能很低，可以修改放电时的写数据方式也是write_back，取消自动放电，改成脚本方式手动在凌晨时充放电。</p><h5 id=文件句柄导致的最大连接数限制>文件句柄导致的最大连接数限制<a hidden class=anchor aria-hidden=true href=#文件句柄导致的最大连接数限制>#</a></h5><p>Linux设计的初衷是防止一个进程耗尽所有资源，所以默认给进程的文件句柄、最大锁定内存、子进程数、网络缓存都有限制，可以使用ulimit -a 查看进程被限制的各种资源的量，比如MySQL默认的文件句柄只有1024，MySQL启动时会计算出最大连接数是214，这时你设置的最大连接数400是无效的，只能修改文件句柄ulimit -HSn 65535。</p><h5 id=缓存页刷盘导致的性能抖动>缓存页刷盘导致的性能抖动<a hidden class=anchor aria-hidden=true href=#缓存页刷盘导致的性能抖动>#</a></h5><p>当redo log文件写满时，因为会覆盖着写，所以要把buffer pool中的脏页全部刷盘，这个时候是比较耗时的，还有当加载很多数据页，buffer pool放不下时，也需要把一部分缓存页刷盘，遇到刷盘时，可能sql语句会比平时慢个刷盘的时间，解决：首先就是要用SSD，因为固态硬盘随机写比机械硬盘快，然后调整参数innodb_io_capacity的大小是硬盘随机写的速率，这样可以最大程度利用SSD的优势，还要把innodb_flush_neighbors设置成0，这样在刷盘时就不会把临近的数据页一起刷盘。这两个参数都是为了减少刷盘时间。</p><h5 id=一个查询count耗费几秒问题>一个查询count耗费几秒问题<a hidden class=anchor aria-hidden=true href=#一个查询count耗费几秒问题>#</a></h5><p>有一个圈子服务，在获取用户信息进行推送的时候，需要筛选最近登录的用户推送，推送之前根据推送厂商提供的接口，每次最多只能推送1500个设备，所以需要先查出count是多少，再决定使用limit查询，类似这样的sql select count(id) from user where id in (select user_id from user_extent_info where latest_login_time &lt; XXXX)，这个SQL每次执行会耗费几秒钟，使用explain查看发现会有三条计划，第二条主查询的描述信息里出现了join字样？？？？？并没有join的东西，就怀疑SQL自己优化出来的join，执行show warnings发现确实是SQL自己搞出来的半链接，可以使用 set optimizer_switch=&lsquo;semijoin=off&rsquo;关闭一下半链接，在执行发现就用两百毫秒，可以确定只要不让他进行半链接优化这个语句就可以快速执行了，但是生产环境不能随意修改这种设置，所以只能修改SQL，一顿瞎猜之后发现在in条件后再加一个or 不成立的条件执行计划就变成了正常的了。</p><h5 id=一个订单记录慢查询调优>一个订单记录慢查询调优<a hidden class=anchor aria-hidden=true href=#一个订单记录慢查询调优>#</a></h5><p>订单中有一两百万条的数据，用户查询自己的订单记录，语句是这样的select * from order where status=1 and type=&rsquo;&rsquo; order by id desc limit <strong>,</strong>。刚开始都好好的，突然查询就变成了几秒，查看执行计划发现posible_keys中有这个索引的，描述也写着using where，但是key用的是id，也就是说这个语句是从聚簇索引的B+树最后一条数据开始向前查询，知道查出满足条件的数据条数，使用select * from order where force index(索引名) status=1 and type=&rsquo;&rsquo; order by id desc limit **,**这样就恢复正常了。分析原因可能有两个，一个开始数据量少，执行计划是二级索引，数据量多了之后MySQL推断where条件查完二级索引会有大量的数据回表，这样还不如直接全表扫描，另一个是可能最开始执行计划就是用id，但是数据量少，数据量多了之后，但是用户还没有订单，这时候每次查询都是每行数据都扫描，就很慢。</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://wangxiaohong123.github.io/tags/mysql/>MySQL</a></li></ul><nav class=paginav><a class=prev href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/8.%E7%B4%A2%E5%BC%95/><span class=title>« Prev</span><br><span>MySQL-8.索引</span>
-</a><a class=next href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/mysql/%E5%8F%82%E6%95%B0/><span class=title>Next »</span><br><span>MySQL参数配置</span></a></nav><ul class=share-buttons><li><a target=_blank rel="noopener noreferrer" aria-label="share MySQL优化 on x" href="https://x.com/intent/tweet/?text=MySQL%e4%bc%98%e5%8c%96&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f&amp;hashtags=MySQL"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446C483.971.0 512 28.03 512 62.554zM269.951 190.75 182.567 75.216H56L207.216 272.95 63.9 436.783h61.366L235.9 310.383l96.667 126.4H456L298.367 228.367l134-153.151H371.033zM127.633 110h36.468l219.38 290.065H349.5z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share MySQL优化 on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f&amp;title=MySQL%e4%bc%98%e5%8c%96&amp;summary=MySQL%e4%bc%98%e5%8c%96&amp;source=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share MySQL优化 on reddit" href="https://reddit.com/submit?url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f&title=MySQL%e4%bc%98%e5%8c%96"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share MySQL优化 on facebook" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share MySQL优化 on whatsapp" href="https://api.whatsapp.com/send?text=MySQL%e4%bc%98%e5%8c%96%20-%20https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share MySQL优化 on telegram" href="https://telegram.me/share/url?text=MySQL%e4%bc%98%e5%8c%96&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f"><svg viewBox="2 2 28 28" height="30" width="30" fill="currentColor"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share MySQL优化 on ycombinator" href="https://news.ycombinator.com/submitlink?t=MySQL%e4%bc%98%e5%8c%96&u=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2f%25E6%2595%25B0%25E6%258D%25AE%25E5%25BA%2593%2fmysql%2f10.%25E4%25BC%2598%25E5%258C%2596%2f"><svg width="30" height="30" viewBox="0 0 512 512" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446zM183.8767 87.9921h-62.034L230.6673 292.4508V424.0079h50.6655V292.4508L390.1575 87.9921H328.1233L256 238.2489z"/></svg></a></li></ul></footer></article></main><footer class=footer><span>&copy; 2025 <a href=https://wangxiaohong123.github.io/>王小红的笔记</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

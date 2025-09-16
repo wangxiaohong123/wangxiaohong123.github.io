@@ -1,4 +1,13 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>AQS | 王小红的笔记</title><meta name=keywords content="java源码,并发"><meta name=description content="谈谈对AQS的理解
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>AQS | 王小红的笔记</title>
+<meta name="keywords" content="java源码, 并发">
+<meta name="description" content="谈谈对AQS的理解
 
 
 ReentrantLock
@@ -45,531 +54,904 @@ volatile Thread thread;
 Node nextWaiter;
 
 
-非公平锁的加锁"><meta name=author content><link rel=canonical href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/><link crossorigin=anonymous href=/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as=style><link rel=icon href=https://wangxiaohong123.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://wangxiaohong123.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://wangxiaohong123.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://wangxiaohong123.github.io/apple-touch-icon.png><link rel=mask-icon href=https://wangxiaohong123.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=en href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><meta property="og:url" content="https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/"><meta property="og:site_name" content="王小红的笔记"><meta property="og:title" content="AQS"><meta property="og:description" content="谈谈对AQS的理解 ReentrantLock 全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 // 一些状态，共享锁、排它锁 static final Node SHARED = new Node(); static final Node EXCLUSIVE = null; static final int CANCELLED = 1; static final int SIGNAL = -1; static final int CONDITION = -2; static final int PROPAGATE = -3; volatile int waitStatus; // 前一个线程 volatile Node prev; // 后一个线程 volatile Node next; // 当前线程 volatile Thread thread; // 如果是排它锁，nextWaiter就是null，否则就是Node Node nextWaiter; 非公平锁的加锁"><meta property="og:locale" content="zh-CN"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:tag" content="Java源码"><meta property="article:tag" content="并发"><meta name=twitter:card content="summary"><meta name=twitter:title content="AQS"><meta name=twitter:description content="谈谈对AQS的理解
+非公平锁的加锁">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css" integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false},
+        {left: "\\(", right: "\\)", display: false},
+        {left: "\\[", right: "\\]", display: true}
+      ]
+    });
+  });
+</script>
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="王小红的笔记 (Alt + H)">王小红的笔记</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="笔记">
+                    <span>笔记</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      AQS
+    </h1>
+    <div class="post-meta">5 min
+
+</div>
+  </header> 
+  <div class="post-content"><h3 id="谈谈对aqs的理解">谈谈对AQS的理解<a hidden class="anchor" aria-hidden="true" href="#谈谈对aqs的理解">#</a></h3>
+<img src="https://tva1.sinaimg.cn/large/007S8ZIlly1gib4srczezj30iu08uaae.jpg" style="zoom:150%;" />
+<hr>
+<h3 id="reentrantlock">ReentrantLock<a hidden class="anchor" aria-hidden="true" href="#reentrantlock">#</a></h3>
+<p>全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#6272a4">// 一些状态，共享锁、排它锁</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">static</span> <span style="color:#8be9fd;font-style:italic">final</span> Node SHARED <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">new</span> Node();
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">static</span> <span style="color:#8be9fd;font-style:italic">final</span> Node EXCLUSIVE <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">static</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">int</span> CANCELLED <span style="color:#ff79c6">=</span>  1;
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">static</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">int</span> SIGNAL    <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">-</span>1;
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">static</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">int</span> CONDITION <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">-</span>2;
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">static</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">int</span> PROPAGATE <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">-</span>3;
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">volatile</span> <span style="color:#8be9fd">int</span> waitStatus;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 前一个线程</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">volatile</span> Node prev;
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 后一个线程</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">volatile</span> Node next;
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 当前线程</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">volatile</span> Thread thread;
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 如果是排它锁，nextWaiter就是null，否则就是Node</span>
+</span></span><span style="display:flex;"><span>Node nextWaiter;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>非公平锁的加锁</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">lock</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 使用CAS判断一下state是不是0，如果是0就赋值成1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 调用的是AbstractQueueSynchronizer的方法，compareAndSetState方法中直接调用unSafe类操作stateOffect</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// stateOffect就是state：stateOffset = unsafe.objectFieldOffset(AbstractQueuedSynchronizer.class.getDeclaredField(&#34;state&#34;));</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (compareAndSetState(0, 1))
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 设置加锁的线程是自己</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 调用的是AbstractOwnableSynchronizer中的方法，这个类是AQS的父类</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 保存的一个Thread变量，直接赋值</span>
+</span></span><span style="display:flex;"><span>        setExclusiveOwnerThread(Thread.<span style="color:#50fa7b">currentThread</span>());
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">else</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 如果state不是0，就尝试reentrantLock</span>
+</span></span><span style="display:flex;"><span>        acquire(1);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">acquire</span>(<span style="color:#8be9fd">int</span> arg) {
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// tryAcquire会走到Sync的nonfairTryAcquire里</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 这里取了个反，实在加锁失败的时候执行acquireQueued方法</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>tryAcquire(arg) <span style="color:#ff79c6">&amp;&amp;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 线程入队，会使用LockSupport.park(this);把线程挂起</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// addWaiter是吧线程加到队列中</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// acquireQueued挂起线程</span>
+</span></span><span style="display:flex;"><span>        acquireQueued(addWaiter(Node.<span style="color:#50fa7b">EXCLUSIVE</span>), arg))
+</span></span><span style="display:flex;"><span>        selfInterrupt();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">boolean</span> <span style="color:#50fa7b">nonfairTryAcquire</span>(<span style="color:#8be9fd">int</span> acquires) {
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 获取当前线程</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">final</span> Thread current <span style="color:#ff79c6">=</span> Thread.<span style="color:#50fa7b">currentThread</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 获取state</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int</span> c <span style="color:#ff79c6">=</span> getState();
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 0的话就尝试设置线程</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (c <span style="color:#ff79c6">==</span> 0) {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> (compareAndSetState(0, acquires)) {
+</span></span><span style="display:flex;"><span>            setExclusiveOwnerThread(current);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">true</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 如果线程是一样的</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">else</span> <span style="color:#ff79c6">if</span> (current <span style="color:#ff79c6">==</span> getExclusiveOwnerThread()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd">int</span> nextc <span style="color:#ff79c6">=</span> c <span style="color:#ff79c6">+</span> acquires;
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 重入的次数超过整数最大值</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> (nextc <span style="color:#ff79c6">&lt;</span> 0) <span style="color:#6272a4">// overflow</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">throw</span> <span style="color:#ff79c6">new</span> Error(<span style="color:#f1fa8c">&#34;Maximum lock count exceeded&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 设置新的state</span>
+</span></span><span style="display:flex;"><span>        setState(nextc);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">false</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>公平锁的代码就是acquire(1)。在tryAcquire()中判断队列中有没有线程在等待。</p>
+<p>释放锁</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">boolean</span> <span style="color:#50fa7b">release</span>(<span style="color:#8be9fd">int</span> arg) {
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 判断state - 1是不是0了，如果不是0，就不是完全释放锁</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (tryRelease(arg)) {
+</span></span><span style="display:flex;"><span>        Node h <span style="color:#ff79c6">=</span> head;
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 判断队列有没有东西了</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> (h <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">null</span> <span style="color:#ff79c6">&amp;&amp;</span> h.<span style="color:#50fa7b">waitStatus</span> <span style="color:#ff79c6">!=</span> 0)
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// 唤醒队头的元素</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#6272a4">// LockSupport.unpark(s.thread);</span>
+</span></span><span style="display:flex;"><span>            unparkSuccessor(h);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">false</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 在unPark成功后会继续运行acquireQueued方法，他里面是一个for(;;)循环，会让下个线程持有锁了</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这能看出来非公平不会让队列的线程去抢锁，而是无法控制在释放锁的一瞬间会被突然进来的线程抢占锁。</p>
+<hr>
+<h3 id="读写锁">读写锁<a hidden class="anchor" aria-hidden="true" href="#读写锁">#</a></h3>
+<p>在ReentrantReadWriteLock中持有一个WriteLock和ReadLock和Sync。读写锁中使用state的高16位代表读锁，低16位代表写锁。</p>
+<p>写锁</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#6272a4">// 写锁也是走acquire()</span>
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// tryAcquire会走到ReentrantReadWriteLock中</span>
+</span></span><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">protected</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">boolean</span> <span style="color:#50fa7b">tryAcquire</span>(<span style="color:#8be9fd">int</span> acquires) {
+</span></span><span style="display:flex;"><span>    Thread current <span style="color:#ff79c6">=</span> Thread.<span style="color:#50fa7b">currentThread</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int</span> c <span style="color:#ff79c6">=</span> getState();
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 获取低16位</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int</span> w <span style="color:#ff79c6">=</span> exclusiveCount(c);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (c <span style="color:#ff79c6">!=</span> 0) {
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 如果c不是0，w是0，说明有线程加读锁</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 如果加锁的线程不是这个线程就返回false</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 最多只能有一个写锁</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> (w <span style="color:#ff79c6">==</span> 0 <span style="color:#ff79c6">||</span> current <span style="color:#ff79c6">!=</span> getExclusiveOwnerThread())
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">false</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> (w <span style="color:#ff79c6">+</span> exclusiveCount(acquires) <span style="color:#ff79c6">&gt;</span> MAX_COUNT)
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">throw</span> <span style="color:#ff79c6">new</span> Error(<span style="color:#f1fa8c">&#34;Maximum lock count exceeded&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// Reentrant acquire</span>
+</span></span><span style="display:flex;"><span>        setState(c <span style="color:#ff79c6">+</span> acquires);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 如果是非公平锁，直接加锁，如果是公平锁，如果队列中有线程排队就不加锁</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (writerShouldBlock() <span style="color:#ff79c6">||</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">!</span>compareAndSetState(c, c <span style="color:#ff79c6">+</span> acquires))
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">false</span>;
+</span></span><span style="display:flex;"><span>    setExclusiveOwnerThread(current);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">true</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#6272a4">// 再往后走代码就和可重入锁一样了</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>读锁</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">protected</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">tryAcquireShared</span>(<span style="color:#8be9fd">int</span> unused) {
+</span></span><span style="display:flex;"><span>    Thread current <span style="color:#ff79c6">=</span> Thread.<span style="color:#50fa7b">currentThread</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int</span> c <span style="color:#ff79c6">=</span> getState();
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// exclusiveCount(c)不等于0说明有人加写锁</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 如果加锁的线程不是自己就不能加锁</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (exclusiveCount(c) <span style="color:#ff79c6">!=</span> 0 <span style="color:#ff79c6">&amp;&amp;</span>
+</span></span><span style="display:flex;"><span>        getExclusiveOwnerThread() <span style="color:#ff79c6">!=</span> current)
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">return</span> <span style="color:#ff79c6">-</span>1;
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 获取高16位</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int</span> r <span style="color:#ff79c6">=</span> sharedCount(c);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>readerShouldBlock() <span style="color:#ff79c6">&amp;&amp;</span> r <span style="color:#ff79c6">&lt;</span> MAX_COUNT
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 尝试修改高16位的值</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">&amp;&amp;</span> compareAndSetState(c, c <span style="color:#ff79c6">+</span> SHARED_UNIT)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> (r <span style="color:#ff79c6">==</span> 0) {
+</span></span><span style="display:flex;"><span>            firstReader <span style="color:#ff79c6">=</span> current;
+</span></span><span style="display:flex;"><span>            firstReaderHoldCount <span style="color:#ff79c6">=</span> 1;
+</span></span><span style="display:flex;"><span>        } <span style="color:#ff79c6">else</span> <span style="color:#ff79c6">if</span> (firstReader <span style="color:#ff79c6">==</span> current) {
+</span></span><span style="display:flex;"><span>            firstReaderHoldCount<span style="color:#ff79c6">++</span>;
+</span></span><span style="display:flex;"><span>        } <span style="color:#ff79c6">else</span> {
+</span></span><span style="display:flex;"><span>            HoldCounter rh <span style="color:#ff79c6">=</span> cachedHoldCounter;
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">if</span> (rh <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">null</span> <span style="color:#ff79c6">||</span> rh.<span style="color:#50fa7b">tid</span> <span style="color:#ff79c6">!=</span> getThreadId(current))
+</span></span><span style="display:flex;"><span>                cachedHoldCounter <span style="color:#ff79c6">=</span> rh <span style="color:#ff79c6">=</span> readHolds.<span style="color:#50fa7b">get</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">else</span> <span style="color:#ff79c6">if</span> (rh.<span style="color:#50fa7b">count</span> <span style="color:#ff79c6">==</span> 0)
+</span></span><span style="display:flex;"><span>                readHolds.<span style="color:#50fa7b">set</span>(rh);
+</span></span><span style="display:flex;"><span>            rh.<span style="color:#50fa7b">count</span><span style="color:#ff79c6">++</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">return</span> 1;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 加读锁失败进入死循环CAS</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">return</span> fullTryAcquireShared(current);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>释放锁和可重入锁差不多，只不过是state减1的时候读和写分开。</p>
+<p>await</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">await</span>() <span style="color:#8be9fd;font-style:italic">throws</span> InterruptedException {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (Thread.<span style="color:#50fa7b">interrupted</span>())
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">throw</span> <span style="color:#ff79c6">new</span> InterruptedException();
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 把node标记成condition</span>
+</span></span><span style="display:flex;"><span>    Node node <span style="color:#ff79c6">=</span> addConditionWaiter();
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 释放锁</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int</span> savedState <span style="color:#ff79c6">=</span> fullyRelease(node);
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd">int</span> interruptMode <span style="color:#ff79c6">=</span> 0;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">while</span> (<span style="color:#ff79c6">!</span>isOnSyncQueue(node)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 挂起</span>
+</span></span><span style="display:flex;"><span>        LockSupport.<span style="color:#50fa7b">park</span>(<span style="color:#ff79c6">this</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> ((interruptMode <span style="color:#ff79c6">=</span> checkInterruptWhileWaiting(node)) <span style="color:#ff79c6">!=</span> 0)
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">break</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (acquireQueued(node, savedState) <span style="color:#ff79c6">&amp;&amp;</span> interruptMode <span style="color:#ff79c6">!=</span> THROW_IE)
+</span></span><span style="display:flex;"><span>        interruptMode <span style="color:#ff79c6">=</span> REINTERRUPT;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (node.<span style="color:#50fa7b">nextWaiter</span> <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">null</span>) <span style="color:#6272a4">// clean up if cancelled</span>
+</span></span><span style="display:flex;"><span>        unlinkCancelledWaiters();
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (interruptMode <span style="color:#ff79c6">!=</span> 0)
+</span></span><span style="display:flex;"><span>        reportInterruptAfterWait(interruptMode);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>signal</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">private</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">doSignal</span>(Node first) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">do</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 判断等待队列有没有</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> ( (firstWaiter <span style="color:#ff79c6">=</span> first.<span style="color:#50fa7b">nextWaiter</span>) <span style="color:#ff79c6">==</span> <span style="color:#ff79c6">null</span>)
+</span></span><span style="display:flex;"><span>            lastWaiter <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">null</span>;
+</span></span><span style="display:flex;"><span>        first.<span style="color:#50fa7b">nextWaiter</span> <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">null</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// transferForSignal是把node状态赋值成0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 这里会唤醒condition队列头部的线程，放到等待队列中</span>
+</span></span><span style="display:flex;"><span>    } <span style="color:#ff79c6">while</span> (<span style="color:#ff79c6">!</span>transferForSignal(first) <span style="color:#ff79c6">&amp;&amp;</span>
+</span></span><span style="display:flex;"><span>             (first <span style="color:#ff79c6">=</span> firstWaiter) <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">null</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h3 id="countdownlatch">CountDownLatch<a hidden class="anchor" aria-hidden="true" href="#countdownlatch">#</a></h3>
+<p>await方法</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">public</span> <span style="color:#8be9fd;font-style:italic">final</span> <span style="color:#8be9fd">void</span> <span style="color:#50fa7b">acquireSharedInterruptibly</span>(<span style="color:#8be9fd">int</span> arg)
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">throws</span> InterruptedException {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (Thread.<span style="color:#50fa7b">interrupted</span>())
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">throw</span> <span style="color:#ff79c6">new</span> InterruptedException();
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 判断state是不是0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">if</span> (tryAcquireShared(arg) <span style="color:#ff79c6">&lt;</span> 0)
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 不是0就把线程加到等待队列里</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// park线程</span>
+</span></span><span style="display:flex;"><span>        doAcquireSharedInterruptibly(arg);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>countDown操作就是把state-1，然后把await的线程唤醒。</p>
+<hr>
+<h3 id="cyclicbarrier">CyclicBarrier<a hidden class="anchor" aria-hidden="true" href="#cyclicbarrier">#</a></h3>
+<p>他和AQS没有直接关系，但是内部使用ReentrantLock实现的。</p>
+<p>await方法</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#8be9fd;font-style:italic">private</span> <span style="color:#8be9fd">int</span> <span style="color:#50fa7b">dowait</span>(<span style="color:#8be9fd">boolean</span> timed, <span style="color:#8be9fd">long</span> nanos)
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">throws</span> InterruptedException, BrokenBarrierException, TimeoutException {
+</span></span><span style="display:flex;"><span>    <span style="color:#8be9fd;font-style:italic">final</span> ReentrantLock lock <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">this</span>.<span style="color:#50fa7b">lock</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#6272a4">// 可重入锁</span>
+</span></span><span style="display:flex;"><span>    lock.<span style="color:#50fa7b">lock</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#ff79c6">try</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd;font-style:italic">final</span> Generation g <span style="color:#ff79c6">=</span> generation;
+</span></span><span style="display:flex;"><span>		<span style="color:#6272a4">// 实例化CyclicBarrier传的线程数量</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8be9fd">int</span> index <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">--</span>count;
+</span></span><span style="display:flex;"><span>        <span style="color:#6272a4">// 最后一个线程执行完</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">if</span> (index <span style="color:#ff79c6">==</span> 0) {  <span style="color:#6272a4">// tripped</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#8be9fd">boolean</span> ranAction <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">false</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">try</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#8be9fd;font-style:italic">final</span> Runnable command <span style="color:#ff79c6">=</span> barrierCommand;
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">if</span> (command <span style="color:#ff79c6">!=</span> <span style="color:#ff79c6">null</span>)
+</span></span><span style="display:flex;"><span>                    <span style="color:#6272a4">// 执行runnable的run方法，所以我们传进来的Runnable不是以线程方式执行的</span>
+</span></span><span style="display:flex;"><span>                    command.<span style="color:#50fa7b">run</span>();
+</span></span><span style="display:flex;"><span>                ranAction <span style="color:#ff79c6">=</span> <span style="color:#ff79c6">true</span>;
+</span></span><span style="display:flex;"><span>                <span style="color:#6272a4">// 这里会把count恢复成我们设置的数值，再把所有线程唤醒</span>
+</span></span><span style="display:flex;"><span>                nextGeneration();
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">return</span> 0;
+</span></span><span style="display:flex;"><span>            } <span style="color:#ff79c6">finally</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>ranAction)
+</span></span><span style="display:flex;"><span>                    breakBarrier();
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff79c6">for</span> (;;) {
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">try</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">if</span> (<span style="color:#ff79c6">!</span>timed)
+</span></span><span style="display:flex;"><span>                    <span style="color:#6272a4">// trip是lock的condition，把这个线程放到AQS的wait队列</span>
+</span></span><span style="display:flex;"><span>                    trip.<span style="color:#50fa7b">await</span>();
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">else</span> <span style="color:#ff79c6">if</span> (nanos <span style="color:#ff79c6">&gt;</span> 0L)
+</span></span><span style="display:flex;"><span>                    nanos <span style="color:#ff79c6">=</span> trip.<span style="color:#50fa7b">awaitNanos</span>(nanos);
+</span></span><span style="display:flex;"><span>            } <span style="color:#ff79c6">catch</span> (InterruptedException ie) {
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">if</span> (g <span style="color:#ff79c6">==</span> generation <span style="color:#ff79c6">&amp;&amp;</span> <span style="color:#ff79c6">!</span> g.<span style="color:#50fa7b">broken</span>) {
+</span></span><span style="display:flex;"><span>                    breakBarrier();
+</span></span><span style="display:flex;"><span>                    <span style="color:#ff79c6">throw</span> ie;
+</span></span><span style="display:flex;"><span>                } <span style="color:#ff79c6">else</span> {
+</span></span><span style="display:flex;"><span>                    Thread.<span style="color:#50fa7b">currentThread</span>().<span style="color:#50fa7b">interrupt</span>();
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">if</span> (g.<span style="color:#50fa7b">broken</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">throw</span> <span style="color:#ff79c6">new</span> BrokenBarrierException();
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">if</span> (g <span style="color:#ff79c6">!=</span> generation)
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">return</span> index;
+</span></span><span style="display:flex;"><span>            <span style="color:#ff79c6">if</span> (timed <span style="color:#ff79c6">&amp;&amp;</span> nanos <span style="color:#ff79c6">&lt;=</span> 0L) {
+</span></span><span style="display:flex;"><span>                breakBarrier();
+</span></span><span style="display:flex;"><span>                <span style="color:#ff79c6">throw</span> <span style="color:#ff79c6">new</span> TimeoutException();
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    } <span style="color:#ff79c6">finally</span> {
+</span></span><span style="display:flex;"><span>        lock.<span style="color:#50fa7b">unlock</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/java%E6%BA%90%E7%A0%81/">Java源码</a></li>
+      <li><a href="http://localhost:1313/tags/%E5%B9%B6%E5%8F%91/">并发</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="prev" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/leecode/9.%E6%95%B4%E6%95%B0%E5%8F%8D%E8%BD%AC/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>9.整数反转</span>
+  </a>
+  <a class="next" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/1.arraylist/">
+    <span class="title">Next »</span>
+    <br>
+    <span>ArrayList</span>
+  </a>
+</nav>
 
 
-ReentrantLock
-全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share AQS on x"
+            href="https://x.com/intent/tweet/?text=AQS&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f&amp;hashtags=java%e6%ba%90%e7%a0%81%2c%e5%b9%b6%e5%8f%91">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share AQS on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f&amp;title=AQS&amp;summary=AQS&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share AQS on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f&title=AQS">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share AQS on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share AQS on whatsapp"
+            href="https://api.whatsapp.com/send?text=AQS%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share AQS on telegram"
+            href="https://telegram.me/share/url?text=AQS&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share AQS on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=AQS&u=http%3a%2f%2flocalhost%3a1313%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
 
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">王小红的笔记</a></span> · 
 
- 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
 
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
 
-// 一些状态，共享锁、排它锁
-static final Node SHARED = new Node();
-static final Node EXCLUSIVE = null;
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
 
-static final int CANCELLED =  1;
-static final int SIGNAL    = -1;
-static final int CONDITION = -2;
-static final int PROPAGATE = -3;
-volatile int waitStatus;
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
 
-// 前一个线程
-volatile Node prev;
-// 后一个线程
-volatile Node next;
-// 当前线程
-volatile Thread thread;
-// 如果是排它锁，nextWaiter就是null，否则就是Node
-Node nextWaiter;
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
 
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
 
-非公平锁的加锁"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Posts","item":"https://wangxiaohong123.github.io/posts/"},{"@type":"ListItem","position":2,"name":"AQS","item":"https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"AQS","name":"AQS","description":"谈谈对AQS的理解 ReentrantLock 全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 // 一些状态，共享锁、排它锁 static final Node SHARED = new Node(); static final Node EXCLUSIVE = null; static final int CANCELLED = 1; static final int SIGNAL = -1; static final int CONDITION = -2; static final int PROPAGATE = -3; volatile int waitStatus; // 前一个线程 volatile Node prev; // 后一个线程 volatile Node next; // 当前线程 volatile Thread thread; // 如果是排它锁，nextWaiter就是null，否则就是Node Node nextWaiter; 非公平锁的加锁\n","keywords":["java源码","并发"],"articleBody":"谈谈对AQS的理解 ReentrantLock 全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 // 一些状态，共享锁、排它锁 static final Node SHARED = new Node(); static final Node EXCLUSIVE = null; static final int CANCELLED = 1; static final int SIGNAL = -1; static final int CONDITION = -2; static final int PROPAGATE = -3; volatile int waitStatus; // 前一个线程 volatile Node prev; // 后一个线程 volatile Node next; // 当前线程 volatile Thread thread; // 如果是排它锁，nextWaiter就是null，否则就是Node Node nextWaiter; 非公平锁的加锁\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 final void lock() { // 使用CAS判断一下state是不是0，如果是0就赋值成1 // 调用的是AbstractQueueSynchronizer的方法，compareAndSetState方法中直接调用unSafe类操作stateOffect // stateOffect就是state：stateOffset = unsafe.objectFieldOffset(AbstractQueuedSynchronizer.class.getDeclaredField(\"state\")); if (compareAndSetState(0, 1)) // 设置加锁的线程是自己 // 调用的是AbstractOwnableSynchronizer中的方法，这个类是AQS的父类 // 保存的一个Thread变量，直接赋值 setExclusiveOwnerThread(Thread.currentThread()); else // 如果state不是0，就尝试reentrantLock acquire(1); } public final void acquire(int arg) { // tryAcquire会走到Sync的nonfairTryAcquire里 // 这里取了个反，实在加锁失败的时候执行acquireQueued方法 if (!tryAcquire(arg) \u0026\u0026 // 线程入队，会使用LockSupport.park(this);把线程挂起 // addWaiter是吧线程加到队列中 // acquireQueued挂起线程 acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) selfInterrupt(); } final boolean nonfairTryAcquire(int acquires) { // 获取当前线程 final Thread current = Thread.currentThread(); // 获取state int c = getState(); // 0的话就尝试设置线程 if (c == 0) { if (compareAndSetState(0, acquires)) { setExclusiveOwnerThread(current); return true; } } // 如果线程是一样的 else if (current == getExclusiveOwnerThread()) { int nextc = c + acquires; // 重入的次数超过整数最大值 if (nextc \u003c 0) // overflow throw new Error(\"Maximum lock count exceeded\"); // 设置新的state setState(nextc); return true; } return false; } 公平锁的代码就是acquire(1)。在tryAcquire()中判断队列中有没有线程在等待。\n释放锁\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 public final boolean release(int arg) { // 判断state - 1是不是0了，如果不是0，就不是完全释放锁 if (tryRelease(arg)) { Node h = head; // 判断队列有没有东西了 if (h != null \u0026\u0026 h.waitStatus != 0) // 唤醒队头的元素 // LockSupport.unpark(s.thread); unparkSuccessor(h); return true; } return false; } // 在unPark成功后会继续运行acquireQueued方法，他里面是一个for(;;)循环，会让下个线程持有锁了 这能看出来非公平不会让队列的线程去抢锁，而是无法控制在释放锁的一瞬间会被突然进来的线程抢占锁。\n读写锁 在ReentrantReadWriteLock中持有一个WriteLock和ReadLock和Sync。读写锁中使用state的高16位代表读锁，低16位代表写锁。\n写锁\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 // 写锁也是走acquire() // tryAcquire会走到ReentrantReadWriteLock中 protected final boolean tryAcquire(int acquires) { Thread current = Thread.currentThread(); int c = getState(); // 获取低16位 int w = exclusiveCount(c); if (c != 0) { // 如果c不是0，w是0，说明有线程加读锁 // 如果加锁的线程不是这个线程就返回false // 最多只能有一个写锁 if (w == 0 || current != getExclusiveOwnerThread()) return false; if (w + exclusiveCount(acquires) \u003e MAX_COUNT) throw new Error(\"Maximum lock count exceeded\"); // Reentrant acquire setState(c + acquires); return true; } // 如果是非公平锁，直接加锁，如果是公平锁，如果队列中有线程排队就不加锁 if (writerShouldBlock() || !compareAndSetState(c, c + acquires)) return false; setExclusiveOwnerThread(current); return true; } // 再往后走代码就和可重入锁一样了 读锁\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 protected final int tryAcquireShared(int unused) { Thread current = Thread.currentThread(); int c = getState(); // exclusiveCount(c)不等于0说明有人加写锁 // 如果加锁的线程不是自己就不能加锁 if (exclusiveCount(c) != 0 \u0026\u0026 getExclusiveOwnerThread() != current) return -1; // 获取高16位 int r = sharedCount(c); if (!readerShouldBlock() \u0026\u0026 r \u003c MAX_COUNT // 尝试修改高16位的值 \u0026\u0026 compareAndSetState(c, c + SHARED_UNIT)) { if (r == 0) { firstReader = current; firstReaderHoldCount = 1; } else if (firstReader == current) { firstReaderHoldCount++; } else { HoldCounter rh = cachedHoldCounter; if (rh == null || rh.tid != getThreadId(current)) cachedHoldCounter = rh = readHolds.get(); else if (rh.count == 0) readHolds.set(rh); rh.count++; } return 1; } // 加读锁失败进入死循环CAS return fullTryAcquireShared(current); } 释放锁和可重入锁差不多，只不过是state减1的时候读和写分开。\nawait\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 public final void await() throws InterruptedException { if (Thread.interrupted()) throw new InterruptedException(); // 把node标记成condition Node node = addConditionWaiter(); // 释放锁 int savedState = fullyRelease(node); int interruptMode = 0; while (!isOnSyncQueue(node)) { // 挂起 LockSupport.park(this); if ((interruptMode = checkInterruptWhileWaiting(node)) != 0) break; } if (acquireQueued(node, savedState) \u0026\u0026 interruptMode != THROW_IE) interruptMode = REINTERRUPT; if (node.nextWaiter != null) // clean up if cancelled unlinkCancelledWaiters(); if (interruptMode != 0) reportInterruptAfterWait(interruptMode); } signal\n1 2 3 4 5 6 7 8 9 10 11 private void doSignal(Node first) { do { // 判断等待队列有没有 if ( (firstWaiter = first.nextWaiter) == null) lastWaiter = null; first.nextWaiter = null; // transferForSignal是把node状态赋值成0 // 这里会唤醒condition队列头部的线程，放到等待队列中 } while (!transferForSignal(first) \u0026\u0026 (first = firstWaiter) != null); } CountDownLatch await方法\n1 2 3 4 5 6 7 8 9 10 public final void acquireSharedInterruptibly(int arg) throws InterruptedException { if (Thread.interrupted()) throw new InterruptedException(); // 判断state是不是0 if (tryAcquireShared(arg) \u003c 0) // 不是0就把线程加到等待队列里 // park线程 doAcquireSharedInterruptibly(arg); } countDown操作就是把state-1，然后把await的线程唤醒。\nCyclicBarrier 他和AQS没有直接关系，但是内部使用ReentrantLock实现的。\nawait方法\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 private int dowait(boolean timed, long nanos) throws InterruptedException, BrokenBarrierException, TimeoutException { final ReentrantLock lock = this.lock; // 可重入锁 lock.lock(); try { final Generation g = generation; // 实例化CyclicBarrier传的线程数量 int index = --count; // 最后一个线程执行完 if (index == 0) { // tripped boolean ranAction = false; try { final Runnable command = barrierCommand; if (command != null) // 执行runnable的run方法，所以我们传进来的Runnable不是以线程方式执行的 command.run(); ranAction = true; // 这里会把count恢复成我们设置的数值，再把所有线程唤醒 nextGeneration(); return 0; } finally { if (!ranAction) breakBarrier(); } } for (;;) { try { if (!timed) // trip是lock的condition，把这个线程放到AQS的wait队列 trip.await(); else if (nanos \u003e 0L) nanos = trip.awaitNanos(nanos); } catch (InterruptedException ie) { if (g == generation \u0026\u0026 ! g.broken) { breakBarrier(); throw ie; } else { Thread.currentThread().interrupt(); } } if (g.broken) throw new BrokenBarrierException(); if (g != generation) return index; if (timed \u0026\u0026 nanos \u003c= 0L) { breakBarrier(); throw new TimeoutException(); } } } finally { lock.unlock(); } } ","wordCount":"938","inLanguage":"en","datePublished":"0001-01-01T00:00:00Z","dateModified":"0001-01-01T00:00:00Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/2.%E5%B9%B6%E5%8F%91/5.aqs/"},"publisher":{"@type":"Organization","name":"王小红的笔记","logo":{"@type":"ImageObject","url":"https://wangxiaohong123.github.io/favicon.ico"}}}</script></head><body id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://wangxiaohong123.github.io/ accesskey=h title="王小红的笔记 (Alt + H)">王小红的笔记</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
-<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://wangxiaohong123.github.io/posts/ title=笔记><span>笔记</span></a></li><li><a href=https://wangxiaohong123.github.io/tags/ title=标签><span>标签</span></a></li><li><a href=https://wangxiaohong123.github.io/categories/ title=分类><span>分类</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><h1 class="post-title entry-hint-parent">AQS</h1><div class=post-meta>5 min</div></header><div class=post-content><h3 id=谈谈对aqs的理解>谈谈对AQS的理解<a hidden class=anchor aria-hidden=true href=#谈谈对aqs的理解>#</a></h3><hr><h3 id=reentrantlock>ReentrantLock<a hidden class=anchor aria-hidden=true href=#reentrantlock>#</a></h3><p>全局有一个sync实例，这是一个内部类，继承了AbstractQueuedSynchronizer，加锁和释放锁都是基于sync实现的。AQS中定义了一个node，这是自己实现的双向链表，当做队列使用，还有一个state，记录加锁的次数。Sync有两个实现类，一个NonfairSync，一个FairSync，就是公平锁和非公平锁，他俩就是重写了加锁和释放锁的逻辑。Node中定义挺多东西的</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#6272a4>// 一些状态，共享锁、排它锁</span>
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>static</span> <span style=color:#8be9fd;font-style:italic>final</span> Node SHARED <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>new</span> Node();
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>static</span> <span style=color:#8be9fd;font-style:italic>final</span> Node EXCLUSIVE <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>null</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>static</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>int</span> CANCELLED <span style=color:#ff79c6>=</span>  1;
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>static</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>int</span> SIGNAL    <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>-</span>1;
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>static</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>int</span> CONDITION <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>-</span>2;
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>static</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>int</span> PROPAGATE <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>-</span>3;
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>volatile</span> <span style=color:#8be9fd>int</span> waitStatus;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>// 前一个线程</span>
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>volatile</span> Node prev;
-</span></span><span style=display:flex><span><span style=color:#6272a4>// 后一个线程</span>
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>volatile</span> Node next;
-</span></span><span style=display:flex><span><span style=color:#6272a4>// 当前线程</span>
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>volatile</span> Thread thread;
-</span></span><span style=display:flex><span><span style=color:#6272a4>// 如果是排它锁，nextWaiter就是null，否则就是Node</span>
-</span></span><span style=display:flex><span>Node nextWaiter;
-</span></span></code></pre></td></tr></table></div></div><p>非公平锁的加锁</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>lock</span>() {
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 使用CAS判断一下state是不是0，如果是0就赋值成1</span>
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 调用的是AbstractQueueSynchronizer的方法，compareAndSetState方法中直接调用unSafe类操作stateOffect</span>
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// stateOffect就是state：stateOffset = unsafe.objectFieldOffset(AbstractQueuedSynchronizer.class.getDeclaredField(&#34;state&#34;));</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (compareAndSetState(0, 1))
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 设置加锁的线程是自己</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 调用的是AbstractOwnableSynchronizer中的方法，这个类是AQS的父类</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 保存的一个Thread变量，直接赋值</span>
-</span></span><span style=display:flex><span>        setExclusiveOwnerThread(Thread.<span style=color:#50fa7b>currentThread</span>());
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>else</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 如果state不是0，就尝试reentrantLock</span>
-</span></span><span style=display:flex><span>        acquire(1);
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>acquire</span>(<span style=color:#8be9fd>int</span> arg) {
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// tryAcquire会走到Sync的nonfairTryAcquire里</span>
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 这里取了个反，实在加锁失败的时候执行acquireQueued方法</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>!</span>tryAcquire(arg) <span style=color:#ff79c6>&amp;&amp;</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 线程入队，会使用LockSupport.park(this);把线程挂起</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// addWaiter是吧线程加到队列中</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// acquireQueued挂起线程</span>
-</span></span><span style=display:flex><span>        acquireQueued(addWaiter(Node.<span style=color:#50fa7b>EXCLUSIVE</span>), arg))
-</span></span><span style=display:flex><span>        selfInterrupt();
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>boolean</span> <span style=color:#50fa7b>nonfairTryAcquire</span>(<span style=color:#8be9fd>int</span> acquires) {
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 获取当前线程</span>
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>final</span> Thread current <span style=color:#ff79c6>=</span> Thread.<span style=color:#50fa7b>currentThread</span>();
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 获取state</span>
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> c <span style=color:#ff79c6>=</span> getState();
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 0的话就尝试设置线程</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (c <span style=color:#ff79c6>==</span> 0) {
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (compareAndSetState(0, acquires)) {
-</span></span><span style=display:flex><span>            setExclusiveOwnerThread(current);
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 如果线程是一样的</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> (current <span style=color:#ff79c6>==</span> getExclusiveOwnerThread()) {
-</span></span><span style=display:flex><span>        <span style=color:#8be9fd>int</span> nextc <span style=color:#ff79c6>=</span> c <span style=color:#ff79c6>+</span> acquires;
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 重入的次数超过整数最大值</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (nextc <span style=color:#ff79c6>&lt;</span> 0) <span style=color:#6272a4>// overflow</span>
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> Error(<span style=color:#f1fa8c>&#34;Maximum lock count exceeded&#34;</span>);
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 设置新的state</span>
-</span></span><span style=display:flex><span>        setState(nextc);
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>false</span>;
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></td></tr></table></div></div><p>公平锁的代码就是acquire(1)。在tryAcquire()中判断队列中有没有线程在等待。</p><p>释放锁</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>boolean</span> <span style=color:#50fa7b>release</span>(<span style=color:#8be9fd>int</span> arg) {
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 判断state - 1是不是0了，如果不是0，就不是完全释放锁</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (tryRelease(arg)) {
-</span></span><span style=display:flex><span>        Node h <span style=color:#ff79c6>=</span> head;
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 判断队列有没有东西了</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (h <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>null</span> <span style=color:#ff79c6>&amp;&amp;</span> h.<span style=color:#50fa7b>waitStatus</span> <span style=color:#ff79c6>!=</span> 0)
-</span></span><span style=display:flex><span>            <span style=color:#6272a4>// 唤醒队头的元素</span>
-</span></span><span style=display:flex><span>            <span style=color:#6272a4>// LockSupport.unpark(s.thread);</span>
-</span></span><span style=display:flex><span>            unparkSuccessor(h);
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>false</span>;
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#6272a4>// 在unPark成功后会继续运行acquireQueued方法，他里面是一个for(;;)循环，会让下个线程持有锁了</span>
-</span></span></code></pre></td></tr></table></div></div><p>这能看出来非公平不会让队列的线程去抢锁，而是无法控制在释放锁的一瞬间会被突然进来的线程抢占锁。</p><hr><h3 id=读写锁>读写锁<a hidden class=anchor aria-hidden=true href=#读写锁>#</a></h3><p>在ReentrantReadWriteLock中持有一个WriteLock和ReadLock和Sync。读写锁中使用state的高16位代表读锁，低16位代表写锁。</p><p>写锁</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#6272a4>// 写锁也是走acquire()</span>
-</span></span><span style=display:flex><span><span style=color:#6272a4>// tryAcquire会走到ReentrantReadWriteLock中</span>
-</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>protected</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>boolean</span> <span style=color:#50fa7b>tryAcquire</span>(<span style=color:#8be9fd>int</span> acquires) {
-</span></span><span style=display:flex><span>    Thread current <span style=color:#ff79c6>=</span> Thread.<span style=color:#50fa7b>currentThread</span>();
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> c <span style=color:#ff79c6>=</span> getState();
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 获取低16位</span>
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> w <span style=color:#ff79c6>=</span> exclusiveCount(c);
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (c <span style=color:#ff79c6>!=</span> 0) {
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 如果c不是0，w是0，说明有线程加读锁</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 如果加锁的线程不是这个线程就返回false</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 最多只能有一个写锁</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (w <span style=color:#ff79c6>==</span> 0 <span style=color:#ff79c6>||</span> current <span style=color:#ff79c6>!=</span> getExclusiveOwnerThread())
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>false</span>;
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (w <span style=color:#ff79c6>+</span> exclusiveCount(acquires) <span style=color:#ff79c6>&gt;</span> MAX_COUNT)
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> Error(<span style=color:#f1fa8c>&#34;Maximum lock count exceeded&#34;</span>);
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// Reentrant acquire</span>
-</span></span><span style=display:flex><span>        setState(c <span style=color:#ff79c6>+</span> acquires);
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 如果是非公平锁，直接加锁，如果是公平锁，如果队列中有线程排队就不加锁</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (writerShouldBlock() <span style=color:#ff79c6>||</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>!</span>compareAndSetState(c, c <span style=color:#ff79c6>+</span> acquires))
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>false</span>;
-</span></span><span style=display:flex><span>    setExclusiveOwnerThread(current);
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>true</span>;
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#6272a4>// 再往后走代码就和可重入锁一样了</span>
-</span></span></code></pre></td></tr></table></div></div><p>读锁</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>protected</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>int</span> <span style=color:#50fa7b>tryAcquireShared</span>(<span style=color:#8be9fd>int</span> unused) {
-</span></span><span style=display:flex><span>    Thread current <span style=color:#ff79c6>=</span> Thread.<span style=color:#50fa7b>currentThread</span>();
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> c <span style=color:#ff79c6>=</span> getState();
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// exclusiveCount(c)不等于0说明有人加写锁</span>
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 如果加锁的线程不是自己就不能加锁</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (exclusiveCount(c) <span style=color:#ff79c6>!=</span> 0 <span style=color:#ff79c6>&amp;&amp;</span>
-</span></span><span style=display:flex><span>        getExclusiveOwnerThread() <span style=color:#ff79c6>!=</span> current)
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#ff79c6>-</span>1;
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 获取高16位</span>
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> r <span style=color:#ff79c6>=</span> sharedCount(c);
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>!</span>readerShouldBlock() <span style=color:#ff79c6>&amp;&amp;</span> r <span style=color:#ff79c6>&lt;</span> MAX_COUNT
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 尝试修改高16位的值</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&amp;&amp;</span> compareAndSetState(c, c <span style=color:#ff79c6>+</span> SHARED_UNIT)) {
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (r <span style=color:#ff79c6>==</span> 0) {
-</span></span><span style=display:flex><span>            firstReader <span style=color:#ff79c6>=</span> current;
-</span></span><span style=display:flex><span>            firstReaderHoldCount <span style=color:#ff79c6>=</span> 1;
-</span></span><span style=display:flex><span>        } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> (firstReader <span style=color:#ff79c6>==</span> current) {
-</span></span><span style=display:flex><span>            firstReaderHoldCount<span style=color:#ff79c6>++</span>;
-</span></span><span style=display:flex><span>        } <span style=color:#ff79c6>else</span> {
-</span></span><span style=display:flex><span>            HoldCounter rh <span style=color:#ff79c6>=</span> cachedHoldCounter;
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (rh <span style=color:#ff79c6>==</span> <span style=color:#ff79c6>null</span> <span style=color:#ff79c6>||</span> rh.<span style=color:#50fa7b>tid</span> <span style=color:#ff79c6>!=</span> getThreadId(current))
-</span></span><span style=display:flex><span>                cachedHoldCounter <span style=color:#ff79c6>=</span> rh <span style=color:#ff79c6>=</span> readHolds.<span style=color:#50fa7b>get</span>();
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> (rh.<span style=color:#50fa7b>count</span> <span style=color:#ff79c6>==</span> 0)
-</span></span><span style=display:flex><span>                readHolds.<span style=color:#50fa7b>set</span>(rh);
-</span></span><span style=display:flex><span>            rh.<span style=color:#50fa7b>count</span><span style=color:#ff79c6>++</span>;
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> 1;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 加读锁失败进入死循环CAS</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> fullTryAcquireShared(current);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></td></tr></table></div></div><p>释放锁和可重入锁差不多，只不过是state减1的时候读和写分开。</p><p>await</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>await</span>() <span style=color:#8be9fd;font-style:italic>throws</span> InterruptedException {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (Thread.<span style=color:#50fa7b>interrupted</span>())
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> InterruptedException();
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 把node标记成condition</span>
-</span></span><span style=display:flex><span>    Node node <span style=color:#ff79c6>=</span> addConditionWaiter();
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 释放锁</span>
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> savedState <span style=color:#ff79c6>=</span> fullyRelease(node);
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> interruptMode <span style=color:#ff79c6>=</span> 0;
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>while</span> (<span style=color:#ff79c6>!</span>isOnSyncQueue(node)) {
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 挂起</span>
-</span></span><span style=display:flex><span>        LockSupport.<span style=color:#50fa7b>park</span>(<span style=color:#ff79c6>this</span>);
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> ((interruptMode <span style=color:#ff79c6>=</span> checkInterruptWhileWaiting(node)) <span style=color:#ff79c6>!=</span> 0)
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>break</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (acquireQueued(node, savedState) <span style=color:#ff79c6>&amp;&amp;</span> interruptMode <span style=color:#ff79c6>!=</span> THROW_IE)
-</span></span><span style=display:flex><span>        interruptMode <span style=color:#ff79c6>=</span> REINTERRUPT;
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (node.<span style=color:#50fa7b>nextWaiter</span> <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>null</span>) <span style=color:#6272a4>// clean up if cancelled</span>
-</span></span><span style=display:flex><span>        unlinkCancelledWaiters();
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (interruptMode <span style=color:#ff79c6>!=</span> 0)
-</span></span><span style=display:flex><span>        reportInterruptAfterWait(interruptMode);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></td></tr></table></div></div><p>signal</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>private</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>doSignal</span>(Node first) {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>do</span> {
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 判断等待队列有没有</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> ( (firstWaiter <span style=color:#ff79c6>=</span> first.<span style=color:#50fa7b>nextWaiter</span>) <span style=color:#ff79c6>==</span> <span style=color:#ff79c6>null</span>)
-</span></span><span style=display:flex><span>            lastWaiter <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>null</span>;
-</span></span><span style=display:flex><span>        first.<span style=color:#50fa7b>nextWaiter</span> <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>null</span>;
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// transferForSignal是把node状态赋值成0</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 这里会唤醒condition队列头部的线程，放到等待队列中</span>
-</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>while</span> (<span style=color:#ff79c6>!</span>transferForSignal(first) <span style=color:#ff79c6>&amp;&amp;</span>
-</span></span><span style=display:flex><span>             (first <span style=color:#ff79c6>=</span> firstWaiter) <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>null</span>);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></td></tr></table></div></div><hr><h3 id=countdownlatch>CountDownLatch<a hidden class=anchor aria-hidden=true href=#countdownlatch>#</a></h3><p>await方法</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>public</span> <span style=color:#8be9fd;font-style:italic>final</span> <span style=color:#8be9fd>void</span> <span style=color:#50fa7b>acquireSharedInterruptibly</span>(<span style=color:#8be9fd>int</span> arg)
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>throws</span> InterruptedException {
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (Thread.<span style=color:#50fa7b>interrupted</span>())
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> InterruptedException();
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 判断state是不是0</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (tryAcquireShared(arg) <span style=color:#ff79c6>&lt;</span> 0)
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 不是0就把线程加到等待队列里</span>
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// park线程</span>
-</span></span><span style=display:flex><span>        doAcquireSharedInterruptibly(arg);
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></td></tr></table></div></div><p>countDown操作就是把state-1，然后把await的线程唤醒。</p><hr><h3 id=cyclicbarrier>CyclicBarrier<a hidden class=anchor aria-hidden=true href=#cyclicbarrier>#</a></h3><p>他和AQS没有直接关系，但是内部使用ReentrantLock实现的。</p><p>await方法</p><div class=highlight><div style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>private</span> <span style=color:#8be9fd>int</span> <span style=color:#50fa7b>dowait</span>(<span style=color:#8be9fd>boolean</span> timed, <span style=color:#8be9fd>long</span> nanos)
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>throws</span> InterruptedException, BrokenBarrierException, TimeoutException {
-</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>final</span> ReentrantLock lock <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>this</span>.<span style=color:#50fa7b>lock</span>;
-</span></span><span style=display:flex><span>    <span style=color:#6272a4>// 可重入锁</span>
-</span></span><span style=display:flex><span>    lock.<span style=color:#50fa7b>lock</span>();
-</span></span><span style=display:flex><span>    <span style=color:#ff79c6>try</span> {
-</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>final</span> Generation g <span style=color:#ff79c6>=</span> generation;
-</span></span><span style=display:flex><span>		<span style=color:#6272a4>// 实例化CyclicBarrier传的线程数量</span>
-</span></span><span style=display:flex><span>        <span style=color:#8be9fd>int</span> index <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>--</span>count;
-</span></span><span style=display:flex><span>        <span style=color:#6272a4>// 最后一个线程执行完</span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (index <span style=color:#ff79c6>==</span> 0) {  <span style=color:#6272a4>// tripped</span>
-</span></span><span style=display:flex><span>            <span style=color:#8be9fd>boolean</span> ranAction <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>false</span>;
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>try</span> {
-</span></span><span style=display:flex><span>                <span style=color:#8be9fd;font-style:italic>final</span> Runnable command <span style=color:#ff79c6>=</span> barrierCommand;
-</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (command <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>null</span>)
-</span></span><span style=display:flex><span>                    <span style=color:#6272a4>// 执行runnable的run方法，所以我们传进来的Runnable不是以线程方式执行的</span>
-</span></span><span style=display:flex><span>                    command.<span style=color:#50fa7b>run</span>();
-</span></span><span style=display:flex><span>                ranAction <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>true</span>;
-</span></span><span style=display:flex><span>                <span style=color:#6272a4>// 这里会把count恢复成我们设置的数值，再把所有线程唤醒</span>
-</span></span><span style=display:flex><span>                nextGeneration();
-</span></span><span style=display:flex><span>                <span style=color:#ff79c6>return</span> 0;
-</span></span><span style=display:flex><span>            } <span style=color:#ff79c6>finally</span> {
-</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>!</span>ranAction)
-</span></span><span style=display:flex><span>                    breakBarrier();
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (;;) {
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>try</span> {
-</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>!</span>timed)
-</span></span><span style=display:flex><span>                    <span style=color:#6272a4>// trip是lock的condition，把这个线程放到AQS的wait队列</span>
-</span></span><span style=display:flex><span>                    trip.<span style=color:#50fa7b>await</span>();
-</span></span><span style=display:flex><span>                <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> (nanos <span style=color:#ff79c6>&gt;</span> 0L)
-</span></span><span style=display:flex><span>                    nanos <span style=color:#ff79c6>=</span> trip.<span style=color:#50fa7b>awaitNanos</span>(nanos);
-</span></span><span style=display:flex><span>            } <span style=color:#ff79c6>catch</span> (InterruptedException ie) {
-</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (g <span style=color:#ff79c6>==</span> generation <span style=color:#ff79c6>&amp;&amp;</span> <span style=color:#ff79c6>!</span> g.<span style=color:#50fa7b>broken</span>) {
-</span></span><span style=display:flex><span>                    breakBarrier();
-</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>throw</span> ie;
-</span></span><span style=display:flex><span>                } <span style=color:#ff79c6>else</span> {
-</span></span><span style=display:flex><span>                    Thread.<span style=color:#50fa7b>currentThread</span>().<span style=color:#50fa7b>interrupt</span>();
-</span></span><span style=display:flex><span>                }
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (g.<span style=color:#50fa7b>broken</span>)
-</span></span><span style=display:flex><span>                <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> BrokenBarrierException();
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (g <span style=color:#ff79c6>!=</span> generation)
-</span></span><span style=display:flex><span>                <span style=color:#ff79c6>return</span> index;
-</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (timed <span style=color:#ff79c6>&amp;&amp;</span> nanos <span style=color:#ff79c6>&lt;=</span> 0L) {
-</span></span><span style=display:flex><span>                breakBarrier();
-</span></span><span style=display:flex><span>                <span style=color:#ff79c6>throw</span> <span style=color:#ff79c6>new</span> TimeoutException();
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>finally</span> {
-</span></span><span style=display:flex><span>        lock.<span style=color:#50fa7b>unlock</span>();
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span></code></pre></td></tr></table></div></div></div><footer class=post-footer><ul class=post-tags><li><a href=https://wangxiaohong123.github.io/tags/java%E6%BA%90%E7%A0%81/>Java源码</a></li><li><a href=https://wangxiaohong123.github.io/tags/%E5%B9%B6%E5%8F%91/>并发</a></li></ul><nav class=paginav><a class=prev href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E7%AE%97%E6%B3%95/leecode/9.%E6%95%B4%E6%95%B0%E5%8F%8D%E8%BD%AC/><span class=title>« Prev</span><br><span>9.整数反转</span>
-</a><a class=next href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/java/1.%E9%9B%86%E5%90%88/1.arraylist/><span class=title>Next »</span><br><span>ArrayList</span></a></nav><ul class=share-buttons><li><a target=_blank rel="noopener noreferrer" aria-label="share AQS on x" href="https://x.com/intent/tweet/?text=AQS&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f&amp;hashtags=java%e6%ba%90%e7%a0%81%2c%e5%b9%b6%e5%8f%91"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446C483.971.0 512 28.03 512 62.554zM269.951 190.75 182.567 75.216H56L207.216 272.95 63.9 436.783h61.366L235.9 310.383l96.667 126.4H456L298.367 228.367l134-153.151H371.033zM127.633 110h36.468l219.38 290.065H349.5z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share AQS on linkedin" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f&amp;title=AQS&amp;summary=AQS&amp;source=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM160.461 423.278V197.561h-75.04v225.717h75.04zm270.539.0V293.839c0-69.333-37.018-101.586-86.381-101.586-39.804.0-57.634 21.891-67.617 37.266v-31.958h-75.021c.995 21.181.0 225.717.0 225.717h75.02V297.222c0-6.748.486-13.492 2.474-18.315 5.414-13.475 17.767-27.434 38.494-27.434 27.135.0 38.007 20.707 38.007 51.037v120.768H431zM123.448 88.722C97.774 88.722 81 105.601 81 127.724c0 21.658 16.264 39.002 41.455 39.002h.484c26.165.0 42.452-17.344 42.452-39.002-.485-22.092-16.241-38.954-41.943-39.002z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share AQS on reddit" href="https://reddit.com/submit?url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f&title=AQS"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zM446 265.638c0-22.964-18.616-41.58-41.58-41.58-11.211.0-21.361 4.457-28.841 11.666-28.424-20.508-67.586-33.757-111.204-35.278l18.941-89.121 61.884 13.157c.756 15.734 13.642 28.29 29.56 28.29 16.407.0 29.706-13.299 29.706-29.701.0-16.403-13.299-29.702-29.706-29.702-11.666.0-21.657 6.792-26.515 16.578l-69.105-14.69c-1.922-.418-3.939-.042-5.585 1.036-1.658 1.073-2.811 2.761-3.224 4.686l-21.152 99.438c-44.258 1.228-84.046 14.494-112.837 35.232-7.468-7.164-17.589-11.591-28.757-11.591-22.965.0-41.585 18.616-41.585 41.58.0 16.896 10.095 31.41 24.568 37.918-.639 4.135-.99 8.328-.99 12.576.0 63.977 74.469 115.836 166.33 115.836s166.334-51.859 166.334-115.836c0-4.218-.347-8.387-.977-12.493 14.564-6.47 24.735-21.034 24.735-38.001zM326.526 373.831c-20.27 20.241-59.115 21.816-70.534 21.816-11.428.0-50.277-1.575-70.522-21.82-3.007-3.008-3.007-7.882.0-10.889 3.003-2.999 7.882-3.003 10.885.0 12.777 12.781 40.11 17.317 59.637 17.317 19.522.0 46.86-4.536 59.657-17.321 3.016-2.999 7.886-2.995 10.885.008 3.008 3.011 3.003 7.882-.008 10.889zm-5.23-48.781c-16.373.0-29.701-13.324-29.701-29.698.0-16.381 13.328-29.714 29.701-29.714 16.378.0 29.706 13.333 29.706 29.714.0 16.374-13.328 29.698-29.706 29.698zM160.91 295.348c0-16.381 13.328-29.71 29.714-29.71 16.369.0 29.689 13.329 29.689 29.71.0 16.373-13.32 29.693-29.689 29.693-16.386.0-29.714-13.32-29.714-29.693z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share AQS on facebook" href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H342.978V319.085h66.6l12.672-82.621h-79.272v-53.617c0-22.603 11.073-44.636 46.58-44.636H425.6v-70.34s-32.71-5.582-63.982-5.582c-65.288.0-107.96 39.569-107.96 111.204v62.971h-72.573v82.621h72.573V512h-191.104c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share AQS on whatsapp" href="https://api.whatsapp.com/send?text=AQS%20-%20https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f"><svg viewBox="0 0 512 512" height="30" width="30" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554v386.892C512 483.97 483.97 512 449.446 512H62.554c-34.524.0-62.554-28.03-62.554-62.554V62.554c0-34.524 28.029-62.554 62.554-62.554h386.892zm-58.673 127.703c-33.842-33.881-78.847-52.548-126.798-52.568-98.799.0-179.21 80.405-179.249 179.234-.013 31.593 8.241 62.428 23.927 89.612l-25.429 92.884 95.021-24.925c26.181 14.28 55.659 21.807 85.658 21.816h.074c98.789.0 179.206-80.413 179.247-179.243.018-47.895-18.61-92.93-52.451-126.81zM263.976 403.485h-.06c-26.734-.01-52.954-7.193-75.828-20.767l-5.441-3.229-56.386 14.792 15.05-54.977-3.542-5.637c-14.913-23.72-22.791-51.136-22.779-79.287.033-82.142 66.867-148.971 149.046-148.971 39.793.014 77.199 15.531 105.329 43.692 28.128 28.16 43.609 65.592 43.594 105.4-.034 82.149-66.866 148.983-148.983 148.984zm81.721-111.581c-4.479-2.242-26.499-13.075-30.604-14.571-4.105-1.495-7.091-2.241-10.077 2.241-2.986 4.483-11.569 14.572-14.182 17.562-2.612 2.988-5.225 3.364-9.703 1.12-4.479-2.241-18.91-6.97-36.017-22.23C231.8 264.15 222.81 249.484 220.198 245s-.279-6.908 1.963-9.14c2.016-2.007 4.48-5.232 6.719-7.847 2.24-2.615 2.986-4.484 4.479-7.472 1.493-2.99.747-5.604-.374-7.846-1.119-2.241-10.077-24.288-13.809-33.256-3.635-8.733-7.327-7.55-10.077-7.688-2.609-.13-5.598-.158-8.583-.158-2.986.0-7.839 1.121-11.944 5.604-4.105 4.484-15.675 15.32-15.675 37.364.0 22.046 16.048 43.342 18.287 46.332 2.24 2.99 31.582 48.227 76.511 67.627 10.685 4.615 19.028 7.371 25.533 9.434 10.728 3.41 20.492 2.929 28.209 1.775 8.605-1.285 26.499-10.833 30.231-21.295 3.732-10.464 3.732-19.431 2.612-21.298-1.119-1.869-4.105-2.99-8.583-5.232z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share AQS on telegram" href="https://telegram.me/share/url?text=AQS&amp;url=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f"><svg viewBox="2 2 28 28" height="30" width="30" fill="currentColor"><path d="M26.49 29.86H5.5a3.37 3.37.0 01-2.47-1 3.35 3.35.0 01-1-2.47V5.48A3.36 3.36.0 013 3 3.37 3.37.0 015.5 2h21A3.38 3.38.0 0129 3a3.36 3.36.0 011 2.46V26.37a3.35 3.35.0 01-1 2.47 3.38 3.38.0 01-2.51 1.02zm-5.38-6.71a.79.79.0 00.85-.66L24.73 9.24a.55.55.0 00-.18-.46.62.62.0 00-.41-.17q-.08.0-16.53 6.11a.59.59.0 00-.41.59.57.57.0 00.43.52l4 1.24 1.61 4.83a.62.62.0 00.63.43.56.56.0 00.4-.17L16.54 20l4.09 3A.9.9.0 0021.11 23.15zM13.8 20.71l-1.21-4q8.72-5.55 8.78-5.55c.15.0.23.0.23.16a.18.18.0 010 .06s-2.51 2.3-7.52 6.8z"/></svg></a></li><li><a target=_blank rel="noopener noreferrer" aria-label="share AQS on ycombinator" href="https://news.ycombinator.com/submitlink?t=AQS&u=https%3a%2f%2fwangxiaohong123.github.io%2fposts%2f%25E5%259F%25BA%25E7%25A1%2580%2fjava%2f2.%25E5%25B9%25B6%25E5%258F%2591%2f5.aqs%2f"><svg width="30" height="30" viewBox="0 0 512 512" fill="currentColor"><path d="M449.446.0C483.971.0 512 28.03 512 62.554V449.446C512 483.97 483.97 512 449.446 512H62.554C28.03 512 0 483.97.0 449.446V62.554C0 28.03 28.029.0 62.554.0H449.446zM183.8767 87.9921h-62.034L230.6673 292.4508V424.0079h50.6655V292.4508L390.1575 87.9921H328.1233L256 238.2489z"/></svg></a></li></ul></footer></article></main><footer class=footer><span>&copy; 2025 <a href=https://wangxiaohong123.github.io/>王小红的笔记</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="copy";function s(){t.innerHTML="copied!",setTimeout(()=>{t.innerHTML="copy"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script></body></html>
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

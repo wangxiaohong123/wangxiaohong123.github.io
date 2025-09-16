@@ -1,45 +1,378 @@
-<!doctype html><html lang=en dir=auto><head><meta name=generator content="Hugo 0.150.0"><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>王小红的笔记</title><meta name=description content><meta name=author content><link rel=canonical href=https://wangxiaohong123.github.io/><link crossorigin=anonymous href=/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as=style><link rel=icon href=https://wangxiaohong123.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://wangxiaohong123.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://wangxiaohong123.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://wangxiaohong123.github.io/apple-touch-icon.png><link rel=mask-icon href=https://wangxiaohong123.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate type=application/rss+xml href=https://wangxiaohong123.github.io/index.xml><link rel=alternate hreflang=en href=https://wangxiaohong123.github.io/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><meta property="og:url" content="https://wangxiaohong123.github.io/"><meta property="og:site_name" content="王小红的笔记"><meta property="og:title" content="王小红的笔记"><meta property="og:locale" content="zh-CN"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content="王小红的笔记"><meta name=twitter:description content><script type=application/ld+json>{"@context":"https://schema.org","@type":"Organization","name":"王小红的笔记","url":"https://wangxiaohong123.github.io/","description":"","logo":"https://wangxiaohong123.github.io/favicon.ico","sameAs":[]}</script></head><body class=list id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://wangxiaohong123.github.io/ accesskey=h title="王小红的笔记 (Alt + H)">王小红的笔记</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
-<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://wangxiaohong123.github.io/posts/ title=笔记><span>笔记</span></a></li><li><a href=https://wangxiaohong123.github.io/tags/ title=标签><span>标签</span></a></li><li><a href=https://wangxiaohong123.github.io/categories/ title=分类><span>分类</span></a></li></ul></nav></header><main class=main><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>nacos-3.核心源码</h2></header><div class=entry-content><p>1.服务注册源码 服务注册、订阅什么的接口是NamingClientProxy，这个接口主要有两个实现类：NamingGrpcClientProxy和NamingHttpClientProxy，注册的方法是registerService，NamingGrpcClientProxy的流程：
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head>
+	<meta name="generator" content="Hugo 0.150.0"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>王小红的笔记</title>
+
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css" integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false},
+        {left: "\\(", right: "\\)", display: false},
+        {left: "\\[", right: "\\]", display: true}
+      ]
+    });
+  });
+</script>
+
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="王小红的笔记 (Alt + H)">王小红的笔记</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="笔记">
+                    <span>笔记</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">nacos-3.核心源码
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>1.服务注册源码 服务注册、订阅什么的接口是NamingClientProxy，这个接口主要有两个实现类：NamingGrpcClientProxy和NamingHttpClientProxy，注册的方法是registerService，NamingGrpcClientProxy的流程：
 1 2 3 4 5 6 7 8 9 10 11 12 13 /** * Register a instance to service with specified instance properties. * * @param serviceName 服务名 * @param groupName 服务分组 * @param instance 实例信息，保存实例id、ip、端口、权重等信息 */ public void registerService(String serviceName, String groupName, Instance instance) throws NacosException { // 先把实例存储到NamingGrpcRedoService的registeredInstances（ConcurrentMap）里 redoService.cacheInstanceForRedo(serviceName, groupName, instance); // 注册服务 doRegisterService(serviceName, groupName, instance); } 注册服务的方法：
-...</p></div><footer class=entry-footer>7 min</footer><a class=entry-link aria-label="post link to nacos-3.核心源码" href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/3.%E6%A0%B8%E5%BF%83%E6%BA%90%E7%A0%81/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>nginx-1.安装</h2></header><div class=entry-content><p>1 2 3 4 5 6 7 8 9 10 11 12 13 14 wget https://openresty.org/download/openresty-1.19.3.1.tar.gz # 解压、进入绕目录中 tar -zxvf openresty-1.19.3.1.tar.gz cd openresty-1.19.3.1 # 检查环境，生成编译文件 ./configure # 出现错误ERROR: failed to run command: make TARGET_STRIP=@: CCDEBUG=-g CC=cc PREFIX=/usr/local/openresty/luajit yum -y install gcc # 出现错误./configure: error: the HTTP rewrite module requires the PCRE library.安装pcre-devel与openssl-devel yum -y install pcre-devel openssl openssl-devel # 安装完后重新执行./configure通过，进行编译 gmake && gmake install # 编译之后在解压目录下出现openresty文件夹，可以删掉之前的解压文件 rm -rf openresty-1.19.3.1</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to nginx-1.安装" href=https://wangxiaohong123.github.io/posts/nginx/0.openresty%E5%AE%89%E8%A3%85/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>nginx-2.配置</h2></header><div class=entry-content><p>http语法 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 http { ### 定义日志格式 log_format main '$remote_addr - $remote_user [$time_local] "$request" ' '$status $body_bytes_sent "$http_referer" ' '"$http_user_agent" "$http_x_forwarded_for"'; # 打开传输压缩 gzip on; # 小于多少字节的内容就不进行压缩 gzip_min_length 1k; # 压缩级别，1-9，数字越大压缩的越好，也越占用CPU时间 gzip_comp_level 1; # 进行压缩的文件类型。javascript有多种形式。其中的值可以在 mime.types 文件中找到。 gzip_types text/plain application/javascript text/css application/xml text/javascript application/x-httpd-php image/bmp application/x-bmp image/x-ms-bmp application/vnd.ms-fontobject font/ttf font/opentype font/x-woff image/jpeg image/gif image/png; upstream local { server 127.0.0.1:9000; } } server语法 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 server { # 监听端口 listen 80; server_name www.orderorigin.com orderorigin.com; rewrite ^(.*) https://www.orderorigin.com$1 permanent; # 日志地址，main就是上面配置的日志格式 access_log logs/access.log main; # 代理静态页面 location / { # alias不会把location的路径带下来 alias /data/server/website/pc/; # 使用autoindex模块，他会把这个目录下的文件放在页面上展示，共享静态资源 autoindex on; # 限制nginx向浏览器响应的速度 set $limit_rate 1m; index index.html; } # 反向代理 location ^~/app/ { # 代理路径，local就是上面配置的upstream proxy_pass http://local; proxy_read_timeout 1000; proxy_connect_timeout 1000; proxy_redirect off; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; } } # https server{ listen 443 ssl; server_name 59.110.156.68; # 设置长连接 keepalive_timeout 70; # 启用三次握手缓存，在建立连接后的1440m内再次连接是不用握手的 ssl_session_cache shared:le_nginx_SSL:5m; ssl_session_timeout: 1440m; # 证书文件 ssl_certificate 4683730__orderorigin.com.pem; # 私钥文件 ssl_certificate_key 4683730__orderorigin.com.key; ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # 定义算法 ssl_ciphers HIGH:!aNULL:!MD5; ssl_prefer_server_ciphers on; # 减少点击劫持 add_header X-Frame-Options DENY; # 禁止服务器自动解析资源类型 add_header X-Content-Type-Options nosniff; # 防XSS攻擊 add_header X-Xss-Protection 1; error_log /data/nginx/logs/orderorigin.com/error.log; access_log /data/nginx/logs/orderorigin.com/access.log main; location / { root /data/server/website/pc/; index index.html; } location /wap { alias /data/server/website/wap/; index index.html; } location /qy { alias /data/server/website/icp_use/; index index.html; } localtion /status { # 状态监控 stub_status; } } 可以使用letsencrypt安装免费的证书。
-...</p></div><footer class=entry-footer>2 min</footer><a class=entry-link aria-label="post link to nginx-2.配置" href=https://wangxiaohong123.github.io/posts/nginx/2.%E9%85%8D%E7%BD%AE/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>nginx-3.连接池</h2></header><div class=entry-content><p>work_connections是nginx的连接池只想数组大小，因为nginx收到请求后需要代理出去，所以一个请求要涉及到两个事件，每个连接对象的大小大约是232字节，每个事件对象大小大约是96字节，所以一个连接需要占用432字节，差不多0.5k。</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to nginx-3.连接池" href=https://wangxiaohong123.github.io/posts/nginx/3.%E8%BF%9E%E6%8E%A5%E6%B1%A0/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>redis-1.架构设计</h2></header><div class=entry-content><p>1.resp协议 resp是redis client和server通信的序列化协议，协议的语法：
-间隔符：\r\n(linux)；\n(windows) 短字符：+ 长字符串：$ 整数：: 数组：* error：- 1 2 3 4 5 6 # SET name why # 转换成RESP格式： # 参数和参数表示符之间都需要使用\r\n分割 # *3表示命令的参数有3个 # $3表示后面跟着长度是3的参数 *3\r\n$3\r\nSET\r\n$4\r\nname\r\n$3\r\nwhy\r\n 1.1 redis中的请求响应模式： 串行模式：一次请求一次响应。 双工模式：TCP本身就是双工的，redis中的双工就是批量处理，pipeline。 原子化的批量模式：把多个请求放进一个命令队列。 发布订阅模式：类似消息队列。 脚本化的批量模式：处理lua脚本。 2.启动流程 redis服务端的启动类是server.c，客户端的启动类是redis-cli.c(cli不是client的缩写，是command line interface的缩写)，这两个文件都在src目录下。redis-cli.c的代码还有一部分在deps/hiredis/hiredis.c文件里。
+...</p>
+  </div>
+  <footer class="entry-footer">7 min</footer>
+  <a class="entry-link" aria-label="post link to nacos-3.核心源码" href="http://localhost:1313/posts/%E6%A1%86%E6%9E%B6/spring/cloud-alibaba/nacos/3.%E6%A0%B8%E5%BF%83%E6%BA%90%E7%A0%81/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">nginx-1.安装
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 wget https://openresty.org/download/openresty-1.19.3.1.tar.gz # 解压、进入绕目录中 tar -zxvf openresty-1.19.3.1.tar.gz cd openresty-1.19.3.1 # 检查环境，生成编译文件 ./configure # 出现错误ERROR: failed to run command: make TARGET_STRIP=@: CCDEBUG=-g CC=cc PREFIX=/usr/local/openresty/luajit yum -y install gcc # 出现错误./configure: error: the HTTP rewrite module requires the PCRE library.安装pcre-devel与openssl-devel yum -y install pcre-devel openssl openssl-devel # 安装完后重新执行./configure通过，进行编译 gmake &amp;&amp; gmake install # 编译之后在解压目录下出现openresty文件夹，可以删掉之前的解压文件 rm -rf openresty-1.19.3.1 </p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to nginx-1.安装" href="http://localhost:1313/posts/nginx/0.openresty%E5%AE%89%E8%A3%85/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">nginx-2.配置
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>http语法 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 http { ### 定义日志格式 log_format main &#39;$remote_addr - $remote_user [$time_local] &#34;$request&#34; &#39; &#39;$status $body_bytes_sent &#34;$http_referer&#34; &#39; &#39;&#34;$http_user_agent&#34; &#34;$http_x_forwarded_for&#34;&#39;; # 打开传输压缩 gzip on; # 小于多少字节的内容就不进行压缩 gzip_min_length 1k; # 压缩级别，1-9，数字越大压缩的越好，也越占用CPU时间 gzip_comp_level 1; # 进行压缩的文件类型。javascript有多种形式。其中的值可以在 mime.types 文件中找到。 gzip_types text/plain application/javascript text/css application/xml text/javascript application/x-httpd-php image/bmp application/x-bmp image/x-ms-bmp application/vnd.ms-fontobject font/ttf font/opentype font/x-woff image/jpeg image/gif image/png; upstream local { server 127.0.0.1:9000; } } server语法 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 server { # 监听端口 listen 80; server_name www.orderorigin.com orderorigin.com; rewrite ^(.*) https://www.orderorigin.com$1 permanent; # 日志地址，main就是上面配置的日志格式 access_log logs/access.log main; # 代理静态页面 location / { # alias不会把location的路径带下来 alias /data/server/website/pc/; # 使用autoindex模块，他会把这个目录下的文件放在页面上展示，共享静态资源 autoindex	on; # 限制nginx向浏览器响应的速度 set	$limit_rate 1m; index index.html; } # 反向代理 location ^~/app/ { # 代理路径，local就是上面配置的upstream proxy_pass http://local; proxy_read_timeout 1000; proxy_connect_timeout 1000; proxy_redirect off; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; } } # https server{ listen 443 ssl; server_name 59.110.156.68; # 设置长连接 keepalive_timeout 70; # 启用三次握手缓存，在建立连接后的1440m内再次连接是不用握手的 ssl_session_cache shared:le_nginx_SSL:5m; ssl_session_timeout: 1440m; # 证书文件 ssl_certificate 4683730__orderorigin.com.pem; # 私钥文件 ssl_certificate_key 4683730__orderorigin.com.key; ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # 定义算法 ssl_ciphers HIGH:!aNULL:!MD5; ssl_prefer_server_ciphers on; # 减少点击劫持 add_header X-Frame-Options DENY; # 禁止服务器自动解析资源类型 add_header X-Content-Type-Options nosniff; # 防XSS攻擊 add_header X-Xss-Protection 1; error_log /data/nginx/logs/orderorigin.com/error.log; access_log /data/nginx/logs/orderorigin.com/access.log main; location / { root /data/server/website/pc/; index index.html; } location /wap { alias /data/server/website/wap/; index index.html; } location /qy { alias /data/server/website/icp_use/; index index.html; } localtion /status { # 状态监控 stub_status; } } 可以使用letsencrypt安装免费的证书。
+...</p>
+  </div>
+  <footer class="entry-footer">2 min</footer>
+  <a class="entry-link" aria-label="post link to nginx-2.配置" href="http://localhost:1313/posts/nginx/2.%E9%85%8D%E7%BD%AE/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">nginx-3.连接池
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>work_connections是nginx的连接池只想数组大小，因为nginx收到请求后需要代理出去，所以一个请求要涉及到两个事件，每个连接对象的大小大约是232字节，每个事件对象大小大约是96字节，所以一个连接需要占用432字节，差不多0.5k。
+</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to nginx-3.连接池" href="http://localhost:1313/posts/nginx/3.%E8%BF%9E%E6%8E%A5%E6%B1%A0/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">redis-1.架构设计
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>1.resp协议 resp是redis client和server通信的序列化协议，协议的语法：
+间隔符：\r\n(linux)；\n(windows) 短字符：&#43; 长字符串：$ 整数：: 数组：* error：- 1 2 3 4 5 6 # SET name why # 转换成RESP格式： # 参数和参数表示符之间都需要使用\r\n分割 # *3表示命令的参数有3个 # $3表示后面跟着长度是3的参数 *3\r\n$3\r\nSET\r\n$4\r\nname\r\n$3\r\nwhy\r\n 1.1 redis中的请求响应模式： 串行模式：一次请求一次响应。 双工模式：TCP本身就是双工的，redis中的双工就是批量处理，pipeline。 原子化的批量模式：把多个请求放进一个命令队列。 发布订阅模式：类似消息队列。 脚本化的批量模式：处理lua脚本。 2.启动流程 redis服务端的启动类是server.c，客户端的启动类是redis-cli.c(cli不是client的缩写，是command line interface的缩写)，这两个文件都在src目录下。redis-cli.c的代码还有一部分在deps/hiredis/hiredis.c文件里。
 redis启动的时候server.c会先初始化配置，然后初始化服务器，然后加载持久化文件到内存，最后启动事件处理器:
 3.命令处理流程 redis的命令都存储在RedisCommandTable里，存储的结构体叫redisCommand，这个结构体定义在server.h文件中：
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 struct redisCommand { // 命令名 char *name; // 命令处理函数 redisCommandProc *proc; /** * 用来校验的 *参数数量 > 0时，arity表示参数数量，参数数量 &lt;= 0时，arity > 参数数量 */ int arity; /** * 命令标识，用来区分是什么命令 * 比如w：写命令；r：读命令；F：记录超时的命令；m：如果内存不足就不执行 * 命令标识可以组合，比如rF：执行读命令，并且记录超时 */ char *sflags; /* Flags as string representation, one char per flag. */ // sflags的二进制标识 int flags; /* The actual flags, obtained from the 'sflags' field. */ /* Use a function to determine keys arguments in a command line. * Used for Redis Cluster redirect. */ redisGetKeysProc *getkeys_proc; /* What keys should be loaded in background when calling this command? */ int firstkey; /* The first argument that's a key (0 = no keys) */ int lastkey; /* The last argument that's a key */ int keystep; /* The step between first and last key */ /** * 从服务器启动到现在命令的执行时间和次数 */ long long microseconds, calls; }; RedisCommandTable里维护了所有合法的命令，他是一个数组，查找是O(n)，要优化这个就需要把命令放到字典中，key就是命令名，value是redisCommand，字典形式存储命令的方法叫populateCommandTable。
-...</p></div><footer class=entry-footer>6 min</footer><a class=entry-link aria-label="post link to redis-1.架构设计" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>redis-2.SDS</h2></header><div class=entry-content><p>1.SDS结构 redis3.2之前的SDS长这样：
-free(4字节) len(4字节) buf[] buf剩余长度 buf使用长度 字符数组，最后一位是’\0' free+len固定需要8字节，这样有个弊端，当字符串很小的时候可能2个字节就够了，如果字符串很大可能4字节还存不下长度，所以redis5之后针对free和len改成了5种sdshdr：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 struct redisCommand { // 命令名 char *name; // 命令处理函数 redisCommandProc *proc; /** * 用来校验的 *参数数量 &gt; 0时，arity表示参数数量，参数数量 &lt;= 0时，arity &gt; 参数数量 */ int arity; /** * 命令标识，用来区分是什么命令 * 比如w：写命令；r：读命令；F：记录超时的命令；m：如果内存不足就不执行 * 命令标识可以组合，比如rF：执行读命令，并且记录超时 */ char *sflags; /* Flags as string representation, one char per flag. */ // sflags的二进制标识 int flags; /* The actual flags, obtained from the &#39;sflags&#39; field. */ /* Use a function to determine keys arguments in a command line. * Used for Redis Cluster redirect. */ redisGetKeysProc *getkeys_proc; /* What keys should be loaded in background when calling this command? */ int firstkey; /* The first argument that&#39;s a key (0 = no keys) */ int lastkey; /* The last argument that&#39;s a key */ int keystep; /* The step between first and last key */ /** * 从服务器启动到现在命令的执行时间和次数 */ long long microseconds, calls; }; RedisCommandTable里维护了所有合法的命令，他是一个数组，查找是O(n)，要优化这个就需要把命令放到字典中，key就是命令名，value是redisCommand，字典形式存储命令的方法叫populateCommandTable。
+...</p>
+  </div>
+  <footer class="entry-footer">6 min</footer>
+  <a class="entry-link" aria-label="post link to redis-1.架构设计" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/1.%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">redis-2.SDS
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>1.SDS结构 redis3.2之前的SDS长这样：
+free(4字节) len(4字节) buf[] buf剩余长度 buf使用长度 字符数组，最后一位是&#39;\0&#39; free&#43;len固定需要8字节，这样有个弊端，当字符串很小的时候可能2个字节就够了，如果字符串很大可能4字节还存不下长度，所以redis5之后针对free和len改成了5种sdshdr：
 sdshdr5：常量字符串，不支持扩容，使用1个字节标识，低3位表示类型(比如sdshdr5类型)，高5位表示len；
 sdshdr8：他多了一个alloc记录总长度：
 len alloc flags buf[] 已使用长度 总长度 1字节，低3位表示类型，高5位预留 字符数组 sdshdr16、sdshdr32、sdshdr64和sdshdr8是一样的，不过len和alloc的类型不一样，分别使用uint8(无符号1字节int)、uint16、uint32、uint64。
 对应的结构体：
 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 /** * __attribute__ ((__packed__))是优化对齐 */ struct __attribute__ ((__packed__)) sdshdr5 { unsigned char flags; /* 3 lsb of type, and 5 msb of string length */ char buf[]; }; struct __attribute__ ((__packed__)) sdshdr8 { uint8_t len; /* used */ uint8_t alloc; /* excluding the header and null terminator */ unsigned char flags; /* 3 lsb of type, 5 unused bits */ char buf[]; }; struct __attribute__ ((__packed__)) sdshdr16 { uint16_t len; /* used */ uint16_t alloc; /* excluding the header and null terminator */ unsigned char flags; /* 3 lsb of type, 5 unused bits */ char buf[]; }; struct __attribute__ ((__packed__)) sdshdr32 { uint32_t len; /* used */ uint32_t alloc; /* excluding the header and null terminator */ unsigned char flags; /* 3 lsb of type, 5 unused bits */ char buf[]; }; struct __attribute__ ((__packed__)) sdshdr64 { uint64_t len; /* used */ uint64_t alloc; /* excluding the header and null terminator */ unsigned char flags; /* 3 lsb of type, 5 unused bits */ char buf[]; }; 2.创建字符串 创建字符串对应sds.c的sdsnewlen()方法：
-...</p></div><footer class=entry-footer>6 min</footer><a class=entry-link aria-label="post link to redis-2.SDS" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/2.sds/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>redis-3.跳表</h2></header><div class=entry-content><p>1.结构 跳表的结构体：
+...</p>
+  </div>
+  <footer class="entry-footer">6 min</footer>
+  <a class="entry-link" aria-label="post link to redis-2.SDS" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/2.sds/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">redis-3.跳表
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>1.结构 跳表的结构体：
 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 // 跳表节点 typedef struct zskiplistNode { // 跳表的value sds ele; // 跳表的score double score; // 指向最底层的前一个节点的指针 struct zskiplistNode *backward; // 有几层就会有几个元素 struct zskiplistLevel { // 同一层的下一个元素 struct zskiplistNode *forward; // 到下一个节点跳过了多少个节点 unsigned long span; } level[]; } zskiplistNode; // 跳跃表节点链表 typedef struct zskiplist { // 头尾指针 // 头节点的level长度是64，ele是空，score等于0， struct zskiplistNode *header, *tail; // 跳表长度(不包括头节点) unsigned long length; // 跳表高度 int level; } zskiplist; 2.创建跳表 创建跳表比较简单，主要在申请内存，初始化header信息，在创建跳表的时候会直接创建64层的header，代码对应t_zset.c的zslCreate()函数：
-...</p></div><footer class=entry-footer>4 min</footer><a class=entry-link aria-label="post link to redis-3.跳表" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/3.%E8%B7%B3%E8%A1%A8/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>redis-4.字典</h2></header><div class=entry-content><p>字典的底层由两个hash table实现，一个table用来正常存储数据，另一个在rehash时使用，具体的结构体：
+...</p>
+  </div>
+  <footer class="entry-footer">4 min</footer>
+  <a class="entry-link" aria-label="post link to redis-3.跳表" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/3.%E8%B7%B3%E8%A1%A8/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">redis-4.字典
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>字典的底层由两个hash table实现，一个table用来正常存储数据，另一个在rehash时使用，具体的结构体：
 1 2 3 4 5 6 7 8 9 10 11 12 13 14 typedef struct dict { // 字典类型，指向dictType dictType *type; // dictEntry中函数的参数 void *privdata; // 两个hash表 // ht[0]原始hash表 // ht[1]扩容的时候使用 dictht ht[2]; // rehash标识，-1表示没有rehash，其他表示当前rehash进度的数组索引 long rehashidx; /* rehashing not in progress if rehashidx == -1 */ // 迭代器 unsigned long iterators; /* number of iterators currently running */ } dict; dictht就是真正存储数据的hash table，dictType里面封装了一些方法，比如计算hash值、比较等等，dictType的结构体：
-...</p></div><footer class=entry-footer>4 min</footer><a class=entry-link aria-label="post link to redis-4.字典" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/4.%E5%AD%97%E5%85%B8/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>redis-5.整数集合</h2></header><div class=entry-content><p>一 intset redis中如果set类型存储的元素都是有符号整数并且size小于512会使用整数集合来存储元素。intset是一个有序不可重复的整形数组。
+...</p>
+  </div>
+  <footer class="entry-footer">4 min</footer>
+  <a class="entry-link" aria-label="post link to redis-4.字典" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/4.%E5%AD%97%E5%85%B8/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">redis-5.整数集合
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>一 intset redis中如果set类型存储的元素都是有符号整数并且size小于512会使用整数集合来存储元素。intset是一个有序不可重复的整形数组。
 1.查找元素 查找元素在inset.c的intsetFind()函数：
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 uint8_t intsetFind(intset *is, int64_t value) { // 获取value的encoding uint8_t valenc = _intsetValueEncoding(value); // 如果value的encoding小于等于intset的encoding就开始查找 // 如果是大于的话intset里肯定没有，不需要查找 return valenc &lt;= intrev32ifbe(is->encoding) && intsetSearch(is,value,NULL); } static uint8_t intsetSearch(intset *is, int64_t value, uint32_t *pos) { int min = 0, max = intrev32ifbe(is->length)-1, mid = -1; int64_t cur = -1; // intset是空字节返回0 if (intrev32ifbe(is->length) == 0) { if (pos) *pos = 0; return 0; } else { // 如果value大于intset的最大值返回0 if (value > _intsetGet(is,intrev32ifbe(is->length)-1)) { if (pos) *pos = intrev32ifbe(is->length); return 0; } else if (value &lt; _intsetGet(is,0)) { // value小于intset的最小值返回0 if (pos) *pos = 0; return 0; } } // 二分查找 while(max >= min) { mid = ((unsigned int)min + (unsigned int)max) >> 1; cur = _intsetGet(is,mid); if (value > cur) { min = mid+1; } else if (value &lt; cur) { max = mid-1; } else { break; } } if (value == cur) { if (pos) *pos = mid; return 1; } else { if (pos) *pos = min; return 0; } } 2.添加元素 添加和删除都差不多，找到要修改的位置+挪动其他元素+插入元素：
-...</p></div><footer class=entry-footer>3 min</footer><a class=entry-link aria-label="post link to redis-5.整数集合" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/5.%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>redis-调优</h2></header><div class=entry-content><p>同步操作：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 uint8_t intsetFind(intset *is, int64_t value) { // 获取value的encoding uint8_t valenc = _intsetValueEncoding(value); // 如果value的encoding小于等于intset的encoding就开始查找 // 如果是大于的话intset里肯定没有，不需要查找 return valenc &lt;= intrev32ifbe(is-&gt;encoding) &amp;&amp; intsetSearch(is,value,NULL); } static uint8_t intsetSearch(intset *is, int64_t value, uint32_t *pos) { int min = 0, max = intrev32ifbe(is-&gt;length)-1, mid = -1; int64_t cur = -1; // intset是空字节返回0 if (intrev32ifbe(is-&gt;length) == 0) { if (pos) *pos = 0; return 0; } else { // 如果value大于intset的最大值返回0 if (value &gt; _intsetGet(is,intrev32ifbe(is-&gt;length)-1)) { if (pos) *pos = intrev32ifbe(is-&gt;length); return 0; } else if (value &lt; _intsetGet(is,0)) { // value小于intset的最小值返回0 if (pos) *pos = 0; return 0; } } // 二分查找 while(max &gt;= min) { mid = ((unsigned int)min &#43; (unsigned int)max) &gt;&gt; 1; cur = _intsetGet(is,mid); if (value &gt; cur) { min = mid&#43;1; } else if (value &lt; cur) { max = mid-1; } else { break; } } if (value == cur) { if (pos) *pos = mid; return 1; } else { if (pos) *pos = min; return 0; } } 2.添加元素 添加和删除都差不多，找到要修改的位置&#43;挪动其他元素&#43;插入元素：
+...</p>
+  </div>
+  <footer class="entry-footer">3 min</footer>
+  <a class="entry-link" aria-label="post link to redis-5.整数集合" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/5.%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">redis-调优
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>同步操作：
 读写客户端数据； 过期机制是在主线程中执行的； 淘汰策略也是在主线程中执行； 异步操作：
 主从同步生成全量的RDB； lazy-free机制，把bigkey的释放内存的耗时操作放在了异步线程中执行； AOF放入rewrite，重写采用的是写时复制机制，最开始只会fork一个子进程，子进程会先复制父进程中的内存页表信息，父子进程指向同一个地址的数据，这时候子进程就可以开始写日志了，但是会有两种情况引起阻塞：1）内存页表很大，也就是数据量很多，在fork完成之前都会阻塞住；2）当有新的数据写入时，父进程会创建新的数据，新申请数据如果很大，因为内存的分配是以页为单位的，默认4k，如果申请了bigkey的内存，会产生耗时，如果操作系统开启的内存大页机制，阻塞的概率会提高很多。 4.0特性：
 提出了一个混合使用AOF和RDB的的方法，就是说RDB按照正常频率执行，在这期间的数据变更使用AOF来记录； 异步删除和异步清空，unlink命令或者flushall async，lazy-free机制，会尝试异步释放空间操作（比如过期key、淘汰、主从）； 耗时操作：
 读写bigkey时，分配内存和释放内存会产生耗时； 使用复杂度是O(n)的指令； 大量key过期； 内存不够，这时候每次写入前都会淘汰一些key； AOF设置成always，每次都要刷盘； 主从同步时生成全量RDB的一瞬间会阻塞住； 生产调优 repl_backlog_size一般要配置成（主库写入命令速度 * 操作大小 - 主从库间网络传输命令速度 * 操作大小） * 2。因为主从之间的缓冲区是环形的，防止缓冲区写满主库还继续写入，导致数据被覆盖。
 绑核：每个CPU有多个运行核心，叫做物理核，每个物理核都有私有的L1和L2，每个CPU的所有物理核共享一个L3，L1和L2一般都是几k左右，三级缓存会有百兆左右，这也叫NUMA架构，跨核后操作延迟不相等。每个物理核一般会有两个逻辑核，因为如果是多核的情况，一个redis程序运行在了多个CPU socket上，这样数据要通过缓存传递，说白了就是减少上下文的切换。首先使用lscpu查看所有逻辑核，以及每个核的编号和对应的cpu socket，使用taskset -c 0,3 ./redis-server把redis和0核和3核绑定绑定，一般都是绑两个逻辑核，一个用来异步处理，但是这两个逻辑核要在同一个物理核下。
-使用**./redis-cli –intrinsic-latency 120**查看redis120s内的延迟。
+使用**./redis-cli --intrinsic-latency 120**查看redis120s内的延迟。
 什么时候横向扩容？
-先找到进程号**$ redis-cli info | grep process_id** cd /proc/[进程号] cat smaps | egrep ‘^(Swap|Size)’，检查swap数值，如果很大就需要扩容了 关闭huge page，在/et/rc.local里加入配置echo never >/sys/kernel/mm/transparent_hugepage/enabled，默认是开启，如果开启会导致fork的速度变慢。
+先找到进程号**$ redis-cli info | grep process_id** cd /proc/[进程号] cat smaps | egrep &#39;^(Swap|Size)&#39;，检查swap数值，如果很大就需要扩容了 关闭huge page，在/et/rc.local里加入配置echo never &gt;/sys/kernel/mm/transparent_hugepage/enabled，默认是开启，如果开启会导致fork的速度变慢。
 vm.overcommit_memory，找linux申请内存，但是不马上使用，默认是0，意思就是有内存就可以申请，没有内存就申请失败，redis的生产一般设置成1，允许redis超量使用内存，一直到服务器的内存都用完。
-降低redis被系统killer概率，这是swappiness，这个是物理内存不够的时候会swap刷到磁盘，防止linux的oom killer机制，在/etc/sysctl.conf里配置vm.swappiness=1，如果linux的版本&lt;=3.5就配置成0，这样可以让redis在内存不够时不被系统杀死；找到redis的pid，然后echo -17 > /proc/redis的pid/oom_adj
+降低redis被系统killer概率，这是swappiness，这个是物理内存不够的时候会swap刷到磁盘，防止linux的oom killer机制，在/etc/sysctl.conf里配置vm.swappiness=1，如果linux的版本&lt;=3.5就配置成0，这样可以让redis在内存不够时不被系统杀死；找到redis的pid，然后echo -17 &gt; /proc/redis的pid/oom_adj
 修改文件句柄数，默认的进程可以打开文件句柄是4096，使用ulimit -Sn xx设置可以打开的文件句柄数。
 结合慢查询日志优化 slowlog-log-slower-than配置默认是10000us，设置请求时间超过多少算慢查询。然后把慢查询日志存到双向链表里。
 slowlog-max-len设置存放慢查询日志的链表大小，超过最大值会移除最早的。一般最少要配置1000。
 然后通过slowlog len获取慢查询日志长度，slowlog get n获取n条慢查询日志。
-...</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to redis-调优" href=https://wangxiaohong123.github.io/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/7.%E8%B0%83%E4%BC%98/></a></article><footer class=page-footer><nav class=pagination><a class=prev href=https://wangxiaohong123.github.io/page/21/>«&nbsp;Prev&nbsp;
-</a><a class=next href=https://wangxiaohong123.github.io/page/23/>Next&nbsp;&nbsp;»</a></nav></footer></main><footer class=footer><span>&copy; 2025 <a href=https://wangxiaohong123.github.io/>王小红的笔记</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>
+...</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to redis-调优" href="http://localhost:1313/posts/%E5%9F%BA%E7%A1%80/%E6%95%B0%E6%8D%AE%E5%BA%93/redis/7.%E8%B0%83%E4%BC%98/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="prev" href="http://localhost:1313/page/21/">
+      «&nbsp;Prev&nbsp;
+    </a>
+    <a class="next" href="http://localhost:1313/page/23/">Next&nbsp;&nbsp;»
+    </a>
+  </nav>
+</footer>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">王小红的笔记</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

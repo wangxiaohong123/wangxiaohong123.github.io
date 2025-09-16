@@ -1,23 +1,193 @@
-<!doctype html><html lang=en dir=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><title>RocketMQ | 王小红的笔记</title><meta name=keywords content><meta name=description content><meta name=author content><link rel=canonical href=https://wangxiaohong123.github.io/tags/rocketmq/><link crossorigin=anonymous href=/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as=style><link rel=icon href=https://wangxiaohong123.github.io/favicon.ico><link rel=icon type=image/png sizes=16x16 href=https://wangxiaohong123.github.io/favicon-16x16.png><link rel=icon type=image/png sizes=32x32 href=https://wangxiaohong123.github.io/favicon-32x32.png><link rel=apple-touch-icon href=https://wangxiaohong123.github.io/apple-touch-icon.png><link rel=mask-icon href=https://wangxiaohong123.github.io/safari-pinned-tab.svg><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate type=application/rss+xml href=https://wangxiaohong123.github.io/tags/rocketmq/index.xml><link rel=alternate hreflang=en href=https://wangxiaohong123.github.io/tags/rocketmq/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51)}.list{background:var(--theme)}.list:not(.dark)::-webkit-scrollbar-track{background:0 0}.list:not(.dark)::-webkit-scrollbar-thumb{border-color:var(--theme)}}</style></noscript><meta property="og:url" content="https://wangxiaohong123.github.io/tags/rocketmq/"><meta property="og:site_name" content="王小红的笔记"><meta property="og:title" content="RocketMQ"><meta property="og:locale" content="zh-CN"><meta property="og:type" content="website"><meta name=twitter:card content="summary"><meta name=twitter:title content="RocketMQ"><meta name=twitter:description content></head><body class=list id=top><script>localStorage.getItem("pref-theme")==="dark"?document.body.classList.add("dark"):localStorage.getItem("pref-theme")==="light"?document.body.classList.remove("dark"):window.matchMedia("(prefers-color-scheme: dark)").matches&&document.body.classList.add("dark")</script><header class=header><nav class=nav><div class=logo><a href=https://wangxiaohong123.github.io/ accesskey=h title="王小红的笔记 (Alt + H)">王小红的笔记</a><div class=logo-switches><button id=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
-<svg id="moon" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-<svg id="sun" width="24" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button></div></div><ul id=menu><li><a href=https://wangxiaohong123.github.io/posts/ title=笔记><span>笔记</span></a></li><li><a href=https://wangxiaohong123.github.io/tags/ title=标签><span>标签</span></a></li><li><a href=https://wangxiaohong123.github.io/categories/ title=分类><span>分类</span></a></li></ul></nav></header><main class=main><header class=page-header><h1>RocketMQ</h1></header><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>1.集群原理和主备切换</h2></header><div class=entry-content><p>集群原理 1）4.5之前的集群原理 RocketMq默认就是集群模式，扩展也很简单，功能多而且使用java写的，但是捐给Apache了，也找不到中文文档，英文的还比较简单。 上面三个是目前社区最活跃的三个消息中间件，个人觉得RocketMQ没啥大缺点。
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>RocketMQ | 王小红的笔记</title>
+<meta name="keywords" content="">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/tags/rocketmq/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.08f7d74f0ada0f975d29ae436285b61ed7a719d05f350cb888d00341642995a2.css" integrity="sha256-CPfXTwraD5ddKa5DYoW2HtenGdBfNQy4iNADQWQplaI=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/tags/rocketmq/index.xml">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/tags/rocketmq/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+<link rel="stylesheet" href="/katex/katex.min.css">
+<script defer src="/katex/katex.min.js"></script>
+<script defer src="/katex/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false},
+        {left: "\\(", right: "\\)", display: false},
+        {left: "\\[", right: "\\]", display: true}
+      ]
+    });
+  });
+</script>
+
+</head>
+
+<body class="list" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="王小红的笔记 (Alt + H)">王小红的笔记</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="笔记">
+                    <span>笔记</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="分类">
+                    <span>分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="标签">
+                    <span>标签</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+<header class="page-header">
+  <h1>
+    RocketMQ
+  </h1>
+</header>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">1.集群原理和主备切换
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>集群原理 1）4.5之前的集群原理 RocketMq默认就是集群模式，扩展也很简单，功能多而且使用java写的，但是捐给Apache了，也找不到中文文档，英文的还比较简单。 上面三个是目前社区最活跃的三个消息中间件，个人觉得RocketMQ没啥大缺点。
 nameServer，代替zk，负责维护broker集群信息(默认每隔10s摘除超过120s没法送心跳的broker节点)，以及同步broker信息到producer。nemeServer的集群是不需要互相通信的，属于Peer-to-Peer对等的集群架构实现了高可用，每个nameServer是相互独立的。并且nameServer不能实现broker的选举，就是说当master-broker挂掉之后需要人工切换master-broker在重启服务。
 broker负责收发消息持久化到本地，每个master-broker可以配置一主多从保证高可用，broker会定时发送心跳到所有nameServer证明自己可用，broker可以配置集群名称，相同集群名称的broker为一个集群。broker也可以配置自己的名称，相同名称的broker是主从关系，通过brokerId区分主从节点，id是0为主节点，大于0是从节点。
 producer发送消息时先根据nameServer中获取到的节点信息和topic信息负载均衡到一个queue，然后根据queue反向拿到broker信息，这样就可以向指定的broker发送消息了。
 但是这种集群是没法保证主节点宕机之后自动的主从切换的，从切点只能提供现有消息的读取。所以broker在4.5之前并不是高可用的。
 2）4.5之后的集群原理 raft协议：raft是一个方法论，每个broker刚启动的时候都是follower，然后会给自己一个150ms~300ms的随机休眠时间，然后最先完成休眠的follower会把自己的身份变成candidate(leader的候选角色)，接下来进入投票环节，首先他肯定投票给自己，然后他会发送请求发送给其他follower进行拉票，但是每个follower只有一张票，当follower收到拉票请求之前没有投过票，他就会把票投给这个candidate，当这个candidate得到的投票超过了半数(quorum)之后，他就会变成leader。然后当leader选举出来之后会定时向其他节点发送leader的心跳，高速他们已经有leader了，其他节点收到leader心跳之后会重置休眠时间，继续休眠，这样可以实现leader还在的时候其他节点永远没有机会发起选举。
 在4.5版本之后不需要配置brokerId，还是相同broker name的为一个组，broker就是基于状态基实现的leader选举：
-leader状态：初始化的状态都是follower，对应的行为是maintainAsFollower->是否收到leader心跳包，如果没有就执行倒计时把自己切换成candidate状态任务。 candidate状态：当有broker苏醒后就变成了candidate状态，candidate状态对应的行为是maintainAsCandidate->给自己投票并发送拉票请求到其他节点，其他节点都投完票之后会判断拿到的票是否超过半数，如果是否就要重新睡眠，如果是是就把状态切换成leader。 leader状态：变成leader之后对应的行为变成了maintainAsLeader->向其他节点发送leader心跳，其他节点收到心跳之后会重新休眠并返回结果，如果超过半数follower返回响应就继续定时发送心跳，如果返回的响应少于半数就会把自己重新变成candidate状态。 主备切换 RocketMQ通过自己实现的DLedger组件实现了raft协议和消息存储等功能，主备切换和上面的原理是一样的。
+leader状态：初始化的状态都是follower，对应的行为是maintainAsFollower-&gt;是否收到leader心跳包，如果没有就执行倒计时把自己切换成candidate状态任务。 candidate状态：当有broker苏醒后就变成了candidate状态，candidate状态对应的行为是maintainAsCandidate-&gt;给自己投票并发送拉票请求到其他节点，其他节点都投完票之后会判断拿到的票是否超过半数，如果是否就要重新睡眠，如果是是就把状态切换成leader。 leader状态：变成leader之后对应的行为变成了maintainAsLeader-&gt;向其他节点发送leader心跳，其他节点收到心跳之后会重新休眠并返回结果，如果超过半数follower返回响应就继续定时发送心跳，如果返回的响应少于半数就会把自己重新变成candidate状态。 主备切换 RocketMQ通过自己实现的DLedger组件实现了raft协议和消息存储等功能，主备切换和上面的原理是一样的。
 执行以下命令安装Dledger：
 1 2 3 git clone https://github.com/openmessaging/openmessaging-storage-dledger.git cd openmessaging-storage-dledger mvn clean install -DskipTests 下载RcoketMQ4.5.2解压导入到intellij中，在terminal切换到项目根目录中运行以下命令进行源码包编译：
 1 mvn -Prelease-all -DskipTests clean install -U 编译之后将distribution模块下target文件夹中的rocketmq-4.5.2.tar.gz上传到三台虚拟机并解压，修改解压后文件夹下的bin目录下的runserver.sh和runbroker.sh两个文件中的jvm配置。在conf目录下新建文件夹1m-2s-sync，添加一主两从broker文件。然后执行命令启动一个nameserver和三个broker：
-1 2 3 4 # 启动nameserver nohup sh mqnamesrv & # 使用broker-a.properties启动broker nohup sh mqbroker -c /usr/local/rocketmq/rocketmq-4.5.2/conf/1m-2s-sync/broker-a.properties >/dev/null 2>&amp;1 & 启动控制台查看broker集群
-...</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to 1.集群原理和主备切换" href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/1.%E9%9B%86%E7%BE%A4%E5%8E%9F%E7%90%86%E5%92%8C%E4%B8%BB%E5%A4%87%E5%88%87%E6%8D%A2/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>2.nameServer相关原理</h2></header><div class=entry-content><p>核心数据模型 首先要有一个集群信息clusterAddrTable:类似下面这样
-1 2 3 4 { // 这里是集群名称:集群中的broker名称数组 "myCluster": ["myBroker01","myBroker02"] } broker信息brokerAddrTable，以broker的主从为元素的数组，broker名称作为key，相同名称的broker组成了brokerAddrs信息：
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [{ "myBroker01": { "cluster": "myCluster", "brokerAddrs": [{ // ip:端口 0: "xx.xx.xx.xx:xxx" },{ 1: "xx.xx.xx.xx:xxx" }] } },{ "myBroker02": { "cluster": "myCluster", "brokerAddrs": [{ 0: "xx.xx.xx.xx:xxx" },{ 1: "xx.xx.xx.xx:xxx" }] } }] broker的心跳信息brokerLiveTable，里面保存了上一次心跳时间以及对应的ha节点地址，比如broker是一主一从，从节点心跳信息的haServerAddr就是主节点的地址：
-...</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to 2.nameServer相关原理" href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/2.nameserver%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>3.消息存储</h2></header><div class=entry-content><p>存储方式 每个topic中的消息是分布存储到broker集群上的，也就是说每个master-slave集群只存储一个topic的部分消息，但是怎么确定每个broker上存储那些消息呢？RocketMQ使用MessageQueue来记录消息，每个topic可以有多个MessageQueue，这些MessageQueue尽量均匀的分布到所有master-broker上，而每个MessageQueue存储的消息数量尽量平均，每条消息分发到那个MessageQueue上由选择的策略决定，RocketMQ提供了很多策略。比如一个集群有两个master-broker：master-brokera和master-brokerb，在创建topic时设置MessageQueue的数量为4，这个时候master-brokera上会有两个MessageQueue：MessageQueue0和MessageQueue1，master-brokerb上有两个MessageQueue：MessageQueue2和MessageQueue3，当有10000条消息写入到这个topic中时，理想情况是master-brokera上有5000条消息，master-brokerb上有5000条消息，master-brokera和master-brokerb中的MessageQueue各有2500条消息，通过存储不同的MessageQueue中的消息来实现消息的分布式存储，MessageQueue只是他的逻辑概念，真正到磁盘上会编程consumeQueue。
+1 2 3 4 # 启动nameserver nohup sh mqnamesrv &amp; # 使用broker-a.properties启动broker nohup sh mqbroker -c /usr/local/rocketmq/rocketmq-4.5.2/conf/1m-2s-sync/broker-a.properties &gt;/dev/null 2&gt;&amp;1 &amp; 启动控制台查看broker集群
+...</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to 1.集群原理和主备切换" href="http://localhost:1313/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/1.%E9%9B%86%E7%BE%A4%E5%8E%9F%E7%90%86%E5%92%8C%E4%B8%BB%E5%A4%87%E5%88%87%E6%8D%A2/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">2.nameServer相关原理
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>核心数据模型 首先要有一个集群信息clusterAddrTable:类似下面这样
+1 2 3 4 { // 这里是集群名称:集群中的broker名称数组 &#34;myCluster&#34;: [&#34;myBroker01&#34;,&#34;myBroker02&#34;] } broker信息brokerAddrTable，以broker的主从为元素的数组，broker名称作为key，相同名称的broker组成了brokerAddrs信息：
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [{ &#34;myBroker01&#34;: { &#34;cluster&#34;: &#34;myCluster&#34;, &#34;brokerAddrs&#34;: [{ // ip:端口 0: &#34;xx.xx.xx.xx:xxx&#34; },{ 1: &#34;xx.xx.xx.xx:xxx&#34; }] } },{ &#34;myBroker02&#34;: { &#34;cluster&#34;: &#34;myCluster&#34;, &#34;brokerAddrs&#34;: [{ 0: &#34;xx.xx.xx.xx:xxx&#34; },{ 1: &#34;xx.xx.xx.xx:xxx&#34; }] } }] broker的心跳信息brokerLiveTable，里面保存了上一次心跳时间以及对应的ha节点地址，比如broker是一主一从，从节点心跳信息的haServerAddr就是主节点的地址：
+...</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to 2.nameServer相关原理" href="http://localhost:1313/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/2.nameserver%E7%9B%B8%E5%85%B3%E5%8E%9F%E7%90%86/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">3.消息存储
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>存储方式 每个topic中的消息是分布存储到broker集群上的，也就是说每个master-slave集群只存储一个topic的部分消息，但是怎么确定每个broker上存储那些消息呢？RocketMQ使用MessageQueue来记录消息，每个topic可以有多个MessageQueue，这些MessageQueue尽量均匀的分布到所有master-broker上，而每个MessageQueue存储的消息数量尽量平均，每条消息分发到那个MessageQueue上由选择的策略决定，RocketMQ提供了很多策略。比如一个集群有两个master-broker：master-brokera和master-brokerb，在创建topic时设置MessageQueue的数量为4，这个时候master-brokera上会有两个MessageQueue：MessageQueue0和MessageQueue1，master-brokerb上有两个MessageQueue：MessageQueue2和MessageQueue3，当有10000条消息写入到这个topic中时，理想情况是master-brokera上有5000条消息，master-brokerb上有5000条消息，master-brokera和master-brokerb中的MessageQueue各有2500条消息，通过存储不同的MessageQueue中的消息来实现消息的分布式存储，MessageQueue只是他的逻辑概念，真正到磁盘上会编程consumeQueue。
 1.自动容错机制 sendLatencyFaultEnable配置：如果访问一个master-broker的延迟过高，一段时间内不会安排这个broker写消息，可以避免master-broker故障后进行主备切换时访问挂掉的master-broker失败，读数据处理看源码的时候回来写。
-2.持久化方式 RocketMQ的日志默认在$HOME/store/文件夹下，可以自定义配置。在store/commitlog文件夹下存储的是一堆数字名称的文件，比如00000000000000000000，这些文件记录了所有消息，每个文件限定最多1G，文件的名称是文件里第一条消息相对于所有文件的总偏移量；在store/consumequeue/{topic}/{queueId}/文件夹下存储的也是一堆数字名称的文件的，这些文件存储相关topic下的MessageQueue中的消息信息（消息在CommitLog中的offset偏移量，消息的长度，以及tag hashcode），可以理解为记录的的是当前MessageQueue里的消息在CommitLog中的地址，每条信息是20字节(8字节的offset，4个字节的消息大小，8字节的hash值)，每个文件保存30万条数据，5.72M。 这样每个consumer group都保存自己消费到了第几条消息就可以找到是第几个consume queue文件，在consume queue中找到消息，然后根据消息的总偏移量+二分查找定位到commit log文件，计算在commit log文件中的偏移量(总偏移量 - 文件名)，获取到消息内容。然后还有一个index file，他是负责条件查找消息的。
+2.持久化方式 RocketMQ的日志默认在$HOME/store/文件夹下，可以自定义配置。在store/commitlog文件夹下存储的是一堆数字名称的文件，比如00000000000000000000，这些文件记录了所有消息，每个文件限定最多1G，文件的名称是文件里第一条消息相对于所有文件的总偏移量；在store/consumequeue/{topic}/{queueId}/文件夹下存储的也是一堆数字名称的文件的，这些文件存储相关topic下的MessageQueue中的消息信息（消息在CommitLog中的offset偏移量，消息的长度，以及tag hashcode），可以理解为记录的的是当前MessageQueue里的消息在CommitLog中的地址，每条信息是20字节(8字节的offset，4个字节的消息大小，8字节的hash值)，每个文件保存30万条数据，5.72M。 这样每个consumer group都保存自己消费到了第几条消息就可以找到是第几个consume queue文件，在consume queue中找到消息，然后根据消息的总偏移量&#43;二分查找定位到commit log文件，计算在commit log文件中的偏移量(总偏移量 - 文件名)，获取到消息内容。然后还有一个index file，他是负责条件查找消息的。
 3.写入流程 当broker收到写入请求时，会把消息追加到commit log里，同时有一个后台线程监听commit log，把新数据同步到consume queue中。
 将消息写入这两个文件就是持久化，RocketMQ提供两种刷盘方式：
 异步刷盘：broker收到消息后将消息写入os操作系统的PageCache（也叫os-cache），由操作系统控制每500ms将缓冲区的消息异步刷入磁盘文件，可能会导致消息丢失； 同步刷盘：broker收到消息后直接写入磁盘文件，降低性能保证数据不丢失，使用顺序写比随机写快很多； 3.1page cache高并发读写问题 在高并发的场景下很有可能读取的消息还在page cache中，如果写入和读取都是同一个page cache会出现频繁征用，导致阻塞、导致执行失败(broker busy异常)，RocketMQ提供了一个transientStorePoolEnabled(启用瞬时存储池)机制，通过配置文件配置，打开之后会变成内存级别的读写分离。他会先把消息写到堆外内存中，然后由后台线程定时刷新到page cache中，这样page cache就没有高并发的写操作，也就没有page cache频繁征用问题。
@@ -25,7 +195,20 @@ leader状态：初始化的状态都是follower，对应的行为是maintainAsFo
 没有解决办法，看tradeoff了。
 3.3.主从同步 从节点启动时会和主节点建立连接，然后主节点创建HAConnection组件，建立连接之后从节点会创建两个线程，HAClient请求发送组件和HAClient请求响应组件，通过请求发送线程发送同步数据请求，传过去一个max offset，表示当前节点的topic消息的最大偏移量，然后主节点把大于这个offset的消息全部返回给从节点，交给请求响应线程刷盘： pull模式：RocketMQ在4.5之前使用的是pull模式，他要求从节点主动发送同步消息请求，这个模式要想保证消息0丢失需要主节点把消息写到磁盘里，并且等到从节点拉取消息的请求中携带的max offset比当前消息大才行，这就会导致写入的吞吐量降低几个数量级，估计最快也要几百ms。
 push模式：就是主节点主动推送消息到从节点，当要求消息0丢失的时候反而是push模式要快一点。但是主从同步还设计到了消息的commited的状态问题。
-3.4 RocketMQ4.5版本之后的写入流程 4.5之后通过DLedger实现的raft协议写入消息，然后通过DLedger的异步复制实现主从同步消息，然后同步等待从节点返回结果，其实就是push模式。这样就有个问题，就是当只有leader写成功，这个时候他还在等follower的写成功结果时，这条消息是不能被消费到的，还有一个就是改成DLedger之后消息存储格式发生了变化，他分成了header和body，body里放的就是原来commitLog的数据，然后consumeQueue里的偏移量变成了body的起始偏移量。</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to 3.消息存储" href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/3.%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>4.消息消费</h2></header><div class=entry-content><p>读写分离主从漂移设计：RocketMQ默认是不倾向于读写分离的，默认的读写都是走主节点，从节点相当于热备份，当主节点检测出自己压力过大时，会返回一个从节点信息告诉消费者下次在从节点拉取，然后拉取一段时间之后，从节点检测出自己消息积压量小于物理内存的30%就会又返回主节点的信息，让消费者下次尝试从主节点拉取消息。这种有的时候访问主，有的时候访问从就叫ip漂移。
+3.4 RocketMQ4.5版本之后的写入流程 4.5之后通过DLedger实现的raft协议写入消息，然后通过DLedger的异步复制实现主从同步消息，然后同步等待从节点返回结果，其实就是push模式。这样就有个问题，就是当只有leader写成功，这个时候他还在等follower的写成功结果时，这条消息是不能被消费到的，还有一个就是改成DLedger之后消息存储格式发生了变化，他分成了header和body，body里放的就是原来commitLog的数据，然后consumeQueue里的偏移量变成了body的起始偏移量。
+</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to 3.消息存储" href="http://localhost:1313/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/3.%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">4.消息消费
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>读写分离主从漂移设计：RocketMQ默认是不倾向于读写分离的，默认的读写都是走主节点，从节点相当于热备份，当主节点检测出自己压力过大时，会返回一个从节点信息告诉消费者下次在从节点拉取，然后拉取一段时间之后，从节点检测出自己消息积压量小于物理内存的30%就会又返回主节点的信息，让消费者下次尝试从主节点拉取消息。这种有的时候访问主，有的时候访问从就叫ip漂移。
 他为什么要采取这种惰性的读写分离呢？因为他要维护每个消费者对消息的消费进度，如果一直读写分离，并且有多个从节点，每次消费都可能从任意一个从节点读取，这样是没法维护消费进度的，在RocketMQ中，从节点每隔10s会和主节点进行offset同步，这样也不会支持频繁的读写分离，因为会有大量的重复消息。kafka连漂移都没有。
 但是在4.5之后由于改成了raft协议选举，他有个特点就是过半写成功就算成功，当有一些节点没写成功发生了ip漂移就可能导致有些消息无法读取，这样就和kafka一样了。
 绑定consume queue逻辑 想要拿到消息首先需要绑定consume Queue，一个消费者可以消费多个consumeQueue，但是多个消费者不能消费相同的consume Queue，具体绑定到那个consume Queue是有消费者自己计算的，从nameServer上获取topic信息之后就知道有几个consume queue了，然后就可以计算要绑定到那个queue上，queue在那台broker上，但是有个关键的地方就是他需要知道一个consumer group里有哪些消费者，当消费者启动的时候会去想broker注册，这样随便找一个broker就能找到消费者组的所有信息。
@@ -33,14 +216,125 @@ push模式：就是主节点主动推送消息到从节点，当要求消息0丢
 拉取消息模式 拉取消息的组件命名上看有pull和push，但是底层实现都是pull模式，当没有开启long polling的时候也就是默认情况下就是short polling，他在拉取消息时如果没有消息会挂起1s，1s之后会在去检查有没有消息，没有就返回，如果开启了long polling会长时间挂起，然后broker上有一个后台线程每隔5s去检查有没有新的消息，这个时候就要分pull还是push，如果是push就会挂起等待后台线程检查有新消息或者超过15s返回，如果是pull模式最多挂起的时间应该是20s。
 并发消费 消费者会在内存里维护多个processQueue，每个processQueue都和自己绑定的consumeQueue对应，当拉取消息的线程拉取到消息之后会把消息写到内存的processQueue里，然后会有一个线程池来消费这个processQueue的数据，这个线程池就是我们在初始化消费者的时候设置的线程池，然后线程池里的线程拿到消息之后就回去回调我们的自己的消费逻辑。
 消费进度管理 当我们消费完之后如果返回的是成功就会把消息从processQueue中删掉并且更新自己内存里的消费进度，然后在通过后台向线程把消费进度异步通知broker，broker也是把消费进度更新到内存里，然后通过后台线程异步刷盘。
-如果返回的是失败broker会把消息写到一个延迟消息的topic里去，等到时间后再把消息拿出来重新写到原来的topic中。</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to 4.消息消费" href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/4.%E6%B6%88%E6%81%AF%E8%8E%B7%E5%8F%96/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>5.常见问题</h2></header><div class=entry-content><p>消息丢失 0丢失方案：发送端发送事务消息：half消息加commit or rollback方式，broker同步刷盘加主从同步，消费端确保一条线程消费成功后提交偏移量；
+如果返回的是失败broker会把消息写到一个延迟消息的topic里去，等到时间后再把消息拿出来重新写到原来的topic中。
+</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to 4.消息消费" href="http://localhost:1313/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/4.%E6%B6%88%E6%81%AF%E8%8E%B7%E5%8F%96/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">5.常见问题
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>消息丢失 0丢失方案：发送端发送事务消息：half消息加commit or rollback方式，broker同步刷盘加主从同步，消费端确保一条线程消费成功后提交偏移量；
 消息重复消费问题 消费端重复消费的场景：首先我们拉取到的消息可能有很多条，这一批消息如果有一条失败就要全部返回RECONSUME_LATER，在拉取到这些消息后就可能导致之前成功消费的又处理一遍；然后提交偏移量在broker那里是先写到内存在异步刷盘，这也会导致偏移量不准，还有一种情况是broker主节点宕机，从节点的consumer group偏移量信息不是最新的，也会导致消息重复消费。
 解决方案是使用redis或者zk的分布式锁，这个要基于业务逻辑来实现，或者基于redis/数据库的唯一索引的幂等检查，消费成功之后插入一条数据，消费之前判断是否有这条数据，这样也要根据msgId进行加锁；
 消息乱序 由于rocketMQ将消息存储到多个messageQueue中，很有可能数据库中一条数据的操作被放在了不同的messageQueue里，消费时可能会发生乱序的问题，所以在发送消息的时候就要保证有序的数据发到同一个messageQueue中。如果想要保证消息有序在消费的时候如果失败了也不可以进重试队列了，重试过来的消息和乱序消费时没区别的，只能返回SUSPEND_CURRENT_QUEUE_A_MOMENT暂停或者成功状态然后记录，根据具体业务处理。
 生产者代码：
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 // 根据订单id，将同一个订单发送到同一个messageQueue中 // 异步send方法的四个参数：消息实体；messageQueue选择器；选择器参数o；回调函数； Long orderId = 0L; producer.send(message, (list, message1, o) -> { Long orderId1 = (Long) o; // 根据队列取余 Long index = orderId1 % list.size(); return list.get(index.intValue()); }, orderId, new SendCallback() { @Override public void onSuccess(SendResult sendResult) { log.info("发送消息结果:{}", sendResult); } @Override public void onException(Throwable throwable) { throwable.printStackTrace(); log.error("发送失败"); } }); 消费者代码：
-...</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to 5.常见问题" href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/5.%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>RocketMQ配置</h2></header><div class=entry-content><p>1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 # 这个是集群的名称，你整个broker集群都可以用这个名称 brokerClusterName = RaftCluster # 这是Broker的名称，比如你有一个Master和两个Slave，那么他们的Broker名称必须是一样的，因为他们三个是一个分组，如果你有另外一组Master和两个Slave，你可以给他们起个别的名字，比如说RaftNode01 brokerName=broker-a #0 表示 Master，>0 表示 Slave brokerId=0 # 这个就是你的Broker监听的端口号，如果每台机器上就部署一个Broker，可以考虑就用这个端口号，不用修改 listenPort=30911 # 这里是配置NameServer的地址，如果你有很多个NameServer的话，可以在这里写入多个NameServer的地址 namesrvAddr=192.168.0.3:9876 # 下面两个目录是存放Broker数据的地方，你可以换成别的目录，类似于是/usr/local/rocketmq/node00之类的 storePathRootDir=/usr/local/rocketmq/store/ # commitLog存储路径 storePathCommitLog=/usr/local/rocketmq/store/commitlog # 消费队列存储路径 storePathConsumeQueue=/usr/local/rocketmq/store/consumequeue # 消息索引存储路径 storePathIndex=/usr/local/rocketmq/store/index # checkpoint 文件存储路径 storeCheckpoint=/usr/local/rocketmq/store/checkpoint # abort 文件存储路径 abortFile=/usr/local/rocketmq/store/abort # 这个是非常关键的一个配置，就是是否启用DLeger技术，这个必须是true enableDLegerCommitLog=true # 这个一般建议和Broker名字保持一致，一个Master加两个Slave会组成一个Group dLegerGroup=broker-a # 这个很关键，对于每一组Broker，你得保证他们的这个配置是一样的，在这里要写出来一个组里有哪几个Broker，比如在这里假设有三台机器部署了Broker，要让他们作为一个组，那么在这里就得写入他们三个的ip地址和监听的端口号 dLegerPeers=n0-192.168.0.3:40911;n1-192.168.0.5:40912;n2-192.168.0.6:40913 # 这个是代表了一个Broker在组里的id，一般就是n0、n1、n2之类的，这个你得跟上面的dLegerPeers中的n0、n1、n2相匹配 dLegerSelfId=n0 # 删除文件时间点，默认是凌晨4点 deleteWhen=04 # 文件保留时间，默认48小时 fileReservedTime=120 # 这个是发送消息的线程数量，一般建议你配置成跟你的CPU核数一样，比如我们的机器假设是24核的，那么这里就修改成24核 sendMessageThreadPoolNums=4 #在发送消息时，自动创建服务器不存在的topic，默认创建的队列数。由于是4个broker节点，所以设置为4 defaultTopicQueueNums=4 #是否允许 Broker 自动创建Topic，建议线下开启，线上关闭 autoCreateTopicEnable=true #是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭 autoCreateSubscriptionGroup=true # commitLog每个文件的大小，默认是1G mapedFileSizeCommitLog=1073741824 # ConsumeQueue每个文件默认存30W条，根据业务情况调整 mapedFileSizeConsumeQueue=300000 # destroyMapedFileIntervalForcibly=120000 # redeleteHangedFileInterval=120000 # 检测物理文件磁盘空间 diskMaxUsedSpaceRatio=88 # 限制的消息大小 maxMessageSize=65536 flushCommitLogLeastPages=4 flushConsumeQueueLeastPages=2 flushCommitLogThoroughInterval=10000 flushConsumeQueueThoroughInterval=60000 # Broker 的角色 # ASYNC_MASTER 异步复制Master # SYNC_MASTER 同步双写Master # SLAVE brokerRote=ASYNC_MASTER #刷盘方式 #- ASYNC_FLUSH 异步刷盘 #- SYNC_FLUSH 同步刷盘 flushDiskType=ASYNC_FLUSH # checkTransactionMessageEnable=false # 重试时间间隔 messageDelayLevel=1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h</p></div><footer class=entry-footer>2 min</footer><a class=entry-link aria-label="post link to RocketMQ配置" href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/rcoketmq%E9%85%8D%E7%BD%AE/></a></article><article class="post-entry tag-entry"><header class=entry-header><h2 class=entry-hint-parent>配置修改</h2></header><div class=entry-content><p>linux参数调整 1 2 3 4 5 6 7 8 # 修改vm.overcommit_memory=1，避免中间件申请内存时候报错 echo 'vm.overcommit_memory=1' >> /etc/sysctl.conf # 这个参数会影响开启线程的数量，默认是65535 echo 'vm.max_map_count=65536' >> /etc/sysctl.conf # 在centos磁盘上有一块区域叫swap，用来存放不活跃进程的数据，让该进程进入睡眠状态，最大值是100：最大限度让进程睡眠 echo 'vm.swappiness=10' >> /etc/sysctl.conf # linux上的最大文件连接数，如果并发量很高可能会报‘error: too many open files’，需要提高连接数 echo 'ulimit -n 100000' >> /etc/profile 根据需要调整RocketMQ的jvm参数 配置文件参数调整 1 2 # 发送消息的线程池的线程数量，可以根据CPU核数调整 sendMessageThreadPoolNums=16</p></div><footer class=entry-footer>1 min</footer><a class=entry-link aria-label="post link to 配置修改" href=https://wangxiaohong123.github.io/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/%E9%85%8D%E7%BD%AE%E4%BF%AE%E6%94%B9/></a></article></main><footer class=footer><span>&copy; 2025 <a href=https://wangxiaohong123.github.io/>王小红的笔记</a></span> ·
-<span>Powered by
-<a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
-<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
-</a><script>let menu=document.getElementById("menu");menu&&(menu.scrollLeft=localStorage.getItem("menu-scroll-position"),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}),document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var mybutton=document.getElementById("top-link");window.onscroll=function(){document.body.scrollTop>800||document.documentElement.scrollTop>800?(mybutton.style.visibility="visible",mybutton.style.opacity="1"):(mybutton.style.visibility="hidden",mybutton.style.opacity="0")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{document.body.className.includes("dark")?(document.body.classList.remove("dark"),localStorage.setItem("pref-theme","light")):(document.body.classList.add("dark"),localStorage.setItem("pref-theme","dark"))})</script></body></html>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 // 根据订单id，将同一个订单发送到同一个messageQueue中 // 异步send方法的四个参数：消息实体；messageQueue选择器；选择器参数o；回调函数； Long orderId = 0L; producer.send(message, (list, message1, o) -&gt; { Long orderId1 = (Long) o; // 根据队列取余 Long index = orderId1 % list.size(); return list.get(index.intValue()); }, orderId, new SendCallback() { @Override public void onSuccess(SendResult sendResult) { log.info(&#34;发送消息结果:{}&#34;, sendResult); } @Override public void onException(Throwable throwable) { throwable.printStackTrace(); log.error(&#34;发送失败&#34;); } }); 消费者代码：
+...</p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to 5.常见问题" href="http://localhost:1313/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/5.%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">RocketMQ配置
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p> 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 # 这个是集群的名称，你整个broker集群都可以用这个名称 brokerClusterName = RaftCluster # 这是Broker的名称，比如你有一个Master和两个Slave，那么他们的Broker名称必须是一样的，因为他们三个是一个分组，如果你有另外一组Master和两个Slave，你可以给他们起个别的名字，比如说RaftNode01 brokerName=broker-a #0 表示 Master，&gt;0 表示 Slave brokerId=0 # 这个就是你的Broker监听的端口号，如果每台机器上就部署一个Broker，可以考虑就用这个端口号，不用修改 listenPort=30911 # 这里是配置NameServer的地址，如果你有很多个NameServer的话，可以在这里写入多个NameServer的地址 namesrvAddr=192.168.0.3:9876 # 下面两个目录是存放Broker数据的地方，你可以换成别的目录，类似于是/usr/local/rocketmq/node00之类的 storePathRootDir=/usr/local/rocketmq/store/ # commitLog存储路径 storePathCommitLog=/usr/local/rocketmq/store/commitlog # 消费队列存储路径 storePathConsumeQueue=/usr/local/rocketmq/store/consumequeue # 消息索引存储路径 storePathIndex=/usr/local/rocketmq/store/index # checkpoint 文件存储路径 storeCheckpoint=/usr/local/rocketmq/store/checkpoint # abort 文件存储路径 abortFile=/usr/local/rocketmq/store/abort # 这个是非常关键的一个配置，就是是否启用DLeger技术，这个必须是true enableDLegerCommitLog=true # 这个一般建议和Broker名字保持一致，一个Master加两个Slave会组成一个Group dLegerGroup=broker-a # 这个很关键，对于每一组Broker，你得保证他们的这个配置是一样的，在这里要写出来一个组里有哪几个Broker，比如在这里假设有三台机器部署了Broker，要让他们作为一个组，那么在这里就得写入他们三个的ip地址和监听的端口号 dLegerPeers=n0-192.168.0.3:40911;n1-192.168.0.5:40912;n2-192.168.0.6:40913 # 这个是代表了一个Broker在组里的id，一般就是n0、n1、n2之类的，这个你得跟上面的dLegerPeers中的n0、n1、n2相匹配 dLegerSelfId=n0 # 删除文件时间点，默认是凌晨4点 deleteWhen=04 # 文件保留时间，默认48小时 fileReservedTime=120 # 这个是发送消息的线程数量，一般建议你配置成跟你的CPU核数一样，比如我们的机器假设是24核的，那么这里就修改成24核 sendMessageThreadPoolNums=4 #在发送消息时，自动创建服务器不存在的topic，默认创建的队列数。由于是4个broker节点，所以设置为4 defaultTopicQueueNums=4 #是否允许 Broker 自动创建Topic，建议线下开启，线上关闭 autoCreateTopicEnable=true #是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭 autoCreateSubscriptionGroup=true # commitLog每个文件的大小，默认是1G mapedFileSizeCommitLog=1073741824 # ConsumeQueue每个文件默认存30W条，根据业务情况调整 mapedFileSizeConsumeQueue=300000 # destroyMapedFileIntervalForcibly=120000 # redeleteHangedFileInterval=120000 # 检测物理文件磁盘空间 diskMaxUsedSpaceRatio=88 # 限制的消息大小 maxMessageSize=65536 flushCommitLogLeastPages=4 flushConsumeQueueLeastPages=2 flushCommitLogThoroughInterval=10000 flushConsumeQueueThoroughInterval=60000 # Broker 的角色 # ASYNC_MASTER 异步复制Master # SYNC_MASTER 同步双写Master # SLAVE brokerRote=ASYNC_MASTER #刷盘方式 #- ASYNC_FLUSH 异步刷盘 #- SYNC_FLUSH 同步刷盘 flushDiskType=ASYNC_FLUSH # checkTransactionMessageEnable=false # 重试时间间隔 messageDelayLevel=1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h </p>
+  </div>
+  <footer class="entry-footer">2 min</footer>
+  <a class="entry-link" aria-label="post link to RocketMQ配置" href="http://localhost:1313/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/rcoketmq%E9%85%8D%E7%BD%AE/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">配置修改
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>linux参数调整 1 2 3 4 5 6 7 8 # 修改vm.overcommit_memory=1，避免中间件申请内存时候报错 echo &#39;vm.overcommit_memory=1&#39; &gt;&gt; /etc/sysctl.conf # 这个参数会影响开启线程的数量，默认是65535 echo &#39;vm.max_map_count=65536&#39; &gt;&gt; /etc/sysctl.conf # 在centos磁盘上有一块区域叫swap，用来存放不活跃进程的数据，让该进程进入睡眠状态，最大值是100：最大限度让进程睡眠 echo &#39;vm.swappiness=10&#39; &gt;&gt; /etc/sysctl.conf # linux上的最大文件连接数，如果并发量很高可能会报‘error: too many open files’，需要提高连接数 echo &#39;ulimit -n 100000&#39; &gt;&gt; /etc/profile 根据需要调整RocketMQ的jvm参数 配置文件参数调整 1 2 # 发送消息的线程池的线程数量，可以根据CPU核数调整 sendMessageThreadPoolNums=16 </p>
+  </div>
+  <footer class="entry-footer">1 min</footer>
+  <a class="entry-link" aria-label="post link to 配置修改" href="http://localhost:1313/posts/%E6%A1%86%E6%9E%B6/mq/rocketmq/%E9%85%8D%E7%BD%AE%E4%BF%AE%E6%94%B9/"></a>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">王小红的笔记</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
