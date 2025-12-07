@@ -970,7 +970,7 @@
 &lt;h3 id="一条sql语句的执行步骤"&gt;一条sql语句的执行步骤&lt;/h3&gt;
 &lt;p&gt;当MySQL内部线程从网络连接解析出来一条sql语句的时候会提交SQL接口（MySQL提供的一个组件）去执行，SQL接口把sql语句交给SQl解析器，解析器将SQL按照SQL语法进行拆解，在到查询优化器找到最优查询路径最后通过执行器把优化后的最优路径方案一步一步提交给存储引擎执行。操作数据成功后，redo log中已经有了记录，这时候会添加binlog记录，binlog记录成功后会在redo log中写入这次更新数据的binlog文件名和文件中的位置，然后在redo log中写入commit标记，然后提交事务，到此，一条sql语句才算执行成功了。&lt;/p&gt;
 &lt;h5 id="innodb内存模型"&gt;innodb内存模型&lt;/h5&gt;
-&lt;p&gt;&lt;img loading="lazy" src="imgs/innodb%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="innodb线程模型" loading="lazy" src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/innodb%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B.png"&gt;&lt;/p&gt;
 &lt;p&gt;io thread：处理读写操作，使用show engine innodb status可以查看io 现成信息，一般分成4类：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;read thread：负责把数据页加载到内存；&lt;/li&gt;
@@ -1118,7 +1118,7 @@
 段：他是一个逻辑概念，用来申请空间和回收，一个段有256个区，常见的段有数据段、索引段、回滚段等等。
 区：由连续的页组成的空间，一个区有64个页，默认情况下一个页16k，所以一个区就是1M。
 页：存储多个连续row，常见的页类型有数据页、undo页、索引页等等。&lt;/p&gt;
-&lt;p&gt;&lt;img loading="lazy" src="imgs/%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img alt="表空间存储结构" loading="lazy" src="https://raw.githubusercontent.com/wangxiaohong123/p-bed/main/uPic/%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84.png"&gt;&lt;/p&gt;
 &lt;h5 id="2page结构"&gt;2）page结构&lt;/h5&gt;
 &lt;p&gt;innoDB的数据都是以页为单位存储的，每个数据页都有一个38字节的file header(描述信息) + 56字节的page header(存储页状态) + infimum + supermum records(26字节的最大最小行记录) + user records(存储的数据行记录) + free space(空闲空间大小) + page directory(页目录，存储数据记录的偏移量) + file trailer(8字节文件尾，用来校验页的完整性)。&lt;/p&gt;
 &lt;p&gt;file header中有上一页信息，file trailer有下一页的信息，这样数据页之间就组成了一个双向链表。&lt;/p&gt;
