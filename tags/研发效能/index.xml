@@ -88,28 +88,34 @@
 &lt;li&gt;领域故事陈述：梳理出每个业务的流程图&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 id="包分层"&gt;包分层&lt;/h3&gt;
-&lt;p&gt;com.xxx.xxx
-├── adapter ← 只负责“入站”（别人调用我）
-│ ├── controller
-│ ├── dubbo/facade ← Dubbo Provider 接口impl
-│ ├── mq/consumer ← MQ 消费者
-│ ├── scheduler ← 定时任务
-├── application ← 应用编排
-│ ├── executor
-│ ├── assembler ← 领域对象和DTO、VO相互转换
-│ ├── dto
-│ ├── command ← 执行命令
-│ ├── query ← 查询条件
-│ ├── vo ← 响应实体
-├── domain ← 领域层
-│ ├── model ← 领域对象
-│ ├── service ← 领域服务
-│ └── port ← 其他领域接口声明（Dubbo Consumer、mq接口、数据库操作包装）
-├── infrastructure ← 所有外依赖实现（调用别人）
-│ ├── repository ← 数据库操作
-│ ├── dubbo ← Dubbo Consumer 实现类
-│ ├── http ← Feign Client
-│ ├── mq/producer ← MQ 发送&lt;/p&gt;</description></item><item><title>DDD-2.入门</title><link>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/ddd/2.ddd/</link><pubDate>Thu, 24 Jun 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/ddd/2.ddd/</guid><description>&lt;p&gt;DDD是一套软件/系统的设计思想，目前没有一套完整的方法论。他建议用现实的场景映射我们的代码设计，传统的MVC主要是快，但是代码会全部堆积在service层，在拿到需求后，开始建库表，然后所有的代码都是面向数据库的，这样service的代码会越来越多，并且在面对复杂业务会很无力，DDD就是为了解决复杂场景下的代码设计。但是目前使用DDD做代码设计的非常少，因为资料少，实践困难，如果是一个微型团队，每个人负责几个子系统，每个人都需要定义自己子系统的通用语言，这样沟通很容易产生误会，最好是一个二三十人的团队，负责十几个系统，每个小团队负责一个系统（一个系统里可能包含很多服务），这样小团队之间用自己的自定语言，项目leader先划分好领域，然后建模，每个团队的leader在把自己的系统建模，这样才可以。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;com.xxx.xxx
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;adapter&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;controller ←只负责“入站”（别人调用我）&lt;/li&gt;
+&lt;li&gt;dubbo ←Dubbo Provider 接口impl&lt;/li&gt;
+&lt;li&gt;consumer ← MQ 消费者&lt;/li&gt;
+&lt;li&gt;scheduler ← 定时任务&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;application&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;executor&lt;/li&gt;
+&lt;li&gt;assembler ← 领域对象和DTO、VO相互转换&lt;/li&gt;
+&lt;li&gt;dto
+&lt;ul&gt;
+&lt;li&gt;command ← 执行命令&lt;/li&gt;
+&lt;li&gt;query ← 查询条件&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;vo ← 响应实体&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;domain&lt;/p&gt;</description></item><item><title>DDD-2.入门</title><link>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/ddd/2.ddd/</link><pubDate>Thu, 24 Jun 2021 06:27:35 +0000</pubDate><guid>https://wangxiaohong123.github.io/posts/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/ddd/2.ddd/</guid><description>&lt;p&gt;DDD是一套软件/系统的设计思想，目前没有一套完整的方法论。他建议用现实的场景映射我们的代码设计，传统的MVC主要是快，但是代码会全部堆积在service层，在拿到需求后，开始建库表，然后所有的代码都是面向数据库的，这样service的代码会越来越多，并且在面对复杂业务会很无力，DDD就是为了解决复杂场景下的代码设计。但是目前使用DDD做代码设计的非常少，因为资料少，实践困难，如果是一个微型团队，每个人负责几个子系统，每个人都需要定义自己子系统的通用语言，这样沟通很容易产生误会，最好是一个二三十人的团队，负责十几个系统，每个小团队负责一个系统（一个系统里可能包含很多服务），这样小团队之间用自己的自定语言，项目leader先划分好领域，然后建模，每个团队的leader在把自己的系统建模，这样才可以。&lt;/p&gt;
 &lt;h5 id="为什么要用ddd"&gt;为什么要用DDD？&lt;/h5&gt;
 &lt;p&gt;首先DDD的思想是面向对象的，更接近真实场景，其次在复杂系统的设计上DDD更优于传统三层架构，但如果三层架构把服务拆的足够微，我不觉得他比DDD弱，其实现在的DDD和十几年前的三层架构一样，当时三层架构刚刚开始流行，大部分公司没有接触过，就感觉很厉害，很难，几年之后，三层架构变成标配，在这种分层的思想已经固化的时候，出来了一个DDD，思想和三层架构有些差别，使用的少或者没使用就会感觉DDD很深奥，可能再过几年DDD普及之后就和现在的MVC一样了。DDD的价值是让开发和产品对业务有相同的理解，DDD的流程差不多是这样：&lt;/p&gt;
 &lt;p&gt;需求评审-&amp;gt;和产品、运营、用户定义通用语言-&amp;gt;业务建模-&amp;gt;架构设计(业务架构+技术架构)-&amp;gt;团队成员开始建模(实体、值对象、互动的流程)-&amp;gt;搭建工程、定义接口、代码落地(根据通用语言)&lt;/p&gt;
